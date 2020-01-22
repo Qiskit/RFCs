@@ -1,4 +1,7 @@
-# Qiskit RFCS
+# Qiskit RFCs
+The purpose of a Qiskit Request for Comments (RFC) is to communicate and engage
+with the community in the development and direction of Qiskit. RFCs enable
+engineering and research stakeholders to communicate large design changes.
 
 Many changes, including bug fixes and documentation improvements can be
 implemented and reviewed via the normal GitHub pull request workflow.
@@ -7,145 +10,87 @@ Some changes though are "substantial", and we ask that these be put through a
 bit of a design process and produce a consensus among the Qiskit community and
 the sub-teams.
 
-The purpose of a Qiskit Request for Comments (RFC) is to communicate and engage
-with the community in the development and direction of Qiskit. RFCs enable
-engineering and research stakeholders to communicate large design changes.
+# When Should You Write an RFC?
+RFC's should be reserved for 'substantial' changes to the Qiskit meta-package,
+its members and the RFC process itself. By this, we mean changes
+where the implementation path is not immediately clear and needs to be
+deconstructed by the larger Qiskit team.
 
+Questions you might ask yourself:
+- Will the implementation involve many developers?
+- Will the implementation span across multiple points in the Qiskit stack?
+- Will the changes cause ramifications for the average user?
+- Will the changes require collaboration with outside sources?
 
-## Table of Contents
-[Table of Contents]: #table-of-contents
-
-  - [Opening]
-  - [Table of Contents]
-  - [When you need to follow this process]
-  - [Before creating an RFC]
-  - [What the process is]
-  - [The RFC life-cycle]
-  - [Reviewing RFCs]
-  - [Implementing an RFC]
-  - [RFC Postponement]
-  - [Help this is all too informal!]
-  - [License]
-
-
-## When you need to follow this process
-[When you need to follow this process]: #when-you-need-to-follow-this-process
-
-You need to follow this process if you intend to make "substantial" changes to
-Qiskit. What constitutes a "substantial" change is evolving based on community
-norms and varies depending on what part of the ecosystem you are proposing to
-change, but may include the following.
-
-  - Any semantic or syntactic change to the language that is not a bugfix.
-  - Removing language features, including those that are feature-gated.
-  - Changes to the interface between the compiler and libraries, including lang
-    items and intrinsics.
-  - Additions to `std`.
-
-Some changes do not require an RFC:
-
-  - Rephrasing, reorganizing, refactoring, or otherwise "changing shape does
-    not change meaning".
-  - Additions that strictly improve objective, numerical quality criteria
-    (warning removal, speedup, better platform coverage, more parallelism, trap
-    more errors, etc.)
-  - Additions only likely to be _noticed by_ other developers-of-qiskit ,
-    invisible to users-of-qiskit.
-
-If you submit a pull request to implement a new feature without going through
-the RFC process, it may be closed with a polite request to submit an RFC first.
-
-
-### Sub-team specific guidelines
-[Sub-team specific guidelines]: #sub-team-specific-guidelines
-
-For more details on when an RFC is required for the following areas
-
-## Before creating an RFC
-[Before creating an RFC]: #before-creating-an-rfc
-
-A hastily-proposed RFC can hurt its chances of acceptance. Low quality
-proposals, proposals for previously-rejected features, or those that don't fit
-into the near-term roadmap, may be quickly rejected, which can be demotivating
-for the unprepared contributor. Laying some groundwork ahead of the RFC can
-make the process smoother.
-
-Although there is no single way to prepare for submitting an RFC, it is
-generally a good idea to pursue feedback from other project developers
-beforehand, to ascertain that the RFC may be desirable; having a consistent
-impact on the project requires concerted effort toward consensus-building.
-
-The most common preparations for writing and submitting an RFC include talking
-the idea over on our [official slack workspace]. You may file issues on this
-repo for discussion, but these are not as actively looked at by the teams.
-
-As a rule of thumb, receiving encouraging feedback from long-standing project
-developers, and particularly members of the relevant [sub-team] is a good
-indication that the RFC is worth pursuing.
-
-
-## What the process is
-[What the process is]: #what-the-process-is
-
-In short, to get a major feature added to Qiskit, one must first get the RFC
-merged into the RFC repository as a markdown file. At that point the RFC is
-"active" and may be implemented with the goal of eventual inclusion into Qiskit.
-
-  - Fork the RFC repo [RFC repository]
-  - Copy `0000-template.md` to `text/0000-my-feature.md` (where "my-feature" is
-    descriptive. don't assign an RFC number yet).
-  - Fill in the RFC. Put care into the details: RFCs that do not present
-    convincing motivation, demonstrate lack of understanding of the design's
-    impact, or are disingenuous about the drawbacks or alternatives tend to
-    be poorly-received.
-  - Submit a pull request. As a pull request the RFC will receive design
-    feedback from the larger community, and the author should be prepared to
-    revise it in response.
-  - Each pull request will be labeled with the most relevant [sub-team], which
-    will lead to its being triaged by that team in a future meeting and assigned
-    to a member of the subteam.
-  - Build consensus and integrate feedback. RFCs that have broad support are
-    much more likely to make progress than those that don't receive any
-    comments. Feel free to reach out to the RFC assignee in particular to get
-    help identifying stakeholders and obstacles.
-  - The sub-team will discuss the RFC pull request, as much as possible in the
-    comment thread of the pull request itself. Offline discussion will be
-    summarized on the pull request comment thread.
-  - RFCs rarely go through this process unchanged, especially as alternatives
-    and drawbacks are shown. You can make edits, big and small, to the RFC to
-    clarify or change the design, but make changes as new commits to the pull
-    request, and leave a comment on the pull request explaining your changes.
-    Specifically, do not squash or rebase commits after they are visible on the
-    pull request.
-  - At some point, a member of the subteam will propose a "motion for final
-    comment period" (FCP), along with a *disposition* for the RFC (merge, close,
-    or postpone).
-    - This step is taken when enough of the tradeoffs have been discussed that
-    the subteam is in a position to make a decision. That does not require
-    consensus amongst all participants in the RFC thread (which is usually
-    impossible). However, the argument supporting the disposition on the RFC
-    needs to have already been clearly articulated, and there should not be a
-    strong consensus *against* that position outside of the subteam. Subteam
-    members use their best judgment in taking this step, and the FCP itself
-    ensures there is ample time and notification for stakeholders to push back
-    if it is made prematurely.
-    - For RFCs with lengthy discussion, the motion to FCP is usually preceded by
-      a *summary comment* trying to lay out the current state of the discussion
-      and major tradeoffs/points of disagreement.
-    - Before actually entering FCP, *all* members of the subteam must sign off;
-    this is often the point at which many subteam members first review the RFC
-    in full depth.
-  - The FCP lasts ten calendar days, so that it is open for at least 5 business
-    days.
-  - In most cases, the FCP period is quiet, and the RFC is either merged or
-    closed. However, sometimes substantial new arguments or ideas are raised,
-    the FCP is canceled, and the RFC goes back into development mode.
+# Process
+- Fork the [Qiskit repository](https://github.com/Qiskit/qiskit)
+- Copy the template [0000-template.md](0000-template.md) to
+`####-rfc-title.md`, do not yet assign a number. If the RFC requires additional
+files, it may be placed in the `text` folder with the name `####-rfc-title`.
+- Fill in the template with your RFC. Be thorough and convincing, use proper
+grammar and technical language where appropriate. The aim of an RFC is to
+convey both a change and a vision for the future it will enable, you must
+convince the larger Qiskit team that it is valuable.
+- Submit a pull request to the Qiskit meta-package titled "[RFC] RFC Title"
+- Each RFC will be labeled with the relevant packages, so that the respective
+maintainers of the packages may be notified of the RFC.
+- The RFC will be triaged and if it is of sufficient quality a
+*review committee* will be formed by assigning the PR to a group of
+*committee members* who are each maintainer(s) of the relevant Qiskit packages.
+Committee members are responsible for moderating the development of the RFC and
+acceptance or closure of the RFC. It is expected that RFC should fail in the
+early, rather than later stages of the development cycle. If the RFC author is
+themselves a maintainer of one of the relevant packages, they should not be a
+committee member for their own RFC.
+- Interested parties should discuss and modify the RFC within the pull-request.
+Efforts should be made to summarize offline discussions within the PR. The aim
+is to capture the outcome of discussion within the RFC, and the flow of
+development within the PR.
+- The RFC will go through many iterations at this stage, *do not* squash/rebase
+the RFC commits. The aim is to capture the history of the document.
+- When the RFC has satisfied a committee member, they should review and approve
+the PR. If it is not progressing satisfactorily, or supported by the review
+committee it may be closed at any time. This may be petitioned by reopening the
+PR, along with a potential request for a new review committee.
+- Upon approval by all review committee members, the RFC will be assigned a
+number of `max(rfc_####) + 1`, the filename will be updated to reflect this and
+the author list should be validated. Note that as Qiskit is still undergoing
+rapid-development there is no required grace period between acceptance and
+merger, as the project matures this is expected to change.
+- The RFC will then be merged by one of the committee members.
+- After acceptance, the implementation of the contents of the RFC may proceed.
 
 ## The RFC life-cycle
-[The RFC life-cycle]: #the-rfc-life-cycle
 
 Once an RFC becomes "active" then authors may implement it and submit the
-feature as a pull request to the relevent Qiskit repos. Being "active" is not
+feature as a pull request to the relevant Qiskit repos. Being "active" is not
+a rubber stamp, and in particular still does not mean the feature will
+ultimately be merged; it does mean that in principle all the major stakeholders
+have agreed to the feature and are amenable to merging it.
+
+Furthermore, the fact that a given RFC has been accepted and is "active"
+implies nothing about what priority is assigned to its implementation, nor does
+it imply anything about whether a Qiskit developer has been assigned the task of
+implementing the feature. While it is not *necessary* that the author of the
+RFC also write the implementation, it is by far the most effective way to see
+an RFC through to completion: authors should not expect that other project
+developers will take on responsibility for implementing their accepted feature.
+
+Modifications to "active" RFCs can be done in follow-up pull requests. We
+strive to write each RFC in a manner that it will reflect the final design of
+the feature; but the nature of the process means that we cannot expect every
+merged RFC to actually reflect what the end result will be at the time of the
+next major release.
+
+In general, once accepted, RFCs should not be substantially changed. Only very
+minor changes should be submitted as amendments. More substantial changes
+should be new RFCs, with a note added to the original RFC. Exactly what counts
+as a "very minor change" is up to the committee to decide.
+
+## The RFC life-cycle
+
+Once an RFC becomes "active" then authors may implement it and submit the
+feature as a pull request to the relevant Qiskit repos. Being "active" is not
 a rubber stamp, and in particular still does not mean the feature will
 ultimately be merged; it does mean that in principle all the major stakeholders
 have agreed to the feature and are amenable to merging it.
@@ -170,45 +115,21 @@ should be new RFCs, with a note added to the original RFC. Exactly what counts
 as a "very minor change" is up to the sub-team to decide; check
 [Sub-team specific guidelines] for more details.
 
+## Sub-package guidelines
+For more details on RFCs for specific Qiskit projects see the guidelines for
+each sub-package:
 
-## Reviewing RFCs
-[Reviewing RFCs]: #reviewing-rfcs
+### Qiskit Terra
 
-While the RFC pull request is up, the sub-team may schedule meetings with the
-author and/or relevant stakeholders to discuss the issues in greater detail,
-and in some cases the topic may be discussed at a sub-team meeting. In either
-case a summary from the meeting will be posted back to the RFC pull request.
+### Qiskit Aer
 
-A sub-team makes final decisions about RFCs after the benefits and drawbacks
-are well understood. These decisions can be made at any time, but the sub-team
-will regularly issue decisions. When a decision is made, the RFC pull request
-will either be merged or closed. In either case, if the reasoning is not clear
-from the discussion in thread, the sub-team will add a comment describing the
-rationale for the decision.
+### Qiskit Ignis
 
+### Qiskit Aqua
 
-## Implementing an RFC
-[Implementing an RFC]: #implementing-an-rfc
-
-Some accepted RFCs represent vital features that need to be implemented right
-away. Other accepted RFCs can represent features that can wait until some
-arbitrary developer feels like doing the work. Every accepted RFC has an
-associated issue tracking its implementation in the Qiskit repositories that
-are part of the RFC; thus that associated issue can be assigned a priority via
-the triage process that the sub-team uses for all issues in their respective
-Qiskit repositories.
-
-The author of an RFC is not obligated to implement it. Of course, the RFC
-author (like any other developer) is welcome to post an implementation for
-review after the RFC has been accepted.
-
-If you are interested in working on the implementation for an "active" RFC, but
-cannot determine if someone else is already working on it, feel free to ask
-(e.g. by leaving a comment on the associated issue).
-
+### Qiskit IBMQ Provider
 
 ## RFC Postponement
-[RFC Postponement]: #rfc-postponement
 
 Some RFC pull requests are tagged with the "postponed" label when they are
 closed (as part of the rejection process). An RFC closed with "postponed" is
@@ -225,17 +146,19 @@ ever possibly consider making this change, as outlined in the RFC pull request,
 or some semi-obvious variation of it." (When the answer to the latter question
 is "no", then the appropriate response is to close the RFC, not postpone it.)
 
+# Contributors
+An *RFC author* write and champions and RFC through the process.
 
-### Help this is all too informal!
-[Help this is all too informal!]: #help-this-is-all-too-informal
+A *community member* provides feedback on an RFC either as a PR comment, or an
+edit to the RFC.
 
-The process is intended to be as lightweight as reasonable for the present
-circumstances. As usual, we are trying to let the process be driven by
-consensus and community norms, not impose more structure than necessary.
+A *review committee* is the group *committee members*, all of which are RFC PR
+assignees and are maintainers of one or many of the Qiskit meta-package
+projects. The committee is responsible for guiding, reviewing and finally
+closing/approving the RFC.
 
-
-[RFC repository]: http://github.com/Qiskit/rfcs
-[sub-team]: https://github.com/Qiskit
+# Template
+Use the [Qiskit RFC template](0000-template.md) to prepare your RFC.
 
 ## License
 [License]: #license
@@ -243,8 +166,3 @@ consensus and community norms, not impose more structure than necessary.
 This repository is licensed under
 
  Apache License, Version 2.0, ([LICENSE](LICENSE) or http://www.apache.org/licenses/LICENSE-2.0)
-
-### Contributions
-
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license.
