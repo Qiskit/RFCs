@@ -100,7 +100,7 @@ each sub-package:
 
 ### Qiskit Aqua
 
-RfC's which are primarily or substantially relevant to Aqua must be reviewed in Aqua's weekly _design review_ meeting, with few exceptions. The rules and process of design review are as follows:
+RfCs which are primarily or substantially relevant to Aqua must be reviewed in Aqua's weekly _design review_ meeting, with few exceptions. The rules and process of design review are as follows:
 * **Initiation and Scheduling:** Once sufficent discussion has occured and the RfC has settled into a near-complete form, the author(s) should note on the PR that the RfC is ready for review. At this point, the Aqua committee member assigned to the RfC will contact the RfC author(s) to schedule a design review slot, determine who on the broader Qiskit team should be invited to the review, and send a meeting invitation to the review attendees. At least 48 hours before design review, a reminder email will be sent to the attendees, including the RfC. Any changes to the RfC during that 48 hour window will be assumed not to have been seen by the review attendees.
 * **Design Review Meeting**
     * The Aqua committee member will conduct the meeting, including tabling larger-topics to keep the discussion on track.
