@@ -23,7 +23,7 @@ Questions you might ask yourself:
 - Will the changes require collaboration with outside sources?
 
 # Process
-- Fork the [Qiskit repository](https://github.com/Qiskit/qiskit)
+- Fork the [rfcs repository](https://github.com/Qiskit/rfcs)
 - Copy the template [0000-template.md](0000-template.md) to
 `####-rfc-title.md`, do not yet assign a number. If the RFC requires additional
 files, it may be placed in the `text` folder with the name `####-rfc-title`.
