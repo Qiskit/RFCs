@@ -8,8 +8,6 @@
 | **Submitted**     | YYYY-MM-DD                                   |
 | **Updated**       | YYYY-MM-DD                                   |
 
-RFC markdown filename should be of the form `####-rfc-title.md`. Where #### will be set as `max(rfc_####) + 1` after the acceptance of the RFC, but before its merger. If the RFC requires supporting files, a folder may be created with the same name as the RFC, `####-rfc-title`, in which the RFC should reside.
-
 ## Summary
 Error mitigation can greatly improve results on noisy quantum hardware.
 This is done by running a given quantum circuit several times.
