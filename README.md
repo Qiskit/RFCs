@@ -85,35 +85,8 @@ next major release.
 In general, once accepted, RFCs should not be substantially changed. Only very
 minor changes should be submitted as amendments. More substantial changes
 should be new RFCs, with a note added to the original RFC. Exactly what counts
-as a "very minor change" is up to the committee to decide.
-
-## The RFC life-cycle
-
-Once an RFC becomes "active" then authors may implement it and submit the
-feature as a pull request to the relevant Qiskit repos. Being "active" is not
-a rubber stamp, and in particular still does not mean the feature will
-ultimately be merged; it does mean that in principle all the major stakeholders
-have agreed to the feature and are amenable to merging it.
-
-Furthermore, the fact that a given RFC has been accepted and is "active"
-implies nothing about what priority is assigned to its implementation, nor does
-it imply anything about whether a Qiskit developer has been assigned the task of
-implementing the feature. While it is not *necessary* that the author of the
-RFC also write the implementation, it is by far the most effective way to see
-an RFC through to completion: authors should not expect that other project
-developers will take on responsibility for implementing their accepted feature.
-
-Modifications to "active" RFCs can be done in follow-up pull requests. We
-strive to write each RFC in a manner that it will reflect the final design of
-the feature; but the nature of the process means that we cannot expect every
-merged RFC to actually reflect what the end result will be at the time of the
-next major release.
-
-In general, once accepted, RFCs should not be substantially changed. Only very
-minor changes should be submitted as amendments. More substantial changes
-should be new RFCs, with a note added to the original RFC. Exactly what counts
 as a "very minor change" is up to the sub-team to decide; check
-[Sub-team specific guidelines] for more details.
+[Sub-package guidelines] for more details.
 
 ## Sub-package guidelines
 For more details on RFCs for specific Qiskit projects see the guidelines for
@@ -126,6 +99,20 @@ each sub-package:
 ### Qiskit Ignis
 
 ### Qiskit Aqua
+
+RfC's which are primarily or substantially relevant to Aqua must be reviewed in Aqua's weekly _design review_ meeting, with few exceptions. The rules and process of design review are as follows:
+* **Initiation and Scheduling:** Once sufficent discussion has occured and the RfC has settled into a near-complete form, the author(s) should note on the PR that the RfC is ready for review. At this point, the Aqua committee member assigned to the RfC will contact the RfC author(s) to schedule a design review slot, determine who on the broader Qiskit team should be invited to the review, and send a meeting invitation to the review attendees. At least 48 hours before design review, a reminder email will be sent to the attendees, including the RfC. Any changes to the RfC during that 48 hour window will be assumed not to have been seen by the review attendees.
+* **Design Review Meeting**
+    * The Aqua committee member will conduct the meeting, including tabling larger-topics to keep the discussion on track.
+    * Attendees must read the design doc ahead of time to participate in the discussion. If they do not, they are choosing to be a listener only. The discussion will begin with each attendee sharing whether they've read the RfC, and their high-level impressions and/or concerns (about 2 minutes each).
+    * Author(s) will then spend 15-20 minutes talking about their intentions with the doc and the open questions they need answered by the review participants.
+    * Finally, each participant will give a recommendation:
+        * Approve - begin implementation
+        * Conditionally approve - Begin implementation once some small questions are answered offline
+        * Rereview - review again after more information is collected before implementing
+        * Downscope - Revise the project's scope or direction and rereview before implementing
+    * The Aqua committee member will decide the status of the RfC, or how to proceed, based on the recommendation tally.
+* **Final Approval** Following review, the discussion should be posted to the PR, including any action items. If approved or conditionally approved, the Aqua committee member will review the final document or changes, and approve and merge when appropriate. If designated for rereview or downscoping, the author(s) should address the concerns of the review participants, and re-initiate the design review process once ready.
 
 ### Qiskit IBMQ Provider
 
