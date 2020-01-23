@@ -72,3 +72,9 @@ site/
 
 # pdf
 *.pdf
+
+# PyCharm
+*.idea
+
+#Mac OS X
+.DS_Store
