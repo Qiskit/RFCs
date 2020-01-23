@@ -145,7 +145,8 @@ projects. The committee is responsible for guiding, reviewing and finally
 closing/approving the RFC.
 
 # Template
-Use the [Qiskit RFC template](0000-template.md) to prepare your RFC.
+Use the [Qiskit RFC template](0000-template.md) to prepare your RFC. Jupyter 
+notebooks (.ipynb files) may also be used with the same template. 
 
 ## License
 [License]: #license
