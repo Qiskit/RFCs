@@ -1,11 +1,11 @@
-# Features and necessity of the quantum algorithm type
+# [WIP] Features and necessity of the quantum algorithm type
 
-| **Status**    | **Proposed**                              |
-| :------------ | :---------------------------------------- |
-| **RFC #**     | ####                                      |
-| **Authors**   | First Author (first.author@ibm.com),  ... |
-| **Submitted** | YYYY-MM-DD                                |
-| **Updated**   | YYYY-MM-DD                                |
+| **Status**    | **Proposed**                                                          |
+| :------------ | :-------------------------------------------------------------------- |
+| **RFC #**     | ####                                                                  |
+| **Authors**   | Julien Gacon (jul@zurich.ibm.com), Stefan Wörner (wor@zurich.ibm.com) |
+| **Submitted** | 2020-01-28                                                            |
+| **Updated**   | YYYY-MM-DD                                                            |
 
 ## Summary
 
