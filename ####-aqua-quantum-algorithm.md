@@ -1,20 +1,27 @@
-# [WIP] Features and necessity of the quantum algorithm type
+# [WIP] Aqua's QuantumAlgorithm: Interfaces, Instance Reuse, and Organization
 
-| **Status**    | **Proposed**                                                          |
-| :------------ | :-------------------------------------------------------------------- |
-| **RFC #**     | ####                                                                  |
-| **Authors**   | Julien Gacon (jul@zurich.ibm.com), Stefan Wörner (wor@zurich.ibm.com) |
-| **Submitted** | 2020-01-28                                                            |
-| **Updated**   | YYYY-MM-DD                                                            |
+| **Status**    | **Proposed**                         |
+| :------------ | :------------------------------------|
+| **RFC #**     | ####                                 |
+| **Authors**   | Julien Gacon (jul@zurich.ibm.com),   |
+|               | Stefan Wörner (wor@zurich.ibm.com),  |
+|               | Donny Greenberg (donny@ibm.com)      |
+| **Submitted** | 2020-01-28                           |
+| **Updated**   | YYYY-MM-DD                           |
 
 ## Summary
 
-Aqua's quantum algorithms are of type `QuantumAlgorithm`, which dictates that all algorithms
-must are executed through a  `run` method whose arguments specify the backend used for circuit
-execution.
+Aqua's quantum algorithms are of type `QuantumAlgorithm`, which dictates that all algorithms must be executed via a  `run` method whose arguments specify the backend used for circuit execution.
+
+The below proposal introduces the following:
+1. **Interface Classes** - Non-mutually-exclusive base classes for various types of algorithms, such as MinEigensolver, ClassicalAlgorithm, Classifier, or AmplitudeEstimator, enforcing a consistent execution signature (`get_min_eigenvalue()`) which is still flexible enough to support diverse execution flows for different algorithm _types._
+1. **Remove `.run` Requirement** - For algorithms where a `.run(backend)` execution interface is not natural, such as Classifiers (init, train, test, predict), remove the requirement that QuantumAlgorithms include a `run(backend)` method as it is no longer required for dictionary-based execution.
+1. **Incomplete Construction and Reuse** - Give algorithms the discretion for some constructor parameters to be left empty for population later, and for some execution methods to be reusable with different objects passed in (e.g. `my_expectation.get_expectation(my_circ)`)
+1. **Directory Simplification** - Remove the non-standard `single-sample`, `many-sample`, and `adaptive` nomenclature from the algorithms directory in favor of a flatter, simpler structure (TODO link below), and promote the Optimizers into the algorithms directory, as they are algorithms.
+
 This enforces several restrictions, such as not being able to use different backends or adaptive
 settings. Further, the current structure makes passing algorithm instances to meta algorithms
-difficult and hacky since once instanciated the problem the algorithm solves is usually fixed.
+difficult and hacky since once instantiated the problem the algorithm solves is usually fixed.
 
 This RFC discusses the issues of the current `QuantumAlgorithm` and tries to assess, whether
 this base type is still useful or if it might complicate the development of quantum algorithms.
