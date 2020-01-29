@@ -1,4 +1,4 @@
-# [WIP] Aqua's QuantumAlgorithm: Interfaces, Instance Reuse, and Organization
+# Aqua's QuantumAlgorithm: Interfaces, Instance Reuse, and Organization
 
 | **Status**    | **Proposed**                        |
 | :------------ | :---------------------------------- |
@@ -7,7 +7,7 @@
 |               | Stefan Wörner (wor@zurich.ibm.com), |
 |               | Donny Greenberg (donny@ibm.com)     |
 | **Submitted** | 2020-01-28                          |
-| **Updated**   | YYYY-MM-DD                          |
+| **Updated**   | 2020-01-29                          |
 
 ## Summary
 
