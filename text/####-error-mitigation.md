@@ -48,7 +48,7 @@ When implementing error mitigation using stretch factors, as is done in https://
 To implement error mitigation in the manner the backend could have a set of pre-defined calibrated pulses with different stretch factors.
 For instance, following Kandala et al., the backend could store calibrated pulses for c=1 (i.e. the pulses used in regular operations), c=1.1, c=1.25, and c=1.5.
 At execute time, the user would specify that he wants to run a quantum circuit using error mitigation.
-The pulse scheduler would then create four copies of the quantum circuit, each with a different stretch factor supported by the backend.
+The assembler would then create four copies of the quantum circuit, each with a different stretch factor supported by the backend.
 Alternatively, the user could elect to use only a subset of the calibrate stretch factors.
 
 **The advantages of this method are:**
