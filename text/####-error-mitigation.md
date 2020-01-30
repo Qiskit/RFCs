@@ -150,7 +150,7 @@ This value would by default be `None` when error mitigation is not used.
 The changes needed in Qiskit to implement error mitigation would require changes in the `assemble` function.
 `assemble` would detect that the user requires error mitigation and replace each circuit by several circuits, one for each stretch factor.
 The `experiments` in the resulting `qobj` would have an entry in the header that specifies the stretch factor.
-For example, the `qobj` for two circuits (`circA` and `circB`) to be run with error mitigation with three stretch factors would look like
+For example, the `qobj` for two circuits (`circA` and `circB`) to be run with error mitigation with three stretch factors would include six experiments, four of which would look like
 ```
 print(qobj.experiments[0])
 {
@@ -220,6 +220,18 @@ This will then signal to the backend what type of gates to use to execute each c
 ### Result returned by the backend
 The result returned by the backend would contain the results for the circuits executed with different stretch factors.
 This result object could then be given to a Richardson error mitigation module in Qiskit Ignis that would perform the extrapolation to the zero-noise limit.
+This module would need to know which result is associated to which quantum circuit and stretch factor.
+This may be done by adding the required stretch factor as a parameter in the header of the result. For the example above, with `circA` and `circB`, the backend may return the `mitigated_result` in which the header of each result may look like
+
+print(mitigated_result.results[0].header)
+Obj(name='circA', stretch_factor='1.0')
+print(mitigated_result.results[1].header)
+Obj(name='circA', stretch_factor='1.1')
+print(mitigated_result.results[3].header)
+Obj(name='circB', stretch_factor='1.0')
+print(mitigated_result.results[4].header)
+Obj(name='circB', stretch_factor='1.1')
+
 Ideally, this module will give the user some freedom in how this extrapolation is done.
 
 Here are some additional considerations:
