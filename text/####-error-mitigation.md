@@ -223,6 +223,7 @@ This result object could then be given to a Richardson error mitigation module i
 This module would need to know which result is associated to which quantum circuit and stretch factor.
 This may be done by adding the required stretch factor as a parameter in the header of the result. For the example above, with `circA` and `circB`, the backend may return the `mitigated_result` in which the header of each result may look like
 
+```
 print(mitigated_result.results[0].header)
 Obj(name='circA', stretch_factor='1.0')
 print(mitigated_result.results[1].header)
@@ -231,6 +232,7 @@ print(mitigated_result.results[3].header)
 Obj(name='circB', stretch_factor='1.0')
 print(mitigated_result.results[4].header)
 Obj(name='circB', stretch_factor='1.1')
+```
 
 Ideally, this module will give the user some freedom in how this extrapolation is done.
 
