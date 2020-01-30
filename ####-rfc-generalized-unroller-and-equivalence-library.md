@@ -125,7 +125,7 @@ Practically, within the context of the transpiler, these translations will be fo
 
 The `EquivalenceLibrary` interface allows for recording and retrieval of interchangeable sets of instructions.
 It is used by transpiler developers to store and retrieve identities, or equivalent replacements.
-Equivalent here means unitarily equivalent, *not* equivalence to a global phase.
+Equivalent here means unitarily equivalent, *not* equivalence up to a global phase or up to a permutation (which could be introduced later).
 
 Users can easily access the decompositions for a given gate via the `.decompositions` property.
 Previously, gates stored only a single definition in their `.definition` property, which has been deprecated.
