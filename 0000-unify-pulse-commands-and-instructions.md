@@ -63,6 +63,18 @@ This will be both an enhancement for:
 - Codebase contributors and maintainers as there will be fewer classes to maintain and understand.
 
 ## Design Proposal
+The current root pulse `Instruction` has both a `command` attribute which holds a `Command` and a tuple of `channels` to which it applies.
+We will remove the current pulse `Instruction` and replace it with an implementation that is a class with an `operands` attribute that contains all operands that the instruction acts on, including both pulses and constants such as floats.
+
+The `Command` will be deprecated. `Pulse`
+
+
+### Deprecation Path
+All `Command`s except `PulseCommand` and `Delay` will be gracefully deprecated by renaming the command with a new instruction as in the table above. Initializing a deprecated `Command` will emit a warning, calling the command to convert it to an instruction will be modified to yield the new version of the `Instruction` as outlined above. The following edge-cases will be handled by:
+- `PulseCommand`: `PulseCommand` will be converted to a `Pulse` and all pulse classes will inherit from this. Calling a `Pulse` with a `Channel` as input will now yield an instruction of the form `Play(pulse, channel)` this will enable the same syntax for instructions to be kept.
+- `Delay`: Delay will be converted from a command to a new `Instruction` type. For the deprecation period the `Channel` argument will be made optional but if not supplied will emit a warning and a `None` type will be set for the second operands attribute. Calling the `Delay` instruction with a `Channel` will yield a new `Delay` instruction with the `duration` of the original `Delay` and the second `channel` operand being the input channel. If `Delay` instruction with a `channel` attribute of `None` makes it to assembly, an error shall be raised.
+
+
 This is the focus of the document. Explain the proposal from the perspective of
 educating another user on the proposed features.
 
@@ -80,14 +92,6 @@ Factors to consider:
 - Dependencies
 - Maintenance
 - Compatibility
-
-## Detailed Design
-Technical reference level design. Elaborate on details such as:
-- Implementation procedure
-  - If spans multiple projects cover these parts individually
-- Interaction with other features
-- Dissecting corner cases
-- Reference definition, eg., formal definitions.
 
 ## Alternative Approaches
 Discuss other approaches to solving this problem and why these were not
