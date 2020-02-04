@@ -120,34 +120,209 @@ Communication of changes to users will be performed with a reno entry for the ch
 ## Detailed Design
 
 ### Classes
-####`Pulse(ABC)`
+#### Pulse
 
-properties:
-- `duration` (abstract)
+```python
+class Pulse(ABC):
 
-####`Instruction(ABC)`
+  @property
+  @abstractmethod
+  def duration(self) -> int:
+    ...
 
-properties:
-- `duration` (abstract)
-- `operands` (abstract)
-- `channels` (abstract)
+  @property
+  @abstractmethod
+  def name(self) -> str:
+    ...
 
-#### `SamplePulse(Pulse)`
-Same as current `SamplePulse`
+  def __call__(self, channel: PulseChannel) -> Play:
+    return Play(self, channel)
+```
 
-#### `ParametricPulse(Pulse)`
-Same as current `ParametricPulse`
+#### Instruction
+```python
+class Instruction(ABC):
+  def __init__(self, *operands) -> Instruction:
+    ...
 
-####`SetPhase(ABC)`
+  @property
+  @abstractmethod
+  def duration(self) -> int:
+    ...
 
-properties:
-- `duration` (abstract)
-- `operands` (abstract)
-- `channels` (abstract)
+  @property
+  def operands(self) -> Tuple[Any, ...]:
+    return operands
 
+  @property
+  @abstractmethod
+  def channels -> Tuple[Channel, ...]:
+    ...
+```
 
+#### SamplePulse
+```python
+class SamplePulse(Pulse):
+  # otherwise unchanged
+  ...
+```
+
+#### `ParametricPulse`
+```python
+class ParametricPulse(Pulse):
+  # otherwise unchanged
+  ...
+```
+
+#### Play
+```python
+class Play(Instruction):
+  def __init__(self, pulse: Pulse, channel: PulseChannel) -> Play:
+    super().__init__(pulse, channel)
+
+  @property
+  def duration(self) -> int:
+    return pulse.duration
+
+  @property
+  def channels:
+    return (channel,)
+
+  @property
+  def pulse(self) -> Pulse:
+    return pulse
+
+  @property
+  def pulse_name(self) -> str:
+    return pulse.name
+```
+
+#### ShiftPhase
+```python
+class ShiftPhase(Instruction):
+  def __init__(self, phase: float, channel: PulseChannel) -> ShiftPhase:
+    super().__init__(phase, channel)
+
+  @property
+  def duration(self) -> int:
+    return 0
+
+  @property
+  def channels:
+    return (channel,)
+
+  @property
+  def phase(self) -> float:
+    return phase
+```
+
+#### SetPhase
+```python
+class SetPhase(Instruction):
+  def __init__(self, phase: float, channel: PulseChannel) -> SetPhase:
+    super().__init__(phase, channel)
+
+  @property
+  def duration(self) -> int:
+    return 0
+
+  @property
+  def channels:
+    return (channel,)
+
+  @property
+  def phase(self) -> float:
+    return phase
+```
+
+#### SetFrequency
+```python
+class SetFrequency(Instruction):
+  def __init__(self, frequency: float, channel: PulseChannel) -> SetFrequency:
+    super().__init__(frequency, channel)
+
+  @property
+  def duration(self) -> int:
+    return 0
+
+  @property
+  def channels:
+    return (channel,)
+
+  @property
+  def frequency(self) -> float:
+    return frequency
+```
+
+#### ShiftFrequency
+```python
+class ShiftFrequency(Instruction):
+  def __init__(self, frequency: float, channel: PulseChannel) -> ShiftFrequency:
+    super().__init__(frequency, channel)
+
+  @property
+  def duration(self) -> int:
+    return 0
+
+  @property
+  def channels:
+    return (channel,)
+
+  @property
+  def frequency(self) -> float:
+    return frequency
+```
+
+#### Acquire
+```python
+class Acquire(Instruction):
+  def __init__(self, duration: float, channel: AcquireChannel,
+               register: Union[MemorySlot, RegisterSlot],
+               kernel: Optional[Kernel], discriminator: Optional[Discriminator]) -> Acquire:
+    super().__init__(duration, channel, register,
+                     kernel, discriminator)
+
+  @property
+  def duration(self) -> int:
+    return duration
+
+  @property
+  def channels(self):
+    return (channel, register)
+
+  @property
+  def kernel(self) -> Kernel:
+    return kernel
+
+  @property
+  def discriminator(self) -> Discriminator:
+    return discriminator
+```
+
+#### Snapshot
+```python
+class Snapshot(Instruction):
+  def __init__(self, label: str, snapshot_type: str) -> Snapshot:
+    super().__init__(label, snapshot_type)
+
+  @property
+  def label(self):
+    return label
+
+  @property
+  def snapshot_type(self):
+    return snapshot_type
+
+  @property
+  def duration(self):
+    return 0
+
+  @property
+  def channels:
+    return (SnapshotChannel(0),)
+```
 ## Alternative Approaches
-At this time the alternative approach is to leave the API as is.
+At this time the alternative approach is to leave the API as is and continue to have both `Command`s and `Instruction`s. This would allow some useful features such as being able to define reusable fixed `FrameChange`s but this comes at the cost of a cumbersome user interface.
 
 ## Questions
 - Have all possible breaking changes for the current interface been covered? If so do graceful deprecation paths exist?
