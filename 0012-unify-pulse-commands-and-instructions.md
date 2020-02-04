@@ -1,6 +1,6 @@
 # Unify Pulse Commands and Instructions
 
-| **Status**        | **Proposed/Accepted/Deprecated**             |
+| **Status**        | **Proposed**             |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0012                                         |
 | **Authors**       | Thomas Alexander (talexander@ibm.com)        |
