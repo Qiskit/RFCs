@@ -9,22 +9,22 @@
 | **Updated**       | 2020-02-04                                   |
 
 ## Summary
-`Command`s were initially created to allow pulses to be only defined once as a `SamplePulse` and then have its usage tracked based on the class instance by equality checking. To enable this every `Instruction` instance was then defined as containing a `Command` and its `Channel` operands that the command would be applied to. This has led to a confusing API as one must first define a command and then call it with a channel to emit an instruction. We we propose a way of gracefully unifying `Command`s and `Instruction`s to make pulse programming more straightforward and in-line with traditional instruction sets.
+`Command`s were initially created so as to allow pulses to be only defined once as a `SamplePulse` and then have their usage tracked based on the class instance through equality checking. To enable this, every `Instruction` instance was defined as containing a `Command` and its `Channel` operands that the command would be applied to. This resulted in a confusing API as one must first define a command and then call it with a channel to emit an instruction. We we propose a way of gracefully unifying `Command`s and `Instruction`s to make pulse programming more straightforward and in-line with traditional instruction sets.
 
 ## Motivation
 The duplication of `Command`s and `Instruction`s has resulted in a confusing API with many statements that look like:
 ```python
-PulseCommand(...)(channel1, channel2, ...)
+Command(...)(channel1, channel2, ...)
 ```
-This yields an instruction. This can be created more explicitly with:
+which yields an instruction. This can be created more explicitly with:
 ```python
-PulseInstruction(PulseCommand(...), channel1, channel2, ...)
+Instruction(Command(...), channel1, channel2, ...)
 ```
 
-If we were to unify commands with instructions a generic instruction would accept a list of operands that could be either a numeric parameter like a complex or a channel to operate on,
+If we were to unify commands with instructions a generic instruction would accept a list of operands that could be either a numeric parameter like a `float` or a `Channel` to operate on,
 eg.:
 ```python
-PulseInstruction(operand1, operand2, ...)
+Instruction(operand1, operand2, ...)
 ```
 
 For example, a frame change would go from,
@@ -44,7 +44,7 @@ ShiftPhase(0.0, DriveChannel(0))
 
 where `ShiftPhase` is of type `Instruction`.
 
-The desired behavior of reusing a single pulse multiple times could then be retained by defining a `Pulse` type and defining a `Play` instruction that would accept a `Pulse` and a `Channel`:
+The desired behavior of reusing a single pulse multiple times could still be retained by defining a `Pulse` type and defining a `Play` instruction that would accept a `Pulse` and a `Channel`:
 
 ```python
 random_pulse = SamplePulse(np.random.random(10))
@@ -110,7 +110,7 @@ The `Command`s will be gracefully deprecated with the procedures defined in the 
 | `Instruction`  | This is not a user-facing class from an API interface perspective. This will be rewritten as per the outline in the detailed design section. The `name` parameter will be deprecated.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `PulseCommand` | Will be converted to a `Pulse` and all pulse classes will inherit from this. Calling a `Pulse` with a `Channel` as input will now yield an instruction of the form `Play(pulse, channel)` this will enable the same syntax for instructions to be kept.                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `Delay`        | Will be converted from a `Command` to a new `Instruction` type. For the deprecation period the `Channel` argument will be made optional but if not supplied will emit a warning and a `None` type will be set for the second operands attribute. Calling the instruction with a `Channel` will yield a new instruction with the parameters of the original instruction and the additional input `channel` operands being the input channel. If the instruction with a `channel` attribute of `None` makes it to assembly, an error shall be raised.                                                                                                                                                                               |
-| `FrameChange`  | The new instruction (`ShiftPhase`) will have a different name. Initializing a `FrameChange` will be deprecated and emit a warning, calling the command to convert it to an instruction will be modified to yield the new version of the `Instruction`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `FrameChange`  | The new instruction (`ShiftPhase`) will have a different name. Initializing a `FrameChange` will be deprecated and emit a warning, calling the command to convert it to an instruction will be modified to yield the new version of the `Instruction`, `ShiftPhase`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `SetFrequency` | Will be converted from a `Command` to a new `Instruction` type. For the deprecation period the `Channel` argument will be made optional but if not supplied will emit a warning and a `None` type will be set for the second operands attribute. Calling the instruction with a `Channel` will yield a new instruction with the parameters of the original instruction and the additional input `channel` operands being the input channel. If the instruction with a `channel` attribute of `None` makes it to assembly, an error shall be raised.                                                                                                                                                                               |
 | `Acquire`      | Will be converted from a `Command` to a new `Instruction` type. For the deprecation period the `Channel` argument will be made optional but if not supplied will emit a warning and a `None` type will be set for the second operands attribute. Calling the instruction with a `Channel` will yield a new instruction with the parameters of the original instruction and the additional input `channel` operands being the input channel. If the instruction with a `channel` attribute of `None` makes it to assembly, an error shall be raised. `reg_slot` and `mem_slot` will be merged, into `register` the kwargs `reg_slot` and `mem_slot` will be gracefully deprecated. If both are supplied an error will be returned. |
 | `Snapshot`     | Will remain the same.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
