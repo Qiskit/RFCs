@@ -2,7 +2,7 @@
 
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         | 0012                                        |
 | **Authors**       | Thomas Alexander (talexander@ibm.com)       |
 | **Deprecates**    | None                 |
 | **Submitted**     | 2020-02-04                                   |
