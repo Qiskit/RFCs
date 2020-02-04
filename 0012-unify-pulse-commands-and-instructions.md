@@ -1,10 +1,10 @@
 # Unify Pulse Commands and Instructions
 
-| **Status**        | **Proposed/Accepted/Deprecated** |
+| **Status**        | **Proposed/Accepted/Deprecated**             |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | 0012                                        |
-| **Authors**       | Thomas Alexander (talexander@ibm.com)       |
-| **Deprecates**    | None                 |
+| **RFC #**         | 0012                                         |
+| **Authors**       | Thomas Alexander (talexander@ibm.com)        |
+| **Deprecates**    | None                                         |
 | **Submitted**     | 2020-02-04                                   |
 | **Updated**       | 2020-02-04                                   |
 
@@ -69,6 +69,7 @@ We will remove the current pulse `Instruction` and replace it with an implementa
 The `Command` will be deprecated. A `Pulse` type will be defined and all pulses will inherit from this.
 
 `Command`s and `Instruction`s will be combined into a new `Instruction` as shown below:
+
 | `Command`      | old `Instruction`         | new `Instruction` | new Operands                                                                                                                 |
 |----------------|---------------------------|-------------------|------------------------------------------------------------------------------------------------------------------------------|
 | `PulseCommand` | `PulseInstruction`        | `Play`            | `pulse:Pulse, channel: PulseChannel`                                                                                         |
