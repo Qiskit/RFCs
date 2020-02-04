@@ -9,7 +9,7 @@
 | **Updated**       | 2020-02-04                                   |
 
 ## Summary
-Pulse `Command`s were initially created to allow the pulse to be only defined once as a SamplePulse and then have its usage tracked based on the pulse instance. Every `Instruction` instance was then defined as containing a `Command` and its `Channel` operands that the command would be applied to.
+`Command`s were initially created to allow pulses to be only defined once as a `SamplePulse` and then have its usage tracked based on the class instance by equality checking. To enable this every `Instruction` instance was then defined as containing a `Command` and its `Channel` operands that the command would be applied to. This has led to a confusing API as one must first define a command and then call it with a channel to emit an instruction. We we propose a way of gracefully unifying `Command`s and `Instruction`s to make pulse programming more straightforward and in-line with traditional instruction sets.
 
 ## Motivation
 The duplication of `Command`s and `Instruction`s has resulted in a confusing API with many statements that look like:
@@ -66,39 +66,84 @@ This will be both an enhancement for:
 The current root pulse `Instruction` has both a `command` attribute which holds a `Command` and a tuple of `channels` to which it applies.
 We will remove the current pulse `Instruction` and replace it with an implementation that is a class with an `operands` attribute that contains all operands that the instruction acts on, including both pulses and constants such as floats.
 
-The `Command` will be deprecated. `Pulse`
+The `Command` will be deprecated. A `Pulse` type will be defined and all pulses will inherit from this.
 
+`Command`s and `Instruction`s will be combined into a new `Instruction` as shown below:
+| `Command`      | old `Instruction`         | new `Instruction` | new Operands                                                                                                                 |
+|----------------|---------------------------|-------------------|------------------------------------------------------------------------------------------------------------------------------|
+| `PulseCommand` | `PulseInstruction`        | `Play`            | `pulse:Pulse, channel: PulseChannel`                                                                                         |
+| `Delay`        | `DelayInstruction`        | `Delay`           | `duration: int, channel: Channel`                                                                                            |
+| `FrameChange`  | `FrameChangeInstruction`  | `ShiftPhase`      | `phase: float, channel: PulseChannel`                                                                                        |
+| N/A            | N/A                       | `SetPhase`        | `phase: float, channel: PulseChannel`                                                                                        |
+| N/A            | N/A                       | `ShiftFrequency`  | `frequency: float, channel: PulseChannel`                                                                                    |
+| `SetFrequency` | `SetFrequencyInstruction` | `SetFrequency`    | `frequency: float, channel: PulseChannel`                                                                                    |
+| `Acquire`      | `AcquireInstruction`      | `Acquire`         | `duration: int, register: Union[MemorySlot, RegisterSlot], kernel: Optional[Kernel], discriminator: Optional[Discriminator]` |
+| `Snapshot`     | `Snapshot`                | `Snapshot`        | `label: str, snapshot_type: str`                                                                                             |
+
+### Example of pulse programming with changes
+```python
+x90 = gaussian(duration, amp, sigma)
+meas_stim = gaussian_square(duration, amp, sigma, width)
+
+sched = Schedule()
+# we will keep callable shorthand for pulses
+sched += x90(DriveChannel(0))
+sched += Delay(100, DriveChannel(0))
+# or we can generate a Play instruction explicitly
+sched += Play(x90, DriveChannel(0))
+# measurements may be scheduled with delay
+sched += Delay(200, AcquireChannel(0))
+sched += Play(meas_stim, MeasureChannel(0))
+# or shifting in time
+sched += Acquire(100, AcquireChannel(0), MemorySlot(0)) << 200
+# We also have instructions to modify frequency and phase
+sched += SetFrequency(qubit_freq, DriveChannel(0))
+sched += ShiftFrequency(0.1, DriveChannel(0))
+sched += ShiftPhase(np.pi, DriveChannel(0))
+sched += SetPhase(0.0, DriveChannel(0))
+```
 
 ### Deprecation Path
-All `Command`s except `PulseCommand` and `Delay` will be gracefully deprecated by renaming the command with a new instruction as in the table above. Initializing a deprecated `Command` will emit a warning, calling the command to convert it to an instruction will be modified to yield the new version of the `Instruction` as outlined above. The following edge-cases will be handled by:
+The `Command`s will be gracefully deprecated with the procedures defined in the table below:
 - `PulseCommand`: `PulseCommand` will be converted to a `Pulse` and all pulse classes will inherit from this. Calling a `Pulse` with a `Channel` as input will now yield an instruction of the form `Play(pulse, channel)` this will enable the same syntax for instructions to be kept.
 - `Delay`: Delay will be converted from a command to a new `Instruction` type. For the deprecation period the `Channel` argument will be made optional but if not supplied will emit a warning and a `None` type will be set for the second operands attribute. Calling the `Delay` instruction with a `Channel` will yield a new `Delay` instruction with the `duration` of the original `Delay` and the second `channel` operand being the input channel. If `Delay` instruction with a `channel` attribute of `None` makes it to assembly, an error shall be raised.
 
+Communication of changes to users will be performed with a reno entry for the changes and deprecation warnings for deprecated components.
 
-This is the focus of the document. Explain the proposal from the perspective of
-educating another user on the proposed features.
+## Detailed Design
 
-This generally means:
-- Introducing new concepts and nomenclature
-- Using examples to introduce new features
-- Implementation and Migration path with associated concerns
-- Communication of features and changes to users
+### Classes
+####`Pulse(ABC)`
 
-Focus on giving an overview of impact of the proposed changes to the target
-audience.
+properties:
+- `duration` (abstract)
 
-Factors to consider:
-- Performance
-- Dependencies
-- Maintenance
-- Compatibility
+####`Instruction(ABC)`
+
+properties:
+- `duration` (abstract)
+- `operands` (abstract)
+- `channels` (abstract)
+
+#### `SamplePulse(Pulse)`
+Same as current `SamplePulse`
+
+#### `ParametricPulse(Pulse)`
+Same as current `ParametricPulse`
+
+####`SetPhase(ABC)`
+
+properties:
+- `duration` (abstract)
+- `operands` (abstract)
+- `channels` (abstract)
+
 
 ## Alternative Approaches
-Discuss other approaches to solving this problem and why these were not
-selected.
+At this time the alternative approach is to leave the API as is.
 
 ## Questions
-- Can we tabulate all possible breaking changes for the current interface. If so do graceful deprecation paths exist?
+- Have all possible breaking changes for the current interface been covered? If so do graceful deprecation paths exist?
 
 ## Future Extensions
 - Defining an accompanying textual representation (language) for the instruction set defined within this RFC should be explored. This will enable a convenient interface for textual interface pulse programming and also provide an on-disk storage format.
