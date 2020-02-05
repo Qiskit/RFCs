@@ -242,6 +242,9 @@ Here are some additional considerations:
 ## Alternative Approaches
 See section Simple error mitigation and section User specified error mitigation.
 
+Another alternative implementation is to encode the configuration of error mitigation in the `run_config` instanced passed to the `execute` function.
+This would avoid modyfing the signiture of the `execute` function. 
+
 ## Questions
 - The Backend constrained error mitigation requires extra effort from the backend to calibrate gates with different stretch factors. We need to check that the resulting overhead is acceptable.
 
