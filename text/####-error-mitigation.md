@@ -112,10 +112,14 @@ def available_stretch_factors(self, qubits: List) -> List:
 ```
 For example to find the stretch factors available to qubits 0, 1, and 3, the user would do `backend.available_stretch_factors([0, 1, 3])`.
 Similarly, the user may query the backend to find out which qubits support a given list of stretch factors.
+This functionality may be useful for backends that have different stretch factors calibrated for different qubit sets.
+The following function implements this
 ```
 def available_qubits(self, stretch_factors: List) -> List:
     """Returns a list of qubits for which the given stretch factors are available."""
 ```
+However, the user would need to know a priori which stretch factors are available on the backend.
+We would, therefore, only implement this function later on if we see a need for it.
 The user may also query the backend to find out how the error mitigation is configured.
 ```
 def richardson_error_mitigation_config(self) -> List:
