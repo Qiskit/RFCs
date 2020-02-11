@@ -102,13 +102,14 @@ circuit = QuantumCircuit(6)   # a register-less circuit over 6 qubits
 print(circuit.qubits)
 >> [Qubit(), Qubit(), Qubit(), Qubit(), Qubit(), Qubit()]
 print(circuit.qregs)
->> None
+>> {}
 
 q = circuit.qubits
 circuit.mark_register([q[0], q[1], q[2]], 'a')  # now tag the bits as an 'a' and 'b' register
 circuit.mark_register([q[2], q[3], q[4]], 'b')  # (this info will be kept in circuit)
 print(circuit.qregs)
->> [QuantumRegister(3, 'a'), QuantumRegister(3, 'b')]
+>> {'a': QuantumRegister(3, 'a'),
+    'b': QuantumRegister(3, 'b')}
 
 circuit.mark_register([q[0]], 'c')  # marking a bit as belonging to more than one register is disallowed
 >> raise CircuitError
