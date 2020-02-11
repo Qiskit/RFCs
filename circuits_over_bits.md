@@ -62,7 +62,7 @@ Note that in the 2nd case, a register is still defined under the hood (register 
 compatibility, since much of Qiskit's internal code uses `circuit.qregs`.
 
 This RFC is for fully migrating to circuits being defined over `Qubit`s and `Clbit`s, and making `QuantumRegister` and
-`ClassicalRegister` defined as pointers to circuit bits. The goal is to dramatically simplify internal usage of circuits
+`ClassicalRegister` defined as pointers to circuit bits. The goal is to simplify internal usage of circuits
 by making Qubits/Clbits into fundamental building blocks of circuits, and only defining registers when the need arises.
 This would also help circuits maintain a canonical ordering of their bits, which is more natural for the datastructures
 that define circuits.
@@ -173,7 +173,24 @@ one_bit_adder.measure(qr_out, cr_out)
 For consistency with other classes (namely `BaseOperator` and `DAGCircuit`), the `QuantumCircuit` class shall have
 a `compose()` method. This will take a keyword argument `front=True/False` which indicates where to append.
 ```
-initialize(Statevector.from_label('1001'))
+init = Initialize(Statevector.from_label('1001'))  # here assuming that initialize is a circuit (currently instruction)
+adder = FullAdder(1)
+one_plus_one = init.compose(adder)  # shorthand can be init @ adder
+# alternatively adder.compose(init, front=True)
+print(one_plus_one)
+```
+Note that the resulting circuit does not have registers anymore, because the LHS registers take precedence, and RHS registers
+are forgotten.
+```
+┌───┐                          
+┤ X ├──■────■──────────────■───
+└───┘  │  ┌─┴─┐          ┌─┴─┐ 
+───────■──┤ X ├──■────■──┤ X ├─
+       │  └───┘  │  ┌─┴─┐└───┘ 
+───────┼─────────■──┤ X ├──────
+┌───┐┌─┴─┐     ┌─┴─┐└───┘      
+┤ X ├┤ X ├─────┤ X ├───────────
+└───┘└───┘     └───┘           
 ```
 
 ## Open Questions
