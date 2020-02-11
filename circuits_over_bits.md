@@ -1,5 +1,5 @@
 ## Authors
-- Donny Greenberg - @donnygreenberg
+- Donny Greenberg - @dongreenberg
 - Ali Javadi - @ajavadia
 - Kevin Krsulich - @kdk
 - Erick Winston - @ewinston
@@ -118,6 +118,7 @@ circuit.mark_register([q[0]], 'c')  # marking a bit as belonging to more than on
 Circuits are exposed in libraries to the user. These circuits can be register-less, or be defined over
 registers where it makes sense. Below is an example of each:
 
+1. Quantum Volume Circuit
 ```python
 from qiskit.circuit.library import QuantumVolume
 qv = QuantumVolume(width=3, depth=3)
@@ -126,13 +127,27 @@ print(qv)
 This circuit does not have any registers, and is drawn as such. One can continue to modify the circuit by referencing
 the bits themselves.
 ```
+            ┌──────────┐             ░ ┌─┐
+────────────┤0         ├─────────────░─┤M├──────
+┌──────────┐│          │┌──────────┐ ░ └╥┘┌─┐
+┤1         ├┤  Unitary ├┤1         ├─░──╫─┤M├───
+│  Unitary ││          ││  Unitary │ ░  ║ └╥┘┌─┐
+┤0         ├┤1         ├┤0         ├─░──╫──╫─┤M├
+└──────────┘└──────────┘└──────────┘ ░  ║  ║ └╥┘
+════════════════════════════════════════╩══╬══╬═
+                                           ║  ║
+═══════════════════════════════════════════╩══╬═
+                                              ║
+══════════════════════════════════════════════╩═
 ```
 
+2. Full Adder Circuit
 ```python
 from qiskit.circuit.library.arithmetic import FullAdder
-two_bit_adder = FullAdder(width=2)
-print(two_bit_adder)
+one_bit_adder = FullAdder(width=1)
+print(one_bit_adder)
 ```
+This circuit has been built using registers, and it exists in the library with those registers.
 ```
                                  
 a_0:  ──■────■──────────────■──
@@ -141,8 +156,16 @@ b_0:  ──■──┤ X ├──■────■──┤ X ├
         │  └───┘  │  ┌─┴─┐└───┘
 c_in: ──┼─────────■──┤ X ├─────
       ┌─┴─┐     ┌─┴─┐└───┘     
-b_1:  ┤ X ├─────┤ X ├──────────
+out:  ┤ X ├─────┤ X ├──────────
       └───┘     └───┘          
+```
+One can continue to modify this circuit by working with those registers.
+```
+regs = one_bit_adder.qregs   # a dictionary of {register_name: register} existing on the circuit
+qr_out = regs['out']
+cr_out = ClassicalRegister(1, 'out')
+one_bit_adder.add_register(cr_out)
+one_bit_adder.measure(qr_out, cr_out)
 ```
 
 ## Composing Circuits
