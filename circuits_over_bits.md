@@ -172,7 +172,7 @@ one_bit_adder.measure(qr_out, cr_out)
 ## Composing Circuits
 For consistency with other classes (namely `BaseOperator` and `DAGCircuit`), the `QuantumCircuit` class shall have
 a `compose()` method. This will take a keyword argument `front=True/False` which indicates where to append.
-```
+```python
 init = Initialize(Statevector.from_label('1001'))  # here assuming that initialize is a circuit (currently instruction)
 adder = FullAdder(1)
 one_plus_one = init.compose(adder)  # shorthand can be init @ adder
