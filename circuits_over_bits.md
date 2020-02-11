@@ -93,8 +93,8 @@ qr_b = QuantumRegister(3, 'b')
 circuit = QuantumCircuit(qr_a, qr_b)
 
 # this can alternatively (and more explicitly) be written as
-qr_a = QuantumRegister(name='a', bits=3*[Qubit])
-qr_b = QuantumRegister(name='b', bits=3*[Qubit])
+qr_a = QuantumRegister(name='a', bits=[Qubit() for _ in range(0,3)])
+qr_b = QuantumRegister(name='b', bits=[Qubit() for _ in range(0,3)])
 circuit = QuantumCircuit(qr_a, qr_b)
 
 # the same outcome can be achieved by assigning registers after circuit creation
@@ -106,7 +106,7 @@ print(circuit.qregs)
 
 q = circuit.qubits
 circuit.mark_register([q[0], q[1], q[2]], 'a')  # now tag the bits as an 'a' and 'b' register
-circuit.mark_register([q[2], q[3], q[4]], 'b')  # (this info will be kept in circuit)
+circuit.mark_register([q[3], q[4], q[5]], 'b')  # (this info will be kept in circuit)
 print(circuit.qregs)
 >> {'a': QuantumRegister(3, 'a'),
     'b': QuantumRegister(3, 'b')}
@@ -128,18 +128,18 @@ print(qv)
 This circuit does not have any registers, and is drawn as such. One can continue to modify the circuit by referencing
 the bits themselves.
 ```
-            ┌──────────┐             ░ ┌─┐
-────────────┤0         ├─────────────░─┤M├──────
-┌──────────┐│          │┌──────────┐ ░ └╥┘┌─┐
-┤1         ├┤  Unitary ├┤1         ├─░──╫─┤M├───
-│  Unitary ││          ││  Unitary │ ░  ║ └╥┘┌─┐
-┤0         ├┤1         ├┤0         ├─░──╫──╫─┤M├
-└──────────┘└──────────┘└──────────┘ ░  ║  ║ └╥┘
-════════════════════════════════════════╩══╬══╬═
-                                           ║  ║
-═══════════════════════════════════════════╩══╬═
-                                              ║
-══════════════════════════════════════════════╩═
+              ┌──────────┐             ░ ┌─┐
+0 ────────────┤0         ├─────────────░─┤M├──────
+  ┌──────────┐│          │┌──────────┐ ░ └╥┘┌─┐
+1 ┤1         ├┤  Unitary ├┤1         ├─░──╫─┤M├───
+  │  Unitary ││          ││  Unitary │ ░  ║ └╥┘┌─┐
+2 ┤0         ├┤1         ├┤0         ├─░──╫──╫─┤M├
+  └──────────┘└──────────┘└──────────┘ ░  ║  ║ └╥┘
+0 ════════════════════════════════════════╩══╬══╬═
+                                             ║  ║
+1 ═══════════════════════════════════════════╩══╬═
+                                                ║
+2 ══════════════════════════════════════════════╩═
 ```
 
 2. Full Adder Circuit
@@ -182,15 +182,15 @@ print(one_plus_one)
 Note that the resulting circuit does not have registers anymore, because the LHS registers take precedence, and RHS registers
 are forgotten.
 ```
-┌───┐                          
-┤ X ├──■────■──────────────■───
-└───┘  │  ┌─┴─┐          ┌─┴─┐ 
-───────■──┤ X ├──■────■──┤ X ├─
-       │  └───┘  │  ┌─┴─┐└───┘ 
-───────┼─────────■──┤ X ├──────
-┌───┐┌─┴─┐     ┌─┴─┐└───┘      
-┤ X ├┤ X ├─────┤ X ├───────────
-└───┘└───┘     └───┘           
+  ┌───┐                          
+0 ┤ X ├──■────■──────────────■───
+  └───┘  │  ┌─┴─┐          ┌─┴─┐ 
+1 ───────■──┤ X ├──■────■──┤ X ├─
+         │  └───┘  │  ┌─┴─┐└───┘ 
+2 ───────┼─────────■──┤ X ├──────
+  ┌───┐┌─┴─┐     ┌─┴─┐└───┘      
+3 ┤ X ├┤ X ├─────┤ X ├───────────
+  └───┘└───┘     └───┘           
 ```
 
 ## Open Questions
