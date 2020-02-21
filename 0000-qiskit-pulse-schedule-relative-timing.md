@@ -77,7 +77,7 @@ I am going to use this notation here, where `self` is the `Schedule` initiating 
 | Method        | Runtime        |  Change          |
 |---------------|----------------|------------------|
 | `append(self, schedule)` | O(\|N<sub>new</sub>\|) |  |
-|`insert(self, time, schedule)`|  |  |
+|`insert(self, time, schedule)`| O(\|N<sub>new</sub>\| * \|N<sub>C</sub>\|) |  |
 
 ## Detailed Design
 
@@ -91,13 +91,9 @@ I am going to use this notation here, where `self` is the `Schedule` initiating 
 \# TODO
 
 ## Questions
- 1. Issue with not breaking `x += y << t`:
 
-    `shift` will be easy to implement, but relative timing makes this impossible: `sched += sched2 << time`!!
-
-    Should be fine for `x |= y << t`.
  1. Should we create `insert(self, index, channel)`?
- 1. We can support the current `insert` method, but the runtime will be the maximum number of instructions on one channel, per instruction added. This will be incredibly slow for `x |= y << t`.
+ 1. We can support the current `insert` method, but the runtime with be O(|N<sup>2</sup>|).
  1. Is it best to remove leading/trailing `Delay`s on `left_align`/`right_align`, respectively?
 
 ## Future Extensions
