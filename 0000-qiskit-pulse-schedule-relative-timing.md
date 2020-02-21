@@ -53,11 +53,12 @@ Factors to consider:
 - Compatibility -->
 
 ### Notation:
-I am going to use this notation here:
+I am going to use this notation here, where `self` is the `Schedule` initiating the operation in question:
 
- - |C| : the total number of channels in `self` (of type `Schedule`)
+ - |C| : the total number of channels in `self`
  - |N<sub>self</sub>| : the total number of instructions in `self`
- - |N<sub>other</sub>| : the total number of instructions in another `Schedule` being added in some way to `self`
+ - |N<sub>new</sub>| : the total number of instructions in another `Schedule` being added in some way to `self`
+ - max(|N<sub>C</sub>|) : the maximum number of instructions on any single channel within `self`
 
 ### New Schedule methods
 
@@ -75,7 +76,7 @@ I am going to use this notation here:
 
 | Method        | Runtime        |  Change          |
 |---------------|----------------|------------------|
-| `append(self, schedule)` | O(|N<sub>new</sub>|) |  |
+| `append(self, schedule)` | O(\|N<sub>new</sub>\|) |  |
 |`insert(self, time, schedule)`|  |  |
 
 ## Detailed Design
