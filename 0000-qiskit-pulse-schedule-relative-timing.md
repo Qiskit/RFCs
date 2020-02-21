@@ -56,20 +56,14 @@ Factors to consider:
 I am going to use this notation here:
 
  - |C| : the total number of channels in `self` (of type `Schedule`)
-
- |N<sub>self</sub>|
- |N<sub>other</sub>|
+ - |N<sub>self</sub>| : the total number of instructions in `self`
+ - |N<sub>other</sub>| : the total number of instructions in another `Schedule` being added in some way to `self`
 
 ### New Schedule methods
 
- - `barrier(self, channels)`: O(|C|)
-
-   Add `Delay`s across `channels` so that all of the `channels` are occupied until `self.duration(channels)`.
-
-Should the following take `channels`, or should we "keep it simple, stupid"? A user could always build a subschedule of the channels, or use filter to get the schedule they want....
-
 | Method        | Runtime        |  Description     |
 |---------------|----------------|------------------|
+|`barrier(self)`| O(\|C\|) | Add `Delay`s across `channels` so that all of the `channels` are occupied until `self.duration(channels)`. |
 |`left_align(self)` | O(\|C\|) | This is the default behavior. We could have it return `self`, or we could remove any pre-pended `Delay`s. The latter is probably better, because `schedule.right_align().left_align()` should yield the original `schedule`. Should we also append `Delay`s? Likely. *Needs more thought* |
 |`center_align(self)` | O(\|C\|) | Pre- and ap-pend equally sized `Delay`s (how to split odd durations?) on each channel so that all channels are occupied until `self.duration()` |
 |`right_align(self)` | O(\|C\|) | Prepend `Delay`s on each channel so that all channels are occupied until `self.duration()`. Should we also remove trailing `Delay`s? |
@@ -77,37 +71,33 @@ Should the following take `channels`, or should we "keep it simple, stupid"? A u
 
 ### API Changes
 
- - `append(self, schedule)` O(|N<sub>new</sub>|)
- - `insert(self, time, schedule)`
- - `union` -> I still think this should be deprecated (redundant and usage is especially not encouraged for this)
+\# TODO
+
+| Method        | Runtime        |  Change          |
+|---------------|----------------|------------------|
+| `append(self, schedule)` | O(|N<sub>new</sub>|) |  |
+|`insert(self, time, schedule)`|  |  |
 
 ## Detailed Design
-<!-- Technical reference level design. Elaborate on details such as:
-- Implementation procedure
-  - If spans multiple projects cover these parts individually
-- Interaction with other features
-- Dissecting corner cases
-- Reference definition, eg., formal definitions.
- -->
-How internal data will now be tracked
 
-How new and existing methods will be updated
+\# TODO
+ - How internal data will now be tracked
+ - How new and existing methods will be updated
 
  
 ## Alternative Approaches
-<!-- Discuss other approaches to solving this problem and why these were not
-selected.
- -->
+
+\# TODO
 
 ## Questions
-<!-- Open questions for discussion and an opening for feedback. -->
- 1. `insert`
- 1. Removing leading/trailing `Delay`s on `left_align`/`right_align`, respectively.
  1. Issue with not breaking `x += y << t`:
 
-    `shift` will be easy to implement, but relative timing makes this impossible: `sched += sched2 << time`!! Should we kill shift?
+    `shift` will be easy to implement, but relative timing makes this impossible: `sched += sched2 << time`!!
 
+    Should be fine for `x |= y << t`.
  1. Should we create `insert(self, index, channel)`?
+ 1. We can support the current `insert` method, but the runtime will be the maximum number of instructions on one channel, per instruction added. This will be incredibly slow for `x |= y << t`.
+ 1. Is it best to remove leading/trailing `Delay`s on `left_align`/`right_align`, respectively?
 
 ## Future Extensions
 
