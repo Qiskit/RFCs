@@ -158,7 +158,8 @@ since the pain points of working with the current interface are isolated
 to the development of qiskit or qiskit plugins. But all users of qiskit
 will benefit from performance imprpovements gained by the new interface
 because we won't be performing needless conversions everytime we run
-experiments.
+experiments. Another general benefit is this will result in a cleaner and
+better documented interface for working with backends and results.
 
 Additionally, it makes the domains of what's part of IBMQ/IQX and what's part
 of terra much clearer. Right now to make changes to terra's interfaces this
@@ -170,8 +171,8 @@ The transition will happen in 2 stages. The first stage, v1.5 which is
 a maintanence change for terra is to remove marshmallow from the existing
 providers interface. This will make things more transparent in how they are
 built simplifying andy time we need to work with the interface, but also
-significantly speed up the performance of this interface. The first piece of
-this has been pushed for the qobj class here:
+significantly speed up the performance of the current interface. The first
+piece of this has been pushed for the qobj class here:
 
 https://github.com/Qiskit/qiskit-terra/pull/3383
 
@@ -210,20 +211,163 @@ as a pseudo-json api. The basic idea is that we use terra's objects as the
 what is passed back and forth to providers instead of the intermediate formats
 that exist today.
 
-For example:
+For example, the new interface for running circuits (or pulse schedules) will
+look like:
 
 ```python
 qc = QuantumCircuit()
 provider = my_provider()
-backend my_provider.get_backend()
-run_config = {} # or make this a class
-backend.run([qc]*100, run_config)
+backend = my_provider.get_backend()
+backend.set_config(shots=2048)
+backend.run([qc]*100)
+```
+The abstract classes defining this new interface will live in:
+`qiskit.providers.v2` in the terra repo and for terra's functionality
+that interacts with anything as part of the provider interface (eg transpiler
+passes that use backend configuration) will need to check if it's using a
+provider based on v1 or v2 prior to interacting with it.
+
+A base backend abstract class will be defined as:
+
+```python
+from abc import ABC
+
+class BaseBackend(ABC):
+    def __init__(self):
+        configuration = self._default_config()
+
+    @classmethod
+    @abstractmethod
+    def _default_config(cls):
+        pass
+
+    def set_configuration(self, **fields):
+        configuration.update_config(**fields)
+
+    @property
+    def configuration(self):
+        return self.configuration
+
+    @abstractmethod
+    def run(self, circuits):
+        pass
 ```
 
-TODO: Add interfaces for results, backend properties, and jobs.
+With a configuration class that looks like:
 
-The conversion to ibmq's api format from the terra objects then live in the
-ibmq provider where they should live when we migrate it from v1 to v2.
+```python
+
+from abc import ABC
+
+
+class Configuration(ABC):
+
+    @property
+    @abstractmethod
+    def num_qubits(self):
+        pass
+
+    @property
+    @abstractmethod
+    def name(self):
+        pass
+```
+
+The required fields for the base configuration are kept minimal to maximize
+compatibility with all providers. Each provider is expected to define it's
+own configuration subclasses which will have any extra required fields that
+are specific to that backend.
+
+On the other side of the interface, interacting with a running circuit and
+it's results a new job class will be defined. This will merge in the standard
+results functionality (it's still present).
+
+```python
+from abc import ABC
+
+class BaseJob(ABC):
+    """A base class for representing an async job on a backend."""
+
+    job_id = None
+    metadata = None
+
+    def __init__(self, job_id, backend):
+
+    def backend(self):
+        return
+
+    @abstractmethod
+    def result():
+        pass
+
+    @abstractmethod
+    def status():
+
+    def cancel():
+        raise NotImplementedError
+
+    def wait_for_final_state():
+        raise NotImplementedError
+
+    def get_memory(self):
+        return self.result().get_memory()
+
+    def get_counts(self):
+        return self.result().get_counts()
+
+    def get_statevector(self):
+        return self.result().get_statevector()
+
+    def get_unitary(self):
+        return self.result().get_statevector()
+```
+
+The job class is mostly the same except it is using the new fields. One thing
+that has been expanded is that the result classes methods have duals here. There
+are few times where you'll want or need to interact with a result directly.
+
+```python
+from abc import ABC
+
+class Result(ABC):
+    """An object representing an experiment's result"""
+
+    @abstractmethod
+    def data(self):
+        pass
+
+    def get_memory(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_counts(self):
+        """Return a Counts object for the result if applicable."""
+        pass
+
+    @abstractmethod
+    def get_statevector(self):
+        """Return a statevector operator object of the result if applicable."""
+        pass
+
+    @abstractmethod
+    def get_unitary(self):
+        """Return a unitary operator object of the result if applicable."""
+        pass
+```
+
+For the job/results interface one thing to note is that there is now a Counts
+class which will represent a counts result from the job (returned by
+`get_counts()`). This will be a subclass of dict and the data format will be
+the same as returned by `Result.get_counts()` now, but will have several helper
+functions for interacting. Similarly a statevector operator object and a
+unitary operator object will be returned from `get_statevector()` and
+`get_unitary()` respectively.
+
+In the v2 providers interface the conversion to ibmq's api format from the
+terra objects then live in the ibmq provider, where it should live, when we
+migrate it from v1 to v2. Other providers will then have more flexibility to
+convert the circuit objects to whichever format is needed for interfacing the
+circuit to their backends/services.
 
 We'll need to keep `assemble()` (and the dissasembler) in terra for backwards
 compat and v1.5 providers, but the ibmq provider will have it's own equivalent
@@ -249,9 +393,7 @@ other backend providers to use the existing mess of a current system while we
 come up with something better.
 
 ## Questions
-- What's the exact interface we should use for v2? We want native terra objects
-  for everything, but the exact details of what that API looks like is open
-  ended right now.
+
 
 ## Future Extensions
 Once we've decoupled the providers interface and the IQX API and implemented
