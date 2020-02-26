@@ -278,7 +278,7 @@ class ShiftFrequency(Instruction):
 #### Acquire
 ```python
 class Acquire(Instruction):
-  def __init__(self, duration: float, channel: AcquireChannel,
+  def __init__(self, duration: int, channel: AcquireChannel,
                register: Union[MemorySlot, RegisterSlot],
                kernel: Optional[Kernel], discriminator: Optional[Discriminator]) -> Acquire:
     super().__init__(duration, channel, register,
