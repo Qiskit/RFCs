@@ -78,7 +78,7 @@ The `Command` will be deprecated. A `Pulse` type will be defined and all pulses 
 | N/A            | N/A                       | `SetPhase`        | `phase: float, channel: PulseChannel`                                                                                        |
 | N/A            | N/A                       | `ShiftFrequency`  | `frequency: float, channel: PulseChannel`                                                                                    |
 | `SetFrequency` | `SetFrequencyInstruction` | `SetFrequency`    | `frequency: float, channel: PulseChannel`                                                                                    |
-| `Acquire`      | `AcquireInstruction`      | `Acquire`         | `duration: int, register: Union[MemorySlot, RegisterSlot], kernel: Optional[Kernel], discriminator: Optional[Discriminator]` |
+| `Acquire`      | `AcquireInstruction`      | `Acquire`         | `duration: int, channel: AcquireChannel, register: Union[MemorySlot, RegisterSlot], kernel: Optional[Kernel], discriminator: Optional[Discriminator]` |
 | `Snapshot`     | `Snapshot`                | `Snapshot`        | `label: str, snapshot_type: str`                                                                                             |
 
 ### Example of pulse programming with changes
