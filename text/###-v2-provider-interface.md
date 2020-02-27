@@ -170,7 +170,7 @@ often gets caught up in how iqx works today and limits what is possible.
 The transition will happen in 2 stages. The first stage, v1.5 which is
 a maintanence change for terra is to remove marshmallow from the existing
 providers interface. This will make things more transparent in how they are
-built simplifying andy time we need to work with the interface, but also
+built, not just simplifying working with the interface, but also
 significantly speed up the performance of the current interface. The first
 piece of this has been pushed for the qobj class here:
 
@@ -187,8 +187,8 @@ with qiskit. We need to keep this around not just for a smooth transition to
 the new interface but also for providers that are not maintained by our team.
 We want to maximize compatibility with any providers that exist out there and
 removing the current interface would potentially break a lot of people. The
-second is to simplify the maintanence around this existing interface. Right
-now the interface for interacting with providers is too obfuscated creating a
+second is to simplify the maintenance around this existing interface. Right
+now the interface for interacting with providers is too obfuscated. Creating a
 flat object makes it much simpler to work with when we need to make additions
 or changes to keep the interface functioning. It also makes it easier for local
 simulators to use C aligned data structures natively because everything is
