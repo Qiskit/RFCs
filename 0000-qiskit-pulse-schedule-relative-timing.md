@@ -4,8 +4,8 @@
 |:------------------|:---------------------------------------------|
 | **RFC #**         | TBD                                          |
 | **Authors**       | Lauren Capelluto                             |
-| **Submitted**     | see github                                   |
-| **Updated**       | see github                                   |
+| **Submitted**     | 3/11/20                                      |
+| **Updated**       | ---                                          |
 
 
 ## Summary
@@ -53,7 +53,7 @@ Factors to consider:
 - Compatibility -->
 
 ### Notation
-I am going to use this notation here, where `self` is the `Schedule` initiating the operation in question:
+Here we will use the following notation, where `self` is the `Schedule` initiating the operation in question:
 
  - |C| : the total number of channels in `self`
  - N<sub>self</sub> : the total number of instructions in `self`
