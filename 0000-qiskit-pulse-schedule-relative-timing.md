@@ -29,7 +29,7 @@ We should move to a model where instructions are explicitly scheduled with varia
  - Have implications for the current pulse API.
 
 ## User Benefit
- - Pulse users (primarily, experimental physicists interested in using IBM backends) should get a perforance improvement.
+ - Pulse users (primarily, experimental physicists interested in using IBM backends) should get a performance improvement.
  - When we begin implementing control flow around Schedules, we will find this new implementation much easier to work with. This benefits frontend and backend developers, which in turn will give our end users new features sooner.
 
 ## Design Proposal
