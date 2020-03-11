@@ -147,7 +147,6 @@ A rough sketch for the implementation of some of the methods described above cou
  
 ## Alternative Approaches
 
-\# TODO
 
 ## Questions
 
