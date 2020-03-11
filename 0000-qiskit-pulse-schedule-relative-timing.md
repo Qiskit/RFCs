@@ -1,6 +1,6 @@
 # Qiskit Pulse: Relative timing for Schedules
 
-| **Status**        | **Proposed/Accepted/Deprecated** |
+| **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | TBD                                          |
 | **Authors**       | Lauren Capelluto                             |
@@ -52,38 +52,97 @@ Factors to consider:
 - Maintenance
 - Compatibility -->
 
-### Notation:
+### Notation
 I am going to use this notation here, where `self` is the `Schedule` initiating the operation in question:
 
  - |C| : the total number of channels in `self`
- - |N<sub>self</sub>| : the total number of instructions in `self`
- - |N<sub>new</sub>| : the total number of instructions in another `Schedule` being added in some way to `self`
- - max(|N<sub>C</sub>|) : the maximum number of instructions on any single channel within `self`
+ - N<sub>self</sub> : the total number of instructions in `self`
+ - N<sub>new</sub> : the total number of instructions in another `Schedule` being added in some way to `self`
+ - N<sub>C</sub> : the number of instructions on channel C within `self`
 
 ### New Schedule methods
 
 | Method        | Runtime        |  Description     |
 |---------------|----------------|------------------|
-|`barrier(self)`| O(\|C\|) | Add `Delay`s across `channels` so that all of the `channels` are occupied until `self.duration(channels)`. |
-|`left_align(self)` | O(\|C\|) | This is the default behavior. We could have it return `self`, or we could remove any pre-pended `Delay`s. The latter is probably better, because `schedule.right_align().left_align()` should yield the original `schedule`. Should we also append `Delay`s? Likely. *Needs more thought* |
-|`center_align(self)` | O(\|C\|) | Pre- and ap-pend equally sized `Delay`s (how to split odd durations?) on each channel so that all channels are occupied until `self.duration()` |
-|`right_align(self)` | O(\|C\|) | Prepend `Delay`s on each channel so that all channels are occupied until `self.duration()`. Should we also remove trailing `Delay`s? |
+|`barrier(self, channels=None)`| O(\|C\|) | Add `Delay`s across `channels` so that all of the `channels` are occupied until `self.duration(channels)`. By default, barrier on all channels. |
+|`left_align(self)` | O(\|C\|) | This is the default behavior. Return `self`.
+|`center_align(self)` | O(\|C\|) | Pre- and append equally sized `Delay`s (how to split odd durations?) on each channel so that all channels are occupied until `self.duration()` |
+|`right_align(self)` | O(\|C\|) | Prepend `Delay`s on each channel so that all channels are occupied until `self.duration()`.
 
+**Example**
+
+```
+sched = Schedule()
+sched += Delay(10, drive0)
+sched += Play(gaussian, drive0)
+sched = sched.barrier(drive0, drive1)
+subsched = Play([1.0]*20, drive1)
+subsched = Play([1.0]*10, drive0)
+sched += subsched.right_align()
+```
 
 ### API Changes
 
-\# TODO
-
 | Method        | Runtime        |  Change          |
 |---------------|----------------|------------------|
-| `append(self, schedule)` | O(\|N<sub>new</sub>\|) |  |
-|`insert(self, time, schedule)`| O(\|N<sub>new</sub>\| * \|N<sub>C</sub>\|) |  |
+| `append(self, schedule)` | O(\|C\|) | Previously, `append` would add `schedule` to `self` with relative times preserved, at time set by `self.duration({schedule.channels}.intersection({self.channels}))`. The new method will simply extend the instructions in `self` with those in `schedule` on a per channel basis. |
+|`insert(self, time, schedule)`| O(N<sub>new</sub> * N<sub>C</sub>) | This will be slow generally, but it can be implemented with the same runtime as `append` when the `time` is greater than `self.duration(schedule.channels)`. |
+
+**Example**
+
+```
+# To recreate previous append behavior:
+sched = sched.barrier(sched2.channels)
+sched += sched2
+```
 
 ## Detailed Design
 
-\# TODO
- - How internal data will now be tracked
- - How new and existing methods will be updated
+The `Schedule` will have an internal attribute, `_insts_by_chan`:
+
+```
+_insts_by_chan: Dict[Channel, List[ScheduleNode]]
+```
+
+**Example**
+```
+# sched._insts_by_chan
+{
+    DriveChannel(0):
+        ('instructions'=[Delay(duration=10, ...),
+                         Play(duration=100, ...),
+                         Play(duration=20, ...)],
+         'duration'=130),
+     DriveChannel(1):
+        ('instructions'=[Delay(duration=110, ...),
+                         Play(duration=20, ...)],
+         'duration'=130),
+    ...
+}
+```
+
+A rough sketch for the implementation of some of the methods described above could look like this:
+
+```
+# These can be done with a few more lines to avoid mutating the input, but for simplicity, I'll leave it like this to demonstrate the main idea
+
+    def append(self, schedule):
+        for chan, data in schedule._insts_by_chan:
+            self._insts_by_chan[chan].instructions.extend(data.instructions)
+            self._insts_by_chan[chan].duration += data.duration
+
+    def barrier(self, channels):
+        total_duration = self.ch_duration(channels)
+        for chan in channels:
+            delay_time = total_duration - self._insts_by_chan[chan].duration
+            self._insts_by_chan[chan].instructions.append(Delay(duration=delay_time))
+            self._insts_by_chan.duration += delay_time
+
+    def right_align(self):
+        for chan, data in self._insts_by_chan:
+            data.instructions = [Delay(self.duration - data.duration)] + data.instructions
+            data.duration = self.duration
+```
 
  
 ## Alternative Approaches
@@ -93,8 +152,8 @@ I am going to use this notation here, where `self` is the `Schedule` initiating 
 ## Questions
 
  1. Should we create `insert(self, index, channel)`?
- 1. We can support the current `insert` method, but the runtime with be O(|N<sup>2</sup>|).
- 1. Is it best to remove leading/trailing `Delay`s on `left_align`/`right_align`, respectively?
+ 1. We can support the current `insert` method, but the runtime with be O(|N<sup>2</sup>|). Are we committed to discouraging its use?
+ 2. Something like `sched |= sched << time` is *much* less efficient than `sched.insert(time, sched)` because the shift happens separately from the union. I don't know how to fix this.
 
 ## Future Extensions
 
