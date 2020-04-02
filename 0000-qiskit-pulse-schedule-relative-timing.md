@@ -34,67 +34,18 @@ We should move to a model where instructions are explicitly scheduled with varia
 
 ## Design Proposal
 
-<!-- This is the focus of the document. Explain the proposal from the perspective of
-educating another user on the proposed features.
+### Implementation changes
 
-This generally means:
-- Introducing new concepts and nomenclature
-- Using examples to introduce new features
-- Implementation and Migration path with associated concerns
-- Communication of features and changes to users
-
-Focus on giving an overview of impact of the proposed changes to the target
-audience.
-
-Factors to consider:
-- Performance
-- Dependencies
-- Maintenance
-- Compatibility -->
-
-### Notation
 Here we will use the following notation, where `self` is the `Schedule` initiating the operation in question:
 
  - |C| : the total number of channels in `self`
- - N<sub>self</sub> : the total number of instructions in `self`
- - N<sub>new</sub> : the total number of instructions in another `Schedule` being added in some way to `self`
  - N<sub>C</sub> : the number of instructions on channel C within `self`
-
-### New Schedule methods
-
-| Method        | Runtime        |  Description     |
-|---------------|----------------|------------------|
-|`barrier(self, channels=None)`| O(\|C\|) | Add `Delay`s across `channels` so that all of the `channels` are occupied until `self.duration(channels)`. By default, barrier on all channels. |
-|`left_align(self)` | O(\|C\|) | This is the default behavior. Return `self`.
-|`center_align(self)` | O(\|C\|) | Pre- and append equally sized `Delay`s (how to split odd durations?) on each channel so that all channels are occupied until `self.duration()` |
-|`right_align(self)` | O(\|C\|) | Prepend `Delay`s on each channel so that all channels are occupied until `self.duration()`.
-
-**Example**
-
-```
-sched = Schedule()
-sched += Delay(10, drive0)
-sched += Play(gaussian, drive0)
-sched = sched.barrier(drive0, drive1)
-subsched = Play([1.0]*20, drive1)
-subsched = Play([1.0]*10, drive0)
-sched += subsched.right_align()
-```
-
-### API Changes
 
 | Method        | Runtime        |  Change          |
 |---------------|----------------|------------------|
 | `append(self, schedule)` | O(\|C\|) | Previously, `append` would add `schedule` to `self` with relative times preserved, at time set by `self.duration({schedule.channels}.intersection({self.channels}))`. The new method will simply extend the instructions in `self` with those in `schedule` on a per channel basis. |
 |`insert(self, time, schedule)`| O(N<sub>new</sub> * N<sub>C</sub>) | This will be slow generally, but it can be implemented with the same runtime as `append` when the `time` is greater than `self.duration(schedule.channels)`. |
 
-**Example**
-
-```
-# To recreate previous append behavior:
-sched = sched.barrier(sched2.channels)
-sched += sched2
-```
 
 ## Detailed Design
 
@@ -121,7 +72,7 @@ _insts_by_chan: Dict[Channel, List[ScheduleNode]]
 }
 ```
 
-A rough sketch for the implementation of some of the methods described above could look like this:
+A rough sketch for the implementation of some of append described above could look like this:
 
 ```
 # These can be done with a few more lines to avoid mutating the input, but for simplicity, I'll leave it like this to demonstrate the main idea
@@ -130,23 +81,12 @@ A rough sketch for the implementation of some of the methods described above cou
         for chan, data in schedule._insts_by_chan:
             self._insts_by_chan[chan].instructions.extend(data.instructions)
             self._insts_by_chan[chan].duration += data.duration
-
-    def barrier(self, channels):
-        total_duration = self.ch_duration(channels)
-        for chan in channels:
-            delay_time = total_duration - self._insts_by_chan[chan].duration
-            self._insts_by_chan[chan].instructions.append(Delay(duration=delay_time))
-            self._insts_by_chan.duration += delay_time
-
-    def right_align(self):
-        for chan, data in self._insts_by_chan:
-            data.instructions = [Delay(self.duration - data.duration)] + data.instructions
-            data.duration = self.duration
 ```
 
  
 ## Alternative Approaches
 
+- We could have added methods to `Schedule`, but instead we will leave that to the builder.
 
 ## Questions
 
