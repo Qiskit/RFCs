@@ -1,5 +1,16 @@
 # Improved Provider Interface
 
+| **Status**        | **Proposed**             |
+|:------------------|:---------------------------------------------|
+| **RFC #**         | 0002                                         |
+| **Authors**       | Matthew Treinish (mtreinish@kortar.org)      |
+| **Deprecates**    | None                                         |
+| **Submitted**     | 2020-02-04                                   |
+| **Updated**       | 2020-02-04                                   |
+
+
+# Improved Provider Interface
+
 ## Summary
 
 Implement a new provider interface for terra that is based around python
@@ -167,6 +178,7 @@ often gets caught up in how iqx works today and limits what is possible.
 
 ## Design Proposal
 
+### Providers Interface v1.5
 The transition will happen in 2 stages. The first stage, v1.5 which is
 a maintanence change for terra is to remove marshmallow from the existing
 providers interface. This will make things more transparent in how they are
@@ -204,6 +216,8 @@ because removing marshmallow means we don't get the 2 transformations it perform
 `numpy array -> list` and `complex numbers -> [re, im]`. Basically when v1.5
 starts merging we are saying that the `qobj.to_dict()`'s output is not the same
 as `json.loads()` from what the ibmq provider sends on the wire.
+
+### Providers interface 2.0
 
 After v1.5 is complete we can work on adding a new providers v2 interface
 that basically treats the providers interface as a python interface instead of
@@ -387,10 +401,10 @@ forces us to break all the existing provider code by making a hard transition
 or forces us to keep the existing structure moving forward. Neither of those is
 a situation we want to be in. We either break our users in another way which
 will just make our mission of having qiskit be the open source platform for
-working with nisq devices. When we constantly introduce breaking changes it
-just turns people off of the platform since they can't rely on it. Or we force
-other backend providers to use the existing mess of a current system while we
-come up with something better.
+working with quantum computers. When we constantly introduce breaking changes
+it just turns people off of the platform since they can't rely on it. Or we
+force other backend providers to use the existing mess of a current system
+while we come up with something better.
 
 ## Questions
 
