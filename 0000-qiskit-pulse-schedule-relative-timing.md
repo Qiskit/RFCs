@@ -11,7 +11,7 @@
 ## Summary
 Update the internal structure of `Schedule`s to track instructions sequentially. `Instruction`s will not be played at an explicit time; rather, they will begin immediately after the last is done. To schedule idle time between instructions, `Delay` instructions must be used.
 
-The user API will be updated to take advantage of this relative timing, with several new methods: `barrier`, `left_align`, `center_align`, and `right_align` (see: [new methods](#new-schedule-methods)).
+The user API will be updated to take advantage of this relative timing, with several new methods: `barrier`, `left_align`, `center_align`, and `right_align`.
 
 ## Motivation
 (This section was copied from [this issue](https://github.com/Qiskit/qiskit-terra/issues/3749), written by @taalexander.)
