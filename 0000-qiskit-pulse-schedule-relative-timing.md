@@ -41,10 +41,10 @@ Here we will use the following notation, where `self` is the `Schedule` initiati
  - |C| : the total number of channels in `self`
  - N<sub>C</sub> : the number of instructions on channel C within `self`
 
-| Method        | Runtime        |  Change          |
-|---------------|----------------|------------------|
-| `append(self, schedule)` | O(\|C\|) | Previously, `append` would add `schedule` to `self` with relative times preserved, at time set by `self.duration({schedule.channels}.intersection({self.channels}))`. The new method will simply extend the instructions in `self` with those in `schedule` on a per channel basis. |
-|`insert(self, time, schedule)`| O(N<sub>new</sub> * N<sub>C</sub>) | This will be slow generally, but it can be implemented with the same runtime as `append` when the `time` is greater than `self.duration(schedule.channels)`. |
+| Method        | New Runtime        | Old Runtime | Change          |
+|---------------|--------------------|-------------|-----------------|
+| `append(self, schedule)` | O(\|C\|) | O(\|C\| + N<sub>new</sub>) (best case is O(N<sub>new</sub>)) | Previously, `append` would add `schedule` to `self` with relative times preserved, at time set by `self.duration({schedule.channels}.intersection({self.channels}))`. The new method will simply extend the instructions in `self` with those in `schedule` on a per channel basis. |
+|`insert(self, time, schedule)`| O(N<sub>new</sub>N<sub>C</sub>) | O(\|C\| + N<sub>new</sub> + \|C\|*N<sub>new</sub>) (best case is O(N<sub>new</sub>log(N<sub>C</sub>)) | This will be slow generally, but it can be implemented with the same runtime as `append` when the `time` is greater than `self.duration(schedule.channels)`. |
 
 
 ## Detailed Design
