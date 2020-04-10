@@ -39,12 +39,17 @@ We should move to a model where instructions are explicitly scheduled with varia
 Here we will use the following notation, where `self` is the `Schedule` initiating the operation in question:
 
  - |C| : the total number of channels in `self`
- - N<sub>C</sub> : the number of instructions on channel C within `self`
+ - N: the number of instructions in `self`.
+ - N<sub>C</sub> : the number of instructions on a channel within `self`
+ - N<sub>new</sub>: the number of instructions in the other schedule
+
+Notice that N<sub>C</sub> * |C| = N
 
 | Method        | New Runtime        | Old Runtime | Change          |
 |---------------|--------------------|-------------|-----------------|
-| `append(self, schedule)` | O(\|C\|) | O(\|C\| + N<sub>new</sub>) (best case is O(N<sub>new</sub>)) | Previously, `append` would add `schedule` to `self` with relative times preserved, at time set by `self.duration({schedule.channels}.intersection({self.channels}))`. The new method will simply extend the instructions in `self` with those in `schedule` on a per channel basis. |
+| `append(self, schedule)` | O(\|C\|) | O(\|C\| + N<sub>new</sub>) (best case is O(\|C\|)) | Previously, `append` would add `schedule` to `self` with relative times preserved, at time set by `self.duration({schedule.channels}.intersection({self.channels}))`. The new method will simply extend the instructions in `self` with those in `schedule` on a per channel basis. |
 |`insert(self, time, schedule)`| O(N<sub>new</sub>N<sub>C</sub>) | O(\|C\| + N<sub>new</sub> + \|C\|*N<sub>new</sub>) (best case is O(N<sub>new</sub>log(N<sub>C</sub>)) | This will be slow generally, but it can be implemented with the same runtime as `append` when the `time` is greater than `self.duration(schedule.channels)`. |
+|`shift`(self, time) | O(\|C\|) | O(N) | Rather than updating every time interval, we can just prepend a delay. |
 
 
 ## Detailed Design
