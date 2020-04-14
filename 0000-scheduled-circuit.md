@@ -1,4 +1,4 @@
-# WIP: [RFC] Scheduled Circuit
+# [WIP] [RFC] Scheduled Circuit
 
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
@@ -230,7 +230,7 @@ _timed_inst_by_qubit: Dict[Qubit, List[TimedInstruction]] # lists are sorted by 
   - O(N): update start times
   - O(ListReplace(D)*W): replace items on lists by qubit
 
-In addition to these, we need kinds of “find()” family for users to specify refs in insert/replace etc.
+In addition to these, we need kinds of “find()” family for users to specify references in insert/replace etc.
 
 \*) I assume the interface that references are given as Postions. If references should be given as Instructions, we need to accept overhead to find positions. 
 Such overhead would be O(D*W) for Relatively-timed and O(log(D)*W) for Absolutely-timed unless we add another data structure for the purpose.
