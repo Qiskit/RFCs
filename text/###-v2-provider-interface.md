@@ -1,6 +1,6 @@
-# Improved Provider Interface
+# Improved Provider Interface and Supporting New Service APIs
 
-| **Status**        | **Proposed**             |
+| **Status**        | **Proposed**                                 |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0002                                         |
 | **Authors**       | Matthew Treinish (mtreinish@kortar.org)      |
@@ -8,8 +8,6 @@
 | **Submitted**     | 2020-02-04                                   |
 | **Updated**       | 2020-02-04                                   |
 
-
-# Improved Provider Interface
 
 ## Summary
 
@@ -20,7 +18,8 @@ compatibility, but the new interface will be the model moving forward. The basic
 goal is to decouple the wire protocol IBMQ uses from what developers have to
 deal with. This frees up providers to interact with terra at a native terra
 object level which provides much more flexibillity for non-ibmq and local
-providers.
+providers. Additionally, it will add the groundwork for providers to add
+new types of backends that model additional services that can be provided.
 
 ## Motivation
 
@@ -170,7 +169,9 @@ to the development of qiskit or qiskit plugins. But all users of qiskit
 will benefit from performance imprpovements gained by the new interface
 because we won't be performing needless conversions everytime we run
 experiments. Another general benefit is this will result in a cleaner and
-better documented interface for working with backends and results.
+better documented interface for working with backends and results. This will
+also hopefully give us a chance to refine the interface that users use for
+interacting with running experiments and results.
 
 Additionally, it makes the domains of what's part of IBMQ/IQX and what's part
 of terra much clearer. Right now to make changes to terra's interfaces this
@@ -183,15 +184,16 @@ The transition will happen in 2 stages. The first stage, v1.5 which is
 a maintanence change for terra is to remove marshmallow from the existing
 providers interface. This will make things more transparent in how they are
 built, not just simplifying working with the interface, but also
-significantly speed up the performance of the current interface. The first
-piece of this has been pushed for the qobj class here:
+significantly speed up the performance of the current interface. This is
+already in progress here:
 
 https://github.com/Qiskit/qiskit-terra/pull/3383
+https://github.com/Qiskit/qiskit-terra/pull/4096
+https://github.com/Qiskit/qiskit-terra/pull/4016
+https://github.com/Qiskit/qiskit-terra/pull/4030
 
-This basically just mirrors the marshmallow class heirarchy and replaces each
+These basically just mirrors the marshmallow class heirarchy and replaces each
 class with a flat class with just attributes for each element in the schema.
-The removal of marshmallow will need to be replicated for backends, jobs, and
-results too before we can move on to the new interface.
 
 This is needed for 3 reasons. The first is that the providers interface has
 existed in it's current form for some time and is how any backend interfaces
@@ -215,15 +217,20 @@ This also starts the process of decoupling IQX's API from the provider interface
 because removing marshmallow means we don't get the 2 transformations it performs
 `numpy array -> list` and `complex numbers -> [re, im]`. Basically when v1.5
 starts merging we are saying that the `qobj.to_dict()`'s output is not the same
-as `json.loads()` from what the ibmq provider sends on the wire.
+as `json.loads()` from what the ibmq provider sends on the wire, and all other
+aspects of the existing providers interface is no longer mapped 1:1 to the IQX
+API. This is a necessary step before we can define a more abstract python
+interface for all providers, not just IQX.
 
 ### Providers interface 2.0
 
-After v1.5 is complete we can work on adding a new providers v2 interface
-that basically treats the providers interface as a python interface instead of
-as a pseudo-json api. The basic idea is that we use terra's objects as the
-what is passed back and forth to providers instead of the intermediate formats
-that exist today.
+At the same time we're implementing the v1.5 freeze and refactor we will work on
+adding a new providers v2 interface that basically treats the providers interface
+as a python interface instead of as a pseudo-json api. The basic idea is that we
+use terra's objects as the what is passed back and forth to providers instead of
+the intermediate formats that exist today. In addition to making it easier to work
+with the plan for this is to have the necessary infrastructure in place to integrate
+additional types of backends (for additional types of services from providers).
 
 For example, the new interface for running circuits (or pulse schedules) will
 look like:
@@ -235,11 +242,16 @@ backend = my_provider.get_backend()
 backend.set_config(shots=2048)
 backend.run([qc]*100)
 ```
+
 The abstract classes defining this new interface will live in:
 `qiskit.providers.v2` in the terra repo and for terra's functionality
 that interacts with anything as part of the provider interface (eg transpiler
 passes that use backend configuration) will need to check if it's using a
-provider based on v1 or v2 prior to interacting with it.
+provider based on v1 or v2 prior to interacting with it. This is as simple
+as just doing `if isinstance(backend, qiskit.providers.v2.backend.BaseBackend)`
+
+
+#### Backend Class
 
 A base backend abstract class will be defined as:
 
@@ -247,8 +259,11 @@ A base backend abstract class will be defined as:
 from abc import ABC
 
 class BaseBackend(ABC):
-    def __init__(self):
+
+    def __init__(self, **fields):
         configuration = self._default_config()
+        if fields:
+            configuration.update_config(**fields)
 
     @classmethod
     @abstractmethod
@@ -259,12 +274,19 @@ class BaseBackend(ABC):
         configuration.update_config(**fields)
 
     @property
+    def properties(self):
+        return self.properties
+
+    @property
     def configuration(self):
         return self.configuration
 
     @abstractmethod
     def run(self, circuits):
         pass
+
+    def run_async(self, circuits):
+        raise NotImplementedError
 ```
 
 With a configuration class that looks like:
@@ -285,16 +307,68 @@ class Configuration(ABC):
     @abstractmethod
     def name(self):
         pass
+
+    @abstractmethod
+    def update_config(self):
+        pass
 ```
 
 The required fields for the base configuration are kept minimal to maximize
 compatibility with all providers. Each provider is expected to define it's
 own configuration subclasses which will have any extra required fields that
-are specific to that backend.
+are specific to that backend. This is also because we need to facilitate
+subclasses for different types of backends. In the future we will not just
+have backends that run circuits, but other types of work, like remote
+transpilers/pass managers. The expectation is that for those additional types
+of backends will subclass the `BaseBackend` class and we will add different
+configuration. For example, something like `TranspilerBackend` will subclass
+`BaseBackend` as it's own abstract class with the requirements for a backend
+provividing a transpiler service (where run takes in a circuit and returns an
+optimized circuit).
 
-On the other side of the interface, interacting with a running circuit and
-it's results a new job class will be defined. This will merge in the standard
-results functionality (it's still present).
+##### New run model
+
+On the other side of the interface, interacting with running on a backend.
+The first change that will need to be made is splitting the method of execution
+on backends. In v1/v1.5 there is a `run` method that expects an async job
+execution that will return a job object which is handle for that async
+execution. However, This model doesn't make sense for all classes of work
+executed by a backend. For, example on local simulators the execution is
+a syncronous task and doesn't need the overhead of wrapping it with an async
+handle. To facilitate this and make the split in execution model clear, the
+`run` method for v2 backends is a sync method and will return the expected
+output object from the execution. For example, if it's a statevector simulator
+this will return a `StateVector` object. For backends that run asyncronously
+the expectation is that this method will be blocking until a result is returned
+from the underlying job and return the expected output. In the v1/v1.5 model
+this would be the equivalent to:
+
+```python
+def run(backend, qobj):
+   job = backend.run(qobj)
+   return job.result().get_counts()
+```
+
+but obviously would need to be updated for the new model. For backwards
+compatibility though we need to be able handle add a deprecated `result()`
+method to the output classese which just returns self. This should just be the
+`Counts` class (see results section below), `Statevector`, and the unitary, with
+a lengthy deprecation period (longer than the minimum 3 months since this is a
+core pattern in Terra) to give users ample time to migrate to this new model.
+This is necessary because while the provider interface is a major version
+difference this is not actually user facing. From the user perspective the
+day they migrate from qiskit-terra 0.14.0 to 0.15.0 and qiskit-aer 0.5.0 to
+0.6.0 that included the migration to the new provider interface on both sides
+they would just get an error when they run `execute().result()`.
+
+
+#### Async execution
+
+To facilitate an async model that doesn't result in blocking for what could
+be a long time depending on the nature of the job a new optional method
+`run_async` is available. This will return a job handle like in the current
+model. For this, method a new job class returned that will merge in the
+current results class.
 
 ```python
 from abc import ABC
@@ -306,6 +380,7 @@ class BaseJob(ABC):
     metadata = None
 
     def __init__(self, job_id, backend):
+        pass
 
     def backend(self):
         return
@@ -316,6 +391,7 @@ class BaseJob(ABC):
 
     @abstractmethod
     def status():
+        pass
 
     def cancel():
         raise NotImplementedError
@@ -324,6 +400,7 @@ class BaseJob(ABC):
         raise NotImplementedError
 
     def get_memory(self):
+        raise NotImplementedError
         return self.result().get_memory()
 
     def get_counts(self):
@@ -354,7 +431,7 @@ class Result(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_counts(self):
+    def result(self):
         """Return a Counts object for the result if applicable."""
         pass
 
@@ -390,13 +467,13 @@ becomes the provider interface not the wire format.
 
 ## Alternative Approaches
 
-Well the first obvious alternative is to keep the current system in place where
-our interface between providers and terra remains the same and hard coupled to
+The first obvious alternative is to keep the current system in place where
+our interface between providers and Terra remains the same and hard coupled to
 the wire format for IQX. However, I think that the motivation secion here covers
 why this is not ideal fairly well and this really isn't an option moving forward.
 
-The only obvious alternative option to this plan is to eliminate the v1.5 step
-and go directly to the v2 implementation. The problem with this is it either
+The only alternative option to this plan is to eliminate the v1.5 step and go
+directly to the v2 implementation. The problem with this is it either
 forces us to break all the existing provider code by making a hard transition
 or forces us to keep the existing structure moving forward. Neither of those is
 a situation we want to be in. We either break our users in another way which
@@ -413,4 +490,5 @@ while we come up with something better.
 Once we've decoupled the providers interface and the IQX API and implemented
 the v2 interface it opens up the door for adding additional resource types
 to providers. This will open up the door for additional types of hosted/external
-pieces of terra that integrate seemlessly.
+pieces of terra that integrate seemlessly. We will be able to build these
+additional base classes off the model introduced here.
