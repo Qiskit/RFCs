@@ -405,7 +405,6 @@ class BaseJob(ABC):
 
     def get_memory(self):
         raise NotImplementedError
-        return self.result().get_memory()
 
     def get_counts(self):
         return self.result().get_counts()
@@ -417,46 +416,23 @@ class BaseJob(ABC):
         return self.result().get_statevector()
 ```
 
-The job class is mostly the same except it is using the new fields. One thing
-that has been expanded is that the result classes methods have duals here. There
-are few times where you'll want or need to interact with a result directly.
-
-```python
-from abc import ABC
-
-class Result(ABC):
-    """An object representing an experiment's result"""
-
-    @abstractmethod
-    def data(self):
-        pass
-
-    def get_memory(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def result(self):
-        """Return a Counts object for the result if applicable."""
-        pass
-
-    @abstractmethod
-    def get_statevector(self):
-        """Return a statevector operator object of the result if applicable."""
-        pass
-
-    @abstractmethod
-    def get_unitary(self):
-        """Return a unitary operator object of the result if applicable."""
-        pass
-```
+The job class is mostly the same as the current one, although it has a couple
+new fields like `metadata`. But, because we're flattening and combining the
+`Result` class into job that the v1/v1.5  `Result` class's methods have duals
+in the new Job class, since the job already should contain all the result data
+we need. However for backwards compatibility we can't remove the `Result` class
+yet, so the `BaseJob` has a `result` method defined which will generate an
+object that will have the same signature and return types as the existing
+`Result` class.
 
 For the job/results interface one thing to note is that there is now a Counts
 class which will represent a counts result from the job (returned by
-`get_counts()`). This will be a subclass of dict and the data format will be
-the same as returned by `Result.get_counts()` now, but will have several helper
-functions for interacting. Similarly a statevector operator object and a
-unitary operator object will be returned from `get_statevector()` and
-`get_unitary()` respectively.
+`get_counts()` or `Backend.run()` for experiments backends). This will be a
+subclass of dict and the data format will be the same as returned by
+`Result.get_counts()` now, but will have several helper functions for
+interacting. Similarly a statevector operator object and a unitary operator
+object will be returned from `get_statevector()` and `get_unitary()`
+respectively.
 
 In the v2 providers interface the conversion to ibmq's api format from the
 terra objects then live in the ibmq provider, where it should live, when we
@@ -466,7 +442,7 @@ circuit to their backends/services.
 
 We'll need to keep `assemble()` (and the dissasembler) in terra for backwards
 compat and v1.5 providers, but the ibmq provider will have it's own equivalent
-and it will likely diverge from the terra version because in 1.5 the qobj class
+and it will likely diverge from the terra version because in v1.5 the qobj class
 becomes the provider interface not the wire format.
 
 ## Alternative Approaches
