@@ -149,6 +149,10 @@ actual experiment. The AQT provider is really good example of this that
 implementation takes the qobj object it gets loops over the instructions and
 builds it's own json string from that. See:
 https://github.com/Qiskit/qiskit-aqt-provider/blob/master/qiskit/providers/aqt/qobj_to_aqt.py
+or in some cases (like the honeywell provider) they take a qobj run
+`disassemble` to get circuit objects and then convert then run `.qasm()` on the
+circuits to send that over the wire:
+https://github.com/Qiskit/qiskit-honeywell-provider/blob/a08a4d12bb0493a9c40462cba1b4e23c4ea2972d/qiskit/providers/honeywell/honeywelljob.py#L160
 
 There's no reason to be passing a qobj here it just makes things slower by adding
 an uncessary conversion step and providing a much harder object to interact with.
