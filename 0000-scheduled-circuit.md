@@ -135,15 +135,6 @@ class ScheduledCircuit:
         Raise CircuitError if total duration of the targets does not equals to the duration of reference.
         """
 
-    def insert(self,
-               reference: LengthedInstruction?Positions?,
-               target: LengthedInstruction?Positions?,
-               shift: bool = False):
-        """Mutably insert the target instruction just before the reference instruction.
-        If shift is True, all the following instructions will be shifted by the duration of the target.
-        If shift is False, raise CircuitError if no enough idle time before the reference instruction.
-        """
-
     # """Ordered instructions on a specified qubit."""
     # def instructions_on(self, qubit_index: int) -> List[LengthedInstruction]:
 
@@ -213,10 +204,10 @@ _timed_inst_by_qubit: Dict[Qubit, List[TimedInstruction]] # lists are sorted by 
 3) insert(ref: Position, targets: LengthedInstructions)*
     - fail if no enough idle time before the reference instruction
 - Relatively-timed:
-  - O(N): check validity of arguments
+  - O(W): check validity of arguments
   - O(ListInsert(D)*W): insert items on lists by qubit
 - Absolutely-timed:
-  - O(N): check validity of arguments
+  - O(W): check validity of arguments
   - O(N): update start times
   - O(ListInsert(D)*W): insert items on lists by qubit
 
@@ -232,8 +223,33 @@ _timed_inst_by_qubit: Dict[Qubit, List[TimedInstruction]] # lists are sorted by 
 
 In addition to these, we need kinds of “find()” family for users to specify references in insert/replace etc.
 
-\*) I assume the interface that references are given as Postions. If references should be given as Instructions, we need to accept overhead to find positions. 
-Such overhead would be O(D*W) for Relatively-timed and O(log(D)*W) for Absolutely-timed unless we add another data structure for the purpose.
+\*) I assume the interface that references are given as Postions.
+There is a clear drawback in referring by positions:
+replacement of cx gate, which would be specified by two Positions and may confuse users.
+(*To achieve single position for cx gate, it would be better to use DAG data structure like DAGCircuit…*).
+If references should be given as Instructions, we need to accept overhead to find positions.
+Such overhead would be O(D\*W) for Relatively-timed and O(log(D)*W) for Absolutely-timed unless we add another data structure for the purpose.
+
+
+### Dictionary vs DAG data structure
+How to store *ordering* among instructions is much important point for selecting data structure.
+This is a problem independent of Relatively-timed or Absolutely-timed, which addresses the problem if we should keep absolute-timing in data or not.
+
+We can think of two data structure for storing the orders among instructions:
+- Dictionary (Dict[Qubit, List[LengthedInstruction]] discussed above)
+- DAG (as like used in DAGCircuit)
+
+Note: *For any node of DAGCircuit, its in-(or out-)edges must have different qubit label.
+It enables DAGCircuit to store the ordering of instruction by qubits.*
+As for general DependencyDAG, which represents dependencies among instructions,
+its node can have multiple in-(or out-)-edges with the same qubit label.
+So DependencyDAG is not appropriate to store the ordering of instruction by qubits.
+
+In Dictionary, any multi-qubit instruction is stored at multiple positions on multiple lists.
+So referring a multi-qubit instruction with one position is not possible.
+In DAG, it is possible because any node can be specified by "instruction id (an integer)".
+To get instruction by its id, we may need to store a map from id to instruction (as list or dict).
+
 
 
 ## Questions
