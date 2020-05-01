@@ -244,6 +244,7 @@ These are candidates of callback function we need to implement:
 + `get_snapshots`: return snapshot instruction
 + `scale_waveform`: apply scaling to pulses
 + `truncate_waveform`: truncate long waveform and delay
++ `interpolate_waveform`: interpolate waveform
 
 We can prepare unittest for those functions as well.
 
