@@ -37,7 +37,7 @@ There is another frustrating situation based on our experience. When we wrote th
 Having configuration be based on a style sheet will help us in such a situation because we would just need to create a dedicated style sheet for publication and share the style sheet instead of modifying source code.
 
 From the point of view of contributors, the current drawer is implemented as one large function call and it is very hard to maintain.
-Sometime a change in Qiskit Pulse module may cause an unexpected error in the drawer or even crash it, but this will not be detected because visualization level test is skipped now.
+Sometimes a change in the Qiskit Pulse module may cause an unexpected error in the drawer or even crash it, but this will not be detected because visualization level tests are currently skipped now.
 Moreover many contributors don't update reference figures in the unittest folder.
 Thus, it is better to decompose this huge callback funtion into some unit functions and enable the unittest for those functions which doesn't deal with `matplotlib` objects.
 
