@@ -44,7 +44,7 @@ Thus, it is better to decompose this huge callback function into some unit funct
 This update will improve the efficiency of pulse programming and maintainability of code.
 
 ## User Benefit
-Qiskit Pulse user will enjoy the benefit. From novice to professional level, users will be able to get a readable visualization with more simple function or method call for debugging purpose and then easily customize the output format for publication.
+Every Qiskit Pulse user will enjoy the benefit. From novice to the professional level, users will be able to get a readable visualization with a more simple function or method call for debugging purposes and then easily customize the output format for publication.
 Cost of code maintainance will be also decreased.
 
 ## Design Proposal
