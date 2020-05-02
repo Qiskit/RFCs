@@ -33,7 +33,7 @@ A good example is a single qubit pi pulse followed by a measurement stimulus pul
 Usually a pi pulse duration is around 160 cycles whereas that of the measurement pulse is over 10000.
 Currently, we can truncate the measurement pulse with the `plot_range` option.
 However, when we enable conditional gates or a conditional reset in the middle in the schedule, the truncation by `plot_range` doen't work becase users may also want to know the pulse sequence after the measurement stimulus.
-There is another frustrating situation based on our experience. When we wrote the Qiskit Pulse paper we needed to modify the drawer itself to adress reviewers requests and we decided not to share the code for pulse drawing in the public database.
+There is another frustrating situation based on our experience. When we wrote the Qiskit Pulse paper we needed to modify the drawer itself to address reviewer's requests and we decided not to share the code for pulse drawing in the public database.
 To enrich the style sheet option will help us in such situation because we just need to create a dedicated style sheet for publication and share the style sheet instead of the whole modified Qiskit-terra.
 
 From the point of view of contoributors, current drawer is implemented as one huge callback function and it is very hard to maintain.
