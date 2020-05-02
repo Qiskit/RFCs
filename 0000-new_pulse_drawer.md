@@ -59,7 +59,7 @@ pulse_drawer(
     style=pulse_style_lib.iqx_debugging())
 ```
 
-The `pulse_style_lib` contains several predefined style sheets that have different purpose of visualization.
+The `pulse_style_lib` will contain several predefined style sheets that have different visualization purposes.
 In above example `iqx_debugging` may show many information as possible, i.e. pulse name, operand values of `PhaseShift` and `FrequencyShift`, pulse peak height, pulse duration and so on.
 If those information are too much for publication user can switch the output format by using another style sheet:
 
