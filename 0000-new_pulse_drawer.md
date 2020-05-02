@@ -29,7 +29,7 @@ The drawer aranges pulse channels in the order of `[DriveChannel[i], ControlChan
 For example, when we visualize a pulse schedule that includes a cross resonance pulse on qubit 15, the corresponding `ControlChannel` index may be 36 and the cross resonance pulse is drawn at the place far below the `DriveChannel`s of this qubit.
 This makes the debugging of the program very hard.
 Another defect can be seen when we try to visualize two pulses whose durations are very much different.
-Good example is a single qubit pi pulse followed by measurement stimulus pulse.
+A good example is a single qubit pi pulse followed by a measurement stimulus pulse.
 Usually a pi pulse duration is around 160 and that of measurement pulse is over 10000.
 Currently we can truncate measurement pulse with `plot_range` option.
 However when we enable conditional gates or a conditional reset in the middle in the schedule, the truncation by `plot_range` doen't work becase users may also want to know the pulse sequence after the measurement stimulus.
