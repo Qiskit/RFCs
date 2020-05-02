@@ -12,7 +12,7 @@
 
 The pulse drawer is one of the best ways to debug pulse programs. However, it is not very user-friendly.
 We propose a new drawer implementation that should improve usability and lead to improved pulse programming efficiency.
-Under the new implementation the style sheet feature is more leveraged to reduce required amount of code to generate good visualization and Qiskit provides users with several predefined style sheets.
+In the new implementation, the style sheet feature is leveraged to reduce the required amount of code to generate good visualization and will provide Qiskit users with several predefined style sheets.
 
 ## Motivation
 In conventional pulse drawer this may be minimum amount of code to generate readable pulse visualization.
