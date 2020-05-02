@@ -10,7 +10,7 @@
 
 ## Summary
 
-The conventional pulse drawer in qiskit-terra is not user-friendly even though this is only way to debug pulse programs.
+The pulse drawer is one of the best ways to debug pulse programs. However, it is not very user-friendly.
 In this RFC new drawer implementation idea that improves usability and eventually improves pulse programming efficiency is presented.
 Under the new implementation the style sheet feature is more leveraged to reduce required amount of code to generate good visualization and Qiskit provides users with several predefined style sheets.
 
