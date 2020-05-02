@@ -161,7 +161,7 @@ def pulse_drawer_core(program: SamplePulse, ...):
 The `schedule_drawer_core` is used to draw pulse `Schedule` while the `pulse_drawer_core` is used to draw `SamplePulse`.
 Since a pulse `Schedule` has more complicated data structure, the `schedule_drawer_core` consists of several elements to extract a set of objects to draw.
 
-The class `EventsOutputChannels` is an extention of existing `EventsOutputChannels` class, but some method names are updated to reflect the recent change of pulse syntax. This class is defined for each `Channel` to draw and the class makes a collection of instructions tagged by the time. The class structure looks like:
+The class `EventsOutputChannels` is an extension of the existing `EventsOutputChannels` class, but some method names are updated to reflect the recent change of pulse syntax. This class is defined for each `Channel` to draw and the class makes a collection of instructions tagged by the time. The class structure looks like:
 
 ```python
 class EventsOutputChannels:
