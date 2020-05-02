@@ -6,7 +6,7 @@
 | **Authors**       | Naoki Kanazawa (knzwnao@jp.ibm.com), Thomas Alexander    |
 | **Deprecates**    |                  |
 | **Submitted**     | 2020-05-01                                   |
-| **Updated**       | YYYY-MM-DD                                   |
+| **Updated**       | 2020-05-02                                   |
 
 ## Summary
 
@@ -159,7 +159,7 @@ qiskit
       +-- pulse_style_lib.py (QiskitPulseStyle, iqx_publication, iqx_debugging, ...)
       +-- drawing_engine.py (collection of small programs to help object mapping)
 ```
-The interface function `pulse_drawer` internally calls the sub function `core_schedule_drawer` or `pulse_drawer_code` which generate `matplotlib.Figure` from given arguments.
+The interface function `pulse_drawer` internally calls the sub function `core_schedule_drawer` or `core_pulse_drawer` which generate `matplotlib.Figure` from given arguments.
 
 ```python
 def core_schedule_drawer(program: ScheduleComponent, ...):
@@ -250,7 +250,7 @@ Since the input is existing pulse `Schedule` there is no dependency on another d
 We can prepare the unittest for this object.
 
 ### Phase2: Add style sheets
-The design of style sheet will influence the implementation of helper functions in `utils.py` because behavior of those functions are controlled by style sheet preference.
+The design of style sheet will influence the implementation of helper functions in `drawing_engine.py` because behavior of those functions are controlled by style sheet preference.
 Therefore roughly designed style sheets should be implemented first and will be refined with the actual helper function implementation.
 These are candidates of style sheets we need to implement:
 
