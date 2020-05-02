@@ -3,7 +3,7 @@
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | ####                                         |
-| **Authors**       | Naoki Kanazawa (knzwnao@jp.ibm.com)    |
+| **Authors**       | Naoki Kanazawa (knzwnao@jp.ibm.com), Thomas Alexander    |
 | **Deprecates**    |                  |
 | **Submitted**     | 2020-05-01                                   |
 | **Updated**       | YYYY-MM-DD                                   |
@@ -33,7 +33,7 @@ A good example is a single qubit pi pulse followed by a measurement stimulus pul
 Usually a pi pulse duration is around 160 cycles whereas that of the measurement pulse is over 10000.
 Currently, we can truncate the measurement pulse with the `plot_range` option.
 However, when we enable conditional gates or a conditional reset in the middle in the schedule, the truncation by `plot_range` doen't work becase users may also want to know the pulse sequence after the measurement stimulus.
-There is another frustrating situation based on our experience. When we wrote the Qiskit Pulse paper we needed to modify the drawer itself to address reviewer's requests and we decided not to share the code for pulse drawing in the public database.
+There is another frustrating situation based on our experience. When we wrote the [Qiskit Pulse paper](https://arxiv.org/abs/2004.06755) we needed to modify the drawer itself to address reviewer's requests and we decided not to share the code for pulse drawing in the public database.
 Having configuration be based on a style sheet will help us in such a situation because we would just need to create a dedicated style sheet for publication and share the style sheet instead of modifying source code.
 
 From the point of view of contributors, the current drawer is implemented as one large function call and it is very hard to maintain.
@@ -60,7 +60,8 @@ pulse_drawer(
 ```
 
 The `pulse_style_lib` will contain several predefined style sheets that have different visualization purposes.
-In the above example, `iqx_debugging` will show as much information as possible, i.e. pulse name, operand values of `PhaseShift` and `FrequencyShift`, pulse peak height, pulse duration and so on.
+In the above example, `iqx_debugging()` is a function call which generates a style sheet object.
+This style sheet is expected to show as much information as possible, i.e. pulse name, operand values of `PhaseShift` and `FrequencyShift`, pulse peak height, pulse duration and so on.
 If that information is too much for publication, the user can switch the output format by using another style sheet:
 
 ```python
@@ -72,7 +73,7 @@ pulse_drawer(
 ```
 
 The `iqx_publication` style sheet may show only pulse names and frequency values because other information will appear in the pulse envelope.
-Pulse names may be reformatted into LaTex syntax, for example, systematic name `X90p_d0_123456789` is replaced by `$X_{90}$` by using regular expression operation (This is one of what we needed to do in the Qiskit Pulse paper).
+Pulse names may be reformatted into LaTex syntax, for example, systematic name `X90p_d0_123456789` is replaced by `$X_{90}$` by using regular expression operation (This is one of what we needed to do in the [Qiskit Pulse paper](https://arxiv.org/abs/2004.06755)).
 As those examples illustrate, we can easily change the data to be overlayed on the plot by using style sheets.
 The layout of channels and truncation of pulses are also controlled by the style sheets.
 In `iqx` style sheet series, preferred channel layout must be `[DriveChannel[i] for i in range(max_channel_index)], [ControlChannel[i] for i in range(max_channel_index)], [MeasureChannel[i] for i in range(max_channel_index)], [AcquireChannel[i] for i in range(max_channel_index)]` (or `'layout': 'channel-type-wise'`), and `'truncation': True` (automatically truncate long pulse and delay).
@@ -91,7 +92,21 @@ class QiskitPulseStyle:
   def param1(self):
     return self.param1
   ...
+
+  def to_dict(self):
+    # output style sheet configuration in dictionary
+    pass
+
+  @classmethod
+  def from_dict(cls, dict_):
+    # load style sheet from dictionary
+    pass
 ```
+
+This class has `to_dict` and `from_dict` methods as, for example, the Qiskit `Result` class so that user can save the style sheet in serialized data file such as JSon. 
+It is important because serialized data can reduce security risks when the style sheet is provided by external providers.
+A good usecase of this feature is publication.
+If a publisher provides us with a style sheet comforming to their standard, we don't need to spare time for fine tuning of drawings.
 
 Predefined style sheets are accessible with a function call:
 
@@ -140,31 +155,31 @@ qiskit
     +--pulse_visualization.py (pulse_drawer)
     +--[pulse]
       +-- core_drawer.py (core_schedule_drawer, core_pulse_drawer)
-      +-- event_manager.py (EventsOutputChannels)
+      +-- event_manager.py (EventManager)
       +-- pulse_style_lib.py (QiskitPulseStyle, iqx_publication, iqx_debugging, ...)
-      +-- utils.py (other additional callbacks)
+      +-- drawing_engine.py (collection of small programs to help object mapping)
 ```
-The interface function `pulse_drawer` internally calls the sub function `schedule_drawer_core` or `pulse_drawer_code` which generate `matplotlib.Figure` from given arguments.
+The interface function `pulse_drawer` internally calls the sub function `core_schedule_drawer` or `pulse_drawer_code` which generate `matplotlib.Figure` from given arguments.
 
 ```python
-def schedule_drawer_core(program: ScheduleComponent, ...):
+def core_schedule_drawer(program: ScheduleComponent, ...):
   # draw schedule figure
   return matplotlib.Figure
 ```
 
 ```python
-def pulse_drawer_core(program: SamplePulse, ...):
+def core_pulse_drawer(program: SamplePulse, ...):
   # draw schedule figure
   return matplotlib.Figure
 ```
 
-The `schedule_drawer_core` is used to draw pulse `Schedule` while the `pulse_drawer_core` is used to draw `SamplePulse`.
-Since a pulse `Schedule` has more complicated data structure, the `schedule_drawer_core` consists of several elements to extract a set of objects to draw.
+The `core_schedule_drawer` is used to draw pulse `Schedule` while the `core_pulse_drawer` is used to draw `SamplePulse`.
+Since a pulse `Schedule` has more complicated data structure, the `core_schedule_drawer` consists of several elements to extract a set of objects to draw.
 
-The class `EventsOutputChannels` is an extension of the existing `EventsOutputChannels` class, but some method names are updated to reflect the recent change of pulse syntax. This class is defined for each `Channel` to draw and the class makes a collection of instructions tagged by the time. The class structure looks like:
+The class `EventManager` is an extension of the existing `EventsOutputChannels` class, but some method names are updated to reflect the recent change of pulse syntax. This class is defined for each `Channel` to draw and the class makes a collection of instructions tagged by the time. The class structure looks like:
 
 ```python
-class EventsOutputChannels:
+class EventManager:
   def __init__(self, schedule: ScheduleComponent, channel: Channel):
     self._pulse = []
     self._phase = []
@@ -202,37 +217,51 @@ This is because we need to truncate long pulses or long delays based on `truncat
 If we output the entire waveform as a single data array it is very hard to recover a length of each pulse.
 The method `max_amp` and `min_amp` are used to determine the autoscaling value of the channel.
 
-First, the `schedule_drawer_core` initializes `EventsOutputChannels` for all channels specified by the user input and the style sheet preference and keep them as a python `dict`. Then, those channels are rearranged as a `list` according to the `layout` option in the style sheet. If `'layout': 'channel-type-wise'` is specified, the program collects all `DriveChannel`s in the dictionary and then collects `ControlChannel`s, ... , so that channels of the same type are shown in one group.
+First, the `core_schedule_drawer` initializes `EventManager` for all channels specified by the user input and the style sheet preference and keep them as a python `dict`. Then, those channels are rearranged as a `list` according to the `layout` option in the style sheet. If `'layout': 'channel-type-wise'` is specified, the program collects all `DriveChannel`s in the dictionary and then collects `ControlChannel`s, ... , so that channels of the same type are shown in one group.
+This functionality is offloaded to a dedicated function placed in `drawing_engine.py`.
 
-In `utils.py` several helper functions are defined to extract information and coordinate to show from the `EventsOutputChannels`.
-This is a big change from the current implementation (but not impactful to users) such that existing huge callback function is decomposed into small pieces which can be unittested.
+The file `drawing_engine.py` consists of many small programs that process `EventManager` instances to generate a set of data thrown to the drawing backend, i.e. `matplotlib`.
+Usually the processed data contains a set of value to be shown and its coordinate `(x, y)` on the canvas.
+This is a big change from the current implementation (but not impactful to users) such that existing large function is decomposed into small pieces.
+It should be emphasized that `drawing_engine` doesn't deal with `matplotlib` object so that all programs can be unittested in the current testing framework.
+
 For example,
 
 ```python
-def get_labels(manager: EventsOutputChannels) -> List[Tuple[Tuple[float, float], str]]:
+def get_labels(manager: EventManager) -> List[Tuple[Tuple[float, float], str]]:
   # return coordinate and name of each pulse instruction
   pass
 ```
 
-this is the callback function to extract a set of pulse names (sometime formatting names by request) and the coordinate to draw of each pulse in the `EventsOutputChannels`.
+this is the one of helper functions to extract a set of pulse names (sometime formatting names by request) and the coordinate to draw of each pulse in the `EventManager`.
 Both of the arguments and the returned values don't contain the `matplotlib` object, this function can be tested by current testing framework (currently this is written as a part of drawer and there is no way to test without importing `matplotlib`).
-We can prepare a set of such callback function in `utils.py`. Truncation and scaling can be implemented as a part of `utils.py`.
+We can prepare a set of such function in `drawing_engine.py`. Truncation and scaling can be implemented as a part of `drawing_engine.py`.
 
-The `schedule_drawer_core` execute required callback functions based on the style sheet and generate a set of objects drawn by backends (this is usually `matplotlib`).
-Finally `schedule_drawer_core` returns `matplotlib.Figure` object if `matplotlib.Axes` objects are not given.
+The `core_schedule_drawer` execute required callback functions based on the style sheet and generate a set of objects drawn by backends (this is usually `matplotlib`).
+Finally `core_schedule_drawer` returns `matplotlib.Figure` object if `matplotlib.Axes` objects are not given.
 
-The `pulse_drawer_core` has much simple structure because it just need to call `.samples` method of given `SamplePulse` instance and draw the returned `ndarray`.
+The `core_pulse_drawer` has much simple structure because it just need to call `.samples` method of given `SamplePulse` instance and draw the returned `ndarray`.
 
 The entire work can be separated into several small PRs.
 
-### Phase1: Update `EventsOutputChannels`
+### Phase1: Update `EventManager`
 This is the fundamental element of the schedule drawer and thus this should be implemented first.
 Since the input is existing pulse `Schedule` there is no dependency on another drawer components.
 We can prepare the unittest for this object.
 
-### Phase2: Add utility functions
-Utility functions have dependency on `EventsOutputChannels`.
-These are candidates of callback function we need to implement:
+### Phase2: Add style sheets
+The design of style sheet will influence the implementation of helper functions in `utils.py` because behavior of those functions are controlled by style sheet preference.
+Therefore roughly designed style sheets should be implemented first and will be refined with the actual helper function implementation.
+These are candidates of style sheets we need to implement:
+
++ `iqx_debugging`: show every details of the pulse, may return very busy plot
++ `iqx_standard`: show instruction level information to understand the overview of program, small details are ignored
++ `iqx_publication`: show minimum information to make clean plot for publication
+
+### Phase3: Add drawing engine
+Drawing engine has dependency on `EventManager` and be influenced by the desing of style sheets.
+So the implementation of the drawing engine will come after style sheets.
+These are candidates of programs we need to implement:
 
 + `get_labels`: return label of each pulse
 + `get_max_values`: return maximum value of each pulse
@@ -244,27 +273,24 @@ These are candidates of callback function we need to implement:
 + `scale_waveform`: apply scaling to pulses
 + `truncate_waveform`: truncate long waveform and delay
 + `interpolate_waveform`: interpolate waveform
++ `arange_channel_layout`: arange channel layout based on style sheet preference
 
-We can prepare unittest for those functions as well.
-
-### Phase3: Add style sheets
-The style sheet doesn't have any dependency so we can start implementation of them at anytime we want.
-These are candidates of style sheets we need to implement:
-
-+ `iqx_debugging`: show every details of the pulse, may return very busy plot
-+ `iqx_standard`: show instruction level information to understand the overview of program, small details are ignored
-+ `iqx_publication`: show minimum information to make clean plot for publication
+We need to prepare unittest for those functions.
 
 ### Phase4: Add core function and interface
 With all of above PRs we can start implementing main part of drawer.
 The unittest for `matplotlib.Figure` output is skipped in the current testing framework.
 We need to check the output of figure by our eyes.
 
+Because new drawer drastically changes the interface and the module structure, it is not efficient to implement this framework while keeping the backward compatibility with the existing drawer.
+We plan to introduce the new drawer slowly under different name such as `pulse_drawer_v2` (TBD) to test over time.
+
+
 ## Alternative Approaches
 N/A
 
 ## Questions
-+ How old drawer can be deprecated? Becase interface will change drastically, I feel introducing new drawer independently to old one is easier.
+N/A
 
 ## Future Extensions
 We may want to create some drawer widget based upon this drawer.
