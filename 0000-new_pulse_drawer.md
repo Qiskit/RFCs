@@ -26,7 +26,7 @@ pulse_drawer(
 Users must write this boilerplate code for every pulse program they wish to draw.
 In addition, the drawer has several defects in the output format.
 The drawer aranges pulse channels in the order of `[DriveChannel[i], ControlChannel[i], MeasureChannel[i], AcquireChannel[i]] for i in range(max_channel_index)` (or `'channel-index-wise'`) but in IBM Quantum backends the index `i` of `ControlChannel` doesn't indicate the index of corresponding qubit.
-For example, when we visualize a pulse schedule which includes a cross resonance pulse to the qubit 15, the corresponding `ControlChannel` index may be 36 and the cross resonance pulse is drawn at the place far below the `DriveChannel`s of this qubit.
+For example, when we visualize a pulse schedule that includes a cross resonance pulse on qubit 15, the corresponding `ControlChannel` index may be 36 and the cross resonance pulse is drawn at the place far below the `DriveChannel`s of this qubit.
 Sometime this makes the debugging of the program very hard.
 Another defect can be seen when we try to visualize two pulses whose durations are very much different.
 Good example is a single qubit pi pulse followed by measurement stimulus pulse.
