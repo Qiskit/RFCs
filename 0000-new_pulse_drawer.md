@@ -139,7 +139,7 @@ qiskit
   +--[visualization]
     +--pulse_visualization.py (pulse_drawer)
     +--[pulse]
-      +-- drawer_core.py (schedule_drawer_core, pulse_drawer_core)
+      +-- core_drawer.py (core_schedule_drawer, core_pulse_drawer)
       +-- event_manager.py (EventsOutputChannels)
       +-- pulse_style_lib.py (QiskitPulseStyle, iqx_publication, iqx_debugging, ...)
       +-- utils.py (other additional callbacks)
