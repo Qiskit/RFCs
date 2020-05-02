@@ -23,7 +23,7 @@ pulse_drawer(
     plot_range=(0, 2000),
     channels=[pulse.DriveChannel(0), pulse.DriveChannel(1), pulse.MeasureChannel(0), pulse.MeasureChannel(1)]))
 ```
-Users need to write such amount of code for each time to check their pulse program.
+Users must write this boilerplate code for every pulse program they wish to draw.
 This inconvenient interface could decrease the efficiency of pulse programming.
 In addition, the conventional drawer has several defects in the output format.
 For example, the drawer aranges pulse channels in the order of `[DriveChannel[i], ControlChannel[i], MeasureChannel[i], AcquireChannel[i]] for i in range(max_channel_index)` (or `'channel-index-wise'`) but in IBM Quantum backends the index `i` of `ControlChannel` doesn't indicate the index of corresponding qubit.
