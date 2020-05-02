@@ -15,7 +15,7 @@ We propose a new drawer implementation that should improve usability and lead to
 In the new implementation, the style sheet feature is leveraged to reduce the required amount of code to generate good visualization and will provide Qiskit users with several predefined style sheets.
 
 ## Motivation
-In conventional pulse drawer this may be minimum amount of code to generate readable pulse visualization.
+In the conventional pulse drawer, the minimum amount of code to generate a readable pulse visualization is:
 ```python
 pulse_drawer(
     my_sched,
