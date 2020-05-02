@@ -61,7 +61,7 @@ pulse_drawer(
 
 The `pulse_style_lib` will contain several predefined style sheets that have different visualization purposes.
 In the above example, `iqx_debugging` will show as much information as possible, i.e. pulse name, operand values of `PhaseShift` and `FrequencyShift`, pulse peak height, pulse duration and so on.
-If those information are too much for publication user can switch the output format by using another style sheet:
+If that information is too much for publication, the user can switch the output format by using another style sheet:
 
 ```python
 import qiskit.visualization.pulse_style_lib
