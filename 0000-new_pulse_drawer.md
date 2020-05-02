@@ -205,7 +205,7 @@ The method `max_amp` and `min_amp` are used to determine the autoscaling value o
 First, the `schedule_drawer_core` initializes `EventsOutputChannels` for all channels specified by the user input and the style sheet preference and keep them as a python `dict`. Then, those channels are rearranged as a `list` according to the `layout` option in the style sheet. If `'layout': 'channel-type-wise'` is specified, the program collects all `DriveChannel`s in the dictionary and then collects `ControlChannel`s, ... , so that channels of the same type are shown in one group.
 
 In `utils.py` several helper functions are defined to extract information and coordinate to show from the `EventsOutputChannels`.
-This is a big change from current implementation (but not impact to users) such that existing huge callback function is decomposed into small pieces which can be unittested.
+This is a big change from the current implementation (but not impactful to users) such that existing huge callback function is decomposed into small pieces which can be unittested.
 For example,
 
 ```python
