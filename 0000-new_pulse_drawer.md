@@ -93,7 +93,7 @@ class QiskitPulseStyle:
   ...
 ```
 
-Predefined style sheets are defined by callback function:
+Predefined style sheets are accessible with a function call:
 
 ```python
 def iqx_debugging(**kwargs):
