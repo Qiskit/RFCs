@@ -6,7 +6,7 @@
 | **Authors**       | Naoki Kanazawa (knzwnao@jp.ibm.com), Thomas Alexander    |
 | **Deprecates**    |                  |
 | **Submitted**     | 2020-05-01                                   |
-| **Updated**       | YYYY-MM-DD                                   |
+| **Updated**       | 2020-05-02                                   |
 
 ## Summary
 
