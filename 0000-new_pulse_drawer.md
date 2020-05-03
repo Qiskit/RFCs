@@ -210,7 +210,7 @@ class CoreImageGenerator(ABC):
     pass
 ```
 
-Based on a year of an experience of the conventional drawer, we learned drawing lines and texts are sufficient functionalities required for the pulse program visualization.
+Based on a year of an experience with the conventional drawer, we learned drawing lines and texts are sufficient functionalities required for the pulse program visualization.
 Thus in our new design we abstract those functionalities so that the `CoreImageGenerator` to be drawing backend agnostic.
 In addition, we prepare special class to represent data and options for those objects to draw.
 
