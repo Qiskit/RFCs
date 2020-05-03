@@ -6,7 +6,7 @@
 | **Authors**       | Naoki Kanazawa (knzwnao@jp.ibm.com), Thomas Alexander    |
 | **Deprecates**    |                  |
 | **Submitted**     | 2020-05-01                                   |
-| **Updated**       | 2020-05-02                                   |
+| **Updated**       | 2020-05-03                                   |
 
 ## Summary
 
@@ -216,8 +216,8 @@ In addition, we prepare special class to represent data and options for those ob
 
 ```python
 class VisualizationElement:
-  def __init__(self, data_type, data, coordinate, **style_args):
-    self.data_type = data_type
+  def __init__(self, object_type, data, coordinate, **style_args):
+    self.object_type = object_type
     self.data = data
     self.coordinate = coordinate
     self.style_args = style_args
@@ -226,11 +226,11 @@ class VisualizationElement:
 The keyword arguments `**style_args` depends on the drawing backend and it is directly passed to the backend.
 In the case of `matplotlib`, this will be something like `{'linestlye': ':', 'color': 'red', 'alpha': 0.5}`.
 This can be regarded as an intermediate representation of visualization data.
-The `data_type` specifies the method of visualization.
+The `object_type` specifies the appearance of object on the drawer's canvas.
 For example, there are two types of lines in the conventional drawer.
-The base line of pulse is drawn by simple bold line while pulse envelope is drawn by blotting out the area under curve.
+A base (zero) line of pulse channels is drawn by a simple bold line while a pulse envelope is drawn by blotting out the area under curve.
 Such details of visualization appears in this property.
-Those selections will be predefined with `enum`.
+Those options will be predefined with `enum`.
 
 In Qiskit Pulse there are two drawers we need to support.
 One is for `Schedule` and another one is for `SamplePulse`.
