@@ -152,20 +152,20 @@ Implementation details of this function are described in next section.
 ```
 qiskit
   +--[visualization]
-    +--pulse_visualization.py (pulse_drawer)
+    +--pulse_visualization.py (schedule_drawer, sample_pulse_drawer)
     +--[pulse]
-      +-- core_drawer.py (CoreImageGenerator, VisualizationElement)
-      +-- core_matplotlib_static.py (Core2DPulseDrawer, CoreScheduleDrawer, CoreWaveDrawer)
+      +-- core_drawer.py (CoreImageGenerator, VisualizationElement, TextObject, LineObject)
+      +-- core_matplotlib.py (Core2DMplDrawer)
       +-- event_manager.py (EventManager)
       +-- pulse_style_lib.py (QiskitPulseStyle, iqx_publication, iqx_debugging, ...)
       +-- drawing_engine.py (collection of small programs to help object mapping)
 ```
-The interface function `pulse_drawer` handles drawing of static 2D image of waveforms.
-The function internally instantiates an image generator class which depends on the format of output object, i.e. 2D or 3D, static or dynamic, passive or interactive, etc...
-Then the `pulse_drawer` calls `draw` method of the instance to visualize an input pulse program.
-This RFC covers generation of 2D static image.
+The drawer function `schedule_drawer` and `sample_pulse_drawer` creates a static 2D image of waveforms.
+The function internally instantiates an image generator class which depends on the drawing backend to use, i.e. `matplotlib` in our case.
+The image generator class is an abstraction of the actual drawing backend and the `pulse_drawer` doesn't have direct dependency on the backend.
+Thanks to this design, we can easily switch to the another drawing backend, e.g. JavaScript, based on the situation and expected output.
 
-In `core_drawer.py`, the abstract class of those image generator is placed. This abstract class should be drawing backend agnostic so that any software can be used for visualization.
+In `core_drawer.py`, the abstract class of the image generator class is placed. This abstract class is of course written in Python but should be drawing backend agnostic so that any software can be used for visualization.
 
 ```python
 class CoreImageGenerator(ABC):
@@ -175,6 +175,7 @@ class CoreImageGenerator(ABC):
     self._style_sheet = style_sheet
     self._pulse_canvas = pulse_canvas
     self._table_canvas = table_canvas
+    self._figure = None
     self._initialize()
 
     pass
@@ -190,71 +191,80 @@ class CoreImageGenerator(ABC):
     pass
 
   @abstractmethod
-  def draw(self, program):
-    # generate image of given program
-    pass
-
-  @abstractmethod
   def save(self, file_name):
     # save current canvas image to file
     pass
 
   @abstractmethod
-  def _draw_line(line_object):
+  def draw_line(data: VisualizationElement):
     # draw line from configuration object
     pass
 
   @abstractmethod
-  def _draw_text(text_object):
+  def draw_text(data: VisualizationElement):
     # draw text from configuration object
+    pass
+
+  @abstractmethod
+  def make_table(data: List[List[str]]):
+    # draw event table from configuration object
     pass
 ```
 
-Based on a year of an experience with the conventional drawer, we learned drawing lines and texts are sufficient functionalities required for the pulse program visualization.
-Thus in our new design we abstract those functionalities so that the `CoreImageGenerator` to be drawing backend agnostic.
-In addition, we prepare special class to represent data and options for those objects to draw.
+Based on a year of an experience with the conventional drawer, we learned drawing lines, texts and a event table are sufficient functionalities required for the pulse program visualization.
+Thus in our new design we abstract those methods so that the `CoreImageGenerator` to be drawing backend agnostic.
+Note that the image generator class doesn't create an actual pulse schedule nor sample pulse figure.
+It just passes elements to draw to the actual drawing backend.
+We prepare a special data class to represent data and its attributes for those objects to draw.
+Actual formatting of the figure, i.e. layout of pulses, adding labels, format of axes and so on, will be performed on the `pulse_drawer`.
 
 ```python
 class VisualizationElement:
-  def __init__(self, object_type, data, coordinate, **style_args):
-    self.object_type = object_type
+  def __init__(self, attribute, data, coordinate):
+    self.attribute = attribute
     self.data = data
     self.coordinate = coordinate
-    self.style_args = style_args
 ```
 
-The keyword arguments `**style_args` depends on the drawing backend and it is directly passed to the backend.
-In the case of `matplotlib`, this will be something like `{'linestlye': ':', 'color': 'red', 'alpha': 0.5}`.
-This can be regarded as an intermediate representation of visualization data.
-The `object_type` specifies the appearance of object on the drawer's canvas.
-For example, there are two types of lines in the conventional drawer.
-A base (zero) line of pulse channels is drawn by a simple bold line while a pulse envelope is drawn by blotting out the area under curve.
-Such details of visualization appears in this property.
-Those options will be predefined with `enum`.
+This can be regarded as an intermediate representation (IR) of visualization data.
+The `attribute` specifies the attribute of this object, which affects the appearance of this object on the drawer's canvas.
+Since the image generator class is initialized with the style sheet, specifying the `attribute` will enable the generator to apply correct drawing options.
 
-In Qiskit Pulse there are two drawers we need to support.
-One is for `Schedule` and another one is for `SamplePulse`.
-Because the functionalities and implementation of those generators are almost identical (i.e. `SamplePulse` doesn't require event table), it is quite reasonable to prepare superclass under the name of `Core2DPulseDrawer`.
-This superclass and child classes are placed in `core_matplotlib.py` and this is the only file that has `matplotlib` dependency (we supporse to use `matplotlib` for those drawing backend).
-In other word, all other functions are isolated from drawing environment and thus we can easily add new drawing software based upon user's requests while reusing those assets.
-
-The image generator of `Schedule` is:
+For example, we have many types of text data drawn on the canvas.
+The `object_type` of text will be
 
 ```python
-class CoreScheduleDrawer(Core2DPulseDrawer):
-  # image generator class for pulse schedule
-  pass
+class TextObject(str, Enum):
+  CHAN_LABEL = 'channel_label' # name of channels
+  PULSE_LABEL = 'pulse_label' # name of pulse
+  AXIS_LABEL = 'axis_label' # label of axis
+  AXIS_TICKS = 'axis_ticks' # axis ticks
+  SYMBOL = 'symbol' # phase shift or frequency shift symbol
+  OP_VAL = 'operand_value' # value of phase, frequency
+  MISC = 'miscellaneous' # additional info, e.g. hight/length of pulse, mainly for debugging style
 ```
 
-The image generator of `SamplePulse` is:
+When we want to draw a name of channel `D0` in correct format, we can create a drawing data:
 
 ```python
-class CoreWaveDrawer(Core2DPulseDrawer):
-  # image generator class for sample pulse
-  pass
+my_data = VisualizationElement(TextObject.CHAN_LABEL, r'D0', (0, -10))
 ```
 
-Since a pulse `Schedule` has more complicated data structure, the `core_schedule_drawer` consists of several elements to extract a set of objects to draw.
+This object will be passed to `.draw_text` method of the generator class.
+When the method is called, the generator class calls the text drawing function from the drawing backend with a set of options extracted from the style sheet based on object's `attribute`.
+If the style sheet specifies text size 10 and red color for channel aliases and the `matplotlib` is used as a backend, the actuall function call will be:
+
+```python
+self._pulse_canvas.text(x=data.coordinate[0], y=data.coordinate[1], s=data.data, fontsize=10, color='r')
+```
+
+In another example, if the `iqx_publication` is set as a style sheet and the `pulse_label` is given, the generator class will sophisticate the systematic pulse name using LaTeX syntax.
+
+In `core_matplotlib.py` the class `Core2DMplDrawer` is defined based on `CoreImageGenerator`.
+This is the only place where the `matplotlib` dependency exists.
+In other word, all other functions are isolated from drawing environment and thus we can easily add new drawing software based upon user's requests while keeping rest of codebase.
+
+Since a pulse `Schedule` has more complicated data structure, the `schedule_drawer` consists of several elements to extract a set of objects to draw.
 
 The class `EventManager` is an extension of the existing `EventsOutputChannels` class, but some method names are updated to reflect the recent change of pulse syntax. This class is defined for each `Channel` to draw and the class makes a collection of instructions tagged by the time. The class structure looks like:
 
@@ -297,12 +307,11 @@ This is because we need to truncate long pulses or long delays based on `truncat
 If we output the entire waveform as a single data array it is very hard to recover a length of each pulse.
 The method `max_amp` and `min_amp` are used to determine the autoscaling value of the channel.
 
-First, the `core_schedule_drawer` initializes `EventManager` for all channels specified by the user input and the style sheet preference and keep them as a python `dict`. Then, those channels are rearranged as a `list` according to the `layout` option in the style sheet. If `'layout': 'channel-type-wise'` is specified, the program collects all `DriveChannel`s in the dictionary and then collects `ControlChannel`s, ... , so that channels of the same type are shown in one group.
+First, the `schedule_drawer` initializes `EventManager` for all channels specified by the user input and the style sheet preference and keep them as a python `dict`. Then, those channels are rearranged as a `list` according to the `layout` option in the style sheet. If `'layout': 'channel-type-wise'` is specified, the program collects all `DriveChannel`s in the dictionary and then collects `ControlChannel`s, ... , so that channels of the same type are shown in one group.
 This functionality is offloaded to a dedicated function placed in `drawing_engine.py`.
 
-The file `drawing_engine.py` consists of many small programs that process `EventManager` instances to generate a set of `VisualizationElement` object thrown to an abstracted drawing backend.
-This is a big change from the current implementation (but not impactful to users) such that existing large function is decomposed into small pieces.
-It should be emphasized that `drawing_engine` doesn't deal with `matplotlib` object so that all programs can be unittested in the current testing framework.
+The file `drawing_engine.py` consists of many small programs that process `EventManager` instances to generate a set of visualization data IR (`VisualizationElement`) thrown to an abstracted drawing backend (`CoreImageGenerator`).
+This is a big change from the current implementation (but not impactful to users) such that existing large function is decomposed into small pieces while keeping testability in current testing framework.
 
 For example,
 
@@ -312,14 +321,15 @@ def get_labels(manager: EventManager) -> List[VisualizationElement]]:
   pass
 ```
 
-this is the one of helper functions to extract a set of pulse names (sometime formatting names by request) and the coordinate to draw of each pulse in the `EventManager`.
-Both of the arguments and the returned values don't contain the `matplotlib` object, this function can be tested by current testing framework (currently this is written as a part of drawer and there is no way to test without importing `matplotlib`).
-We can prepare a set of such function in `drawing_engine.py`. Truncation and scaling can be implemented as a part of `drawing_engine.py`.
+this is the one of helper functions to extract a set of pulse names and the coordinate to draw of each pulse in the `EventManager`.
+Because both of the arguments and the returned values don't contain the `matplotlib` object, this function can be tested by current testing framework (currently this is written as a part of drawer and there is no way to test without importing `matplotlib`).
+We can prepare a set of such function in `drawing_engine.py`.
+Truncation and scaling can be offered as a part of `drawing_engine.py`.
 
-The `core_schedule_drawer` execute required callback functions based on the style sheet and generate a set of objects drawn by backends (this is usually `matplotlib`).
-Finally `core_schedule_drawer` returns `matplotlib.Figure` object if `matplotlib.Axes` objects are not given.
+The `schedule_drawer` runs those drawing engines based on the style sheet preference and generates a set of IRs.
+Finally `schedule_drawer` returns `matplotlib.Figure` object if `matplotlib.Axes` objects are not given.
 
-The `core_pulse_drawer` has much simple structure because it just need to call `.samples` method of given `SamplePulse` instance and draw the returned `ndarray`.
+The `sample_pulse_drawer` has much simple structure because it just need to call `.samples` method of given `SamplePulse` instance and draw the returned `ndarray`.
 
 The entire work can be separated into several small PRs.
 
@@ -357,13 +367,13 @@ These are candidates of programs we need to implement:
 
 We need to prepare unittest for those functions.
 
-### Phase4: Add `core_matplotlib_static` and update `pulse_visualization`
+### Phase4: Add `core_matplotlib` and update `pulse_visualization`
 With all of above PRs we can start implementing main part of drawer.
 The unittest for `matplotlib.Figure` output is skipped in the current testing framework.
 We need to check the output of figure by our eyes.
 
 Because new drawer drastically changes the interface and the module structure, it is not efficient to implement this framework while keeping the backward compatibility with the existing drawer.
-We plan to introduce the new drawer slowly under different name such as `pulse_drawer_v2` (TBD) to test over time.
+We plan to introduce the new drawer slowly to test over time.
 
 
 ## Alternative Approaches
