@@ -161,8 +161,14 @@ qiskit
       +-- drawing_engine.py (collection of small programs to help object mapping)
 ```
 The drawer function `schedule_drawer` and `sample_pulse_drawer` creates a static 2D image of waveforms.
+In the existing drawer, those interfaces are integrated as the `pulse_drawer` and this function internally calls corresponding drawer class.
+However, there are many unused arguments in the interface when `SamplePulse` is drawn because `Schedule` visualization is more complicated and requires some additional options.
+This situation will not change even if we reduce number of arguments with the new design, i.e. `table_ax` will not be used in `SamplePulse` visualization. 
+Because there is a little benefit of commonize those interfaces, it is important to provide user with dedicated interfaces for `Schedule` visualization and `SamplePulse` visualization.
+Most users may call those interfaces by `my_object.draw()` method so this change doesn't spoil user's experience.
+
 The function internally instantiates an image generator class which depends on the drawing backend to use, i.e. `matplotlib` in our case.
-The image generator class is an abstraction of the actual drawing backend and the `pulse_drawer` doesn't have direct dependency on the backend.
+The image generator class is an abstraction of the actual drawing backend and the `pulse_visualization` doesn't have direct dependency on the backend.
 Thanks to this design, we can easily switch to the another drawing backend, e.g. JavaScript, based on the situation and expected output.
 
 In `core_drawer.py`, the abstract class of the image generator class is placed. This abstract class is of course written in Python but should be drawing backend agnostic so that any software can be used for visualization.
