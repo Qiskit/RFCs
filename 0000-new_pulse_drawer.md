@@ -6,7 +6,7 @@
 | **Authors**       | Naoki Kanazawa (knzwnao@jp.ibm.com), Thomas Alexander    |
 | **Deprecates**    |                  |
 | **Submitted**     | 2020-05-01                                   |
-| **Updated**       | 2020-05-03                                   |
+| **Updated**       | 2020-05-04                                   |
 
 ## Summary
 
@@ -235,7 +235,7 @@ Thus in our new design we abstract those methods so that the `CoreImageGenerator
 Note that the image generator class doesn't create an actual pulse schedule nor sample pulse figure.
 It just passes elements to draw to the actual drawing backend.
 We prepare a special data class to represent data and its attributes for those objects to draw.
-Actual formatting of the figure, i.e. layout of pulses, adding labels, format of axes and so on, will be performed on the `pulse_drawer`.
+Actual formatting of the figure, i.e. layout of pulses, adding labels, format of axes and so on, will be performed on the `schedule_drawer`.
 
 ```python
 class VisualizationElement:
