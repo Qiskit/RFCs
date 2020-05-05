@@ -54,7 +54,7 @@ In the new implementation concept, user will call the drawer in the following ma
 ```python
 import qiskit.visualization.pulse_style_lib
 
-pulse_drawer(
+schedule_drawer(
     my_sched,
     style=pulse_style_lib.iqx_debugging())
 ```
@@ -67,7 +67,7 @@ If that information is too much for publication, the user can switch the output 
 ```python
 import qiskit.visualization.pulse_style_lib
 
-pulse_drawer(
+schedule_drawer(
     my_sched,
     style=pulse_style_lib.iqx_publication())
 ```
@@ -126,16 +126,29 @@ However users are still able to control some options on the spot to focus on the
 Thus, new drawer interface becomes:
 
 ```python
-def pulse_drawer(
-  program: Union[SamplePulse, ScheduleComponent],
+def schedule_drawer(
+  program: ScheduleComponent,
   dt: int = 1, # time resolution
-  style: Union[PulseStyle, SchedStyle] = None, # style sheet instance
+  style: SchedStyle = None, # style sheet instance
   filename: str = None, # if set save the plot in file
   scale: Dict[Channel, float] = None, # scaling value for each channel type
   plot_range: Tuple[Union[int, float], Union[int, float]] = None, # plot range
   channels: List[Channel] = None # list of channels to show
   pulse_ax: matplotlib.Axes = None # object to draw pulses
   table_ax: matplotlib.Axes = None # object to draw event table
+):
+```
+
+For visualization of `SamplePulse` we will create another dedicated interface because it requires fewer numbers of arguments:
+
+```python
+def sample_pulse_drawer(
+  program: SamplePulse,
+  dt: int = 1, # time resolution
+  style: PulseStyle = None, # style sheet instance
+  filename: str = None, # if set save the plot in file
+  scale: float = None, # scaling value
+  pulse_ax: matplotlib.Axes = None # object to draw pulses
 ):
 ```
 
