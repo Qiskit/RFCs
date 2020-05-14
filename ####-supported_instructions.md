@@ -1,4 +1,4 @@
-# BackendConfiguration.supported_instruction
+# BackendConfiguration.supported_instructions
 
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
