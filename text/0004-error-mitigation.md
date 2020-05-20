@@ -2,7 +2,7 @@
 
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         | 0004                                         |
 | **Authors**       | Daniel Egger (deg@zurich.ibm.com)            |
 | **Deprecates**    | RFC that this RFC deprecates                 |
 | **Submitted**     | YYYY-MM-DD                                   |
