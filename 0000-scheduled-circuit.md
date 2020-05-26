@@ -15,7 +15,7 @@ to make time-aware circuit-based noise simulation possible.
 ## Motivation
 Currently there is no way to instruct `delay` (or `wait`/`idle`) for a specific duration in circuit level.
 This makes simulations with time-dependent noise, e.g. T1/T2 measurement, difficult on Aer.
-A new circuit class for incorporating with instructions having `duration` should be added,
+A new circuit class for incorporating instructions with a `duration` should be added,
 as well as scheduling methods to construct it from a QuantumCircuit.
 
 ### Main use cases
