@@ -39,7 +39,7 @@ qobj = assemble(timed_circuit)  # timed_circuit: ScheduledCircuit
 schedule = scheduler.circuit_schedule(transpiled_circuit, ...)  # transpiled_circuit: QuantumCircuit
 ```
 ->
-```
+```python
 timed_circuit = circuit.schedule(transpiled_circuit, ...)  # transpiled_circuit: QuantumCircuit
 schedule = pulse.lower_circuit(timed_circuit, ...)  # timed_circuit: ScheduledCircuit
 ```
