@@ -24,7 +24,7 @@ as well as scheduling methods to construct it from a QuantumCircuit.
 
 ## User Benefit
 - Time-aware circuit-based noise simulation on Aer is enabled.
-- Scheduling in circuit level will enable more optimization than that in pulse level in the future.
+- Scheduling at the circuit level will enable more optimization than that of the pulse level as the semantic meaning of the circuit gate is still available whereas at the pulse level this is lost.
 
 ## Design Proposal
 ### High-level API:
