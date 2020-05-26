@@ -64,7 +64,7 @@ Technical reference level design. Elaborate on details such as:
 - Reference definition, eg., formal definitions.
 
 ### Example code
-```
+```python
 def schedule(qc: QuantumCircuit,
              backend_props: BackendProperties,
              method: str = "alap",
