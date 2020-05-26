@@ -29,7 +29,7 @@ as well as scheduling methods to construct it from a QuantumCircuit.
 ## Design Proposal
 ### High-level API:
 1. Noise simulation flow (new):
-```
+```python
 timed_circuit = circuit.schedule(transpiled_circuit, ...)  # transpiled_circuit: QuantumCircuit
 qobj = assemble(timed_circuit)  # timed_circuit: ScheduledCircuit
 ```
