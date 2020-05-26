@@ -41,7 +41,7 @@ schedule = scheduler.circuit_schedule(transpiled_circuit, ...)  # transpiled_cir
 ->
 ```
 timed_circuit = circuit.schedule(transpiled_circuit, ...)  # transpiled_circuit: QuantumCircuit
-schedule = pulse.build_schedule(timed_circuit, ...)  # timed_circuit: ScheduledCircuit
+schedule = pulse.lower_circuit(timed_circuit, ...)  # timed_circuit: ScheduledCircuit
 ```
 
 ### Requirements:
