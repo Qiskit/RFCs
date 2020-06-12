@@ -761,10 +761,14 @@ class Job(ABC):
 ```
 
 Aside from provisions and documentation on how to make a ``Job`` work with a
-sync execution The key change But, because we're flattening and combining the
-`Result` class into job that the v1/v1.5  `Result` class's methods have duals
-in the new Job class, since the job already should contain all the result data
-we need. As part of this it has a couple new fields like `metadata`.
+sync execution The key change is the flattening of the ``Job`` and result
+classes together. This was an arbitrary distiction because there are very
+few instances where having a job and not wanting the result from it were needed
+(and those were mostly for failure cases). Because we're flattening and
+combining the `Result` class into job the v1/v1.5  `Result` class's methods
+have duals in the new Job class, since the job already should contain all the
+result data we need. Additionally, as part of this it has a couple new fields
+like `metadata` that were previously used in the `Result`.
 
 For the job/results interface one thing to note is that there is now a Counts
 class which will represent a counts result from the job (returned by
