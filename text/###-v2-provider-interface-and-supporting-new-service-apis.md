@@ -247,7 +247,7 @@ look like:
 ```python
 qc = QuantumCircuit()
 provider = my_provider()
-backend = my_provider.get_backend()
+backend = provider.get_backend()
 backend.set_config(shots=2048)
 backend.run([qc]*100)
 ```
