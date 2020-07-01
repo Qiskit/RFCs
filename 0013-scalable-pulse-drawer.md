@@ -131,7 +131,7 @@ Implementation details are described in next section.
 
 ## Detailed Design
 
-<img src="0000-scalable-pulse-drawer_uml.png" alt="UML" width="500"/>
+<img src="0013-scalable-pulse-drawer_uml.png" alt="UML" width="500"/>
 
 Here we show the UML class diagram of v2 drawer.
 The `DrawDataContainer` class is a collection of drawing object IR (`ElementaryData`) and `CanvasFormat`. Those are implemented as dedicated python class that consist of information and its coordinate or sample array, generic style information, and metadata of the object. The metadata contains, for example, operands of the pulse instraction which may be shown in a hover window by mouse over in the interactive mode.
