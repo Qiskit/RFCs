@@ -20,7 +20,7 @@ facilitate that and collect feedback prior to implementation.
 
 # When Should You Write an RFC?
 
-RFC's should be reserved for 'substantial' changes to any Qiskit project.
+RFC's should be reserved for 'substantial' changes to any Qiskit project
 and the RFC process itself. By this, we mean changes where the implementation
 path is not immediately clear and needs to be deconstructed by the Qiskit team.
 
