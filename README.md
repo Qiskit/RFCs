@@ -1,7 +1,9 @@
 # Qiskit RFCs
+
 The purpose of a Qiskit Request for Comments (RFC) is to communicate and engage
-with the community in the development and direction of Qiskit. RFCs enable
-engineering and research stakeholders to communicate large design changes.
+with the wider community in the development and direction of Qiskit. RFCs enable
+engineering and research stakeholders to communicate design changes to any
+component of the larger Qiskit project.
 
 Many changes, including bug fixes and documentation improvements can be
 implemented and reviewed via the normal GitHub pull request workflow.
@@ -10,17 +12,28 @@ Some changes though are "substantial", and we ask that these be put through a
 bit of a design process and produce a consensus among the Qiskit community and
 the sub-teams.
 
-# When Should You Write an RFC?
-RFC's should be reserved for 'substantial' changes to the Qiskit meta-package,
-its members and the RFC process itself. By this, we mean changes
-where the implementation path is not immediately clear and needs to be
-deconstructed by the larger Qiskit team.
+This repository is for any project in the Qiskit project to make these design
+proposals and review and discuss the changes. An RFC can be contained to a
+single project or it can span multiple projects, if a design decision requires
+some planning and discussion before implementation an RFC can be used to
+facilitate that and collect feedback prior to implementation.
 
-Questions you might ask yourself:
+# When Should You Write an RFC?
+
+RFC's should be reserved for 'substantial' changes to any Qiskit project
+and the RFC process itself. By this, we mean changes where the implementation
+path is not immediately clear and needs to be deconstructed by the Qiskit team.
+
+To understand whether a change is considered substantial some questions you
+might ask yourself are:
+
 - Will the implementation involve many developers?
 - Will the implementation span across multiple points in the Qiskit stack?
 - Will the changes cause ramifications for the average user?
 - Will the changes require collaboration with outside sources?
+
+if the answer to any of these is yes, than it probably is a substantial change
+and going through the RFC process is recommended.
 
 # Process
 - Fork the [rfcs repository](https://github.com/Qiskit/rfcs)
@@ -31,7 +44,6 @@ files, it may be placed in the `text` folder with the name `####-rfc-title`.
 grammar and technical language where appropriate. The aim of an RFC is to
 convey both a change and a vision for the future it will enable, you must
 convince the larger Qiskit team that it is valuable.
-- Submit a pull request to the Qiskit meta-package titled "[RFC] RFC Title"
 - Each RFC will be labeled with the relevant packages, so that the respective
 maintainers of the packages may be notified of the RFC.
 - The RFC will be triaged and if it is of sufficient quality a
@@ -62,11 +74,12 @@ merger, as the project matures this is expected to change.
 
 ## The RFC life-cycle
 
-Once an RFC becomes "active" then authors may implement it and submit the
-feature as a pull request to the relevant Qiskit repos. Being "active" is not
-a rubber stamp, and in particular still does not mean the feature will
-ultimately be merged; it does mean that in principle all the major stakeholders
-have agreed to the feature and are amenable to merging it.
+Once an RFC becomes "active" (i.e. is approved and merged) then authors may
+implement it and submit the feature as a pull request to the relevant Qiskit
+repos. Being "active" is not a rubber stamp, and in particular still does not
+mean the feature will ultimately be merged; it does mean that in principle all
+the major stakeholders have agreed to the feature and are amenable to merging
+it.
 
 Furthermore, the fact that a given RFC has been accepted and is "active"
 implies nothing about what priority is assigned to its implementation, nor does
@@ -88,35 +101,7 @@ should be new RFCs, with a note added to the original RFC. Exactly what counts
 as a "very minor change" is up to the sub-team to decide; check
 [Sub-package guidelines] for more details.
 
-## Sub-package guidelines
-For more details on RFCs for specific Qiskit projects see the guidelines for
-each sub-package:
-
-### Qiskit Terra
-
-### Qiskit Aer
-
-### Qiskit Ignis
-
-### Qiskit Aqua
-
-RfCs which are primarily or substantially relevant to Aqua must be reviewed in Aqua's weekly _design review_ meeting, with few exceptions. The rules and process of design review are as follows:
-* **Initiation and Scheduling:** Once sufficent discussion has occured and the RfC has settled into a near-complete form, the author(s) should note on the PR that the RfC is ready for review. At this point, the Aqua committee member assigned to the RfC will contact the RfC author(s) to schedule a design review slot, determine who on the broader Qiskit team should be invited to the review, and send a meeting invitation to the review attendees. At least 48 hours before design review, a reminder email will be sent to the attendees, including the RfC. Any changes to the RfC during that 48 hour window will be assumed not to have been seen by the review attendees.
-* **Design Review Meeting**
-    * The Aqua committee member will conduct the meeting, including tabling larger-topics to keep the discussion on track.
-    * Attendees must read the design doc ahead of time to participate in the discussion. If they do not, they are choosing to be a listener only. The discussion will begin with each attendee sharing whether they've read the RfC, and their high-level impressions and/or concerns (about 2 minutes each).
-    * Author(s) will then spend 15-20 minutes talking about their intentions with the doc and the open questions they need answered by the review participants.
-    * Finally, each participant will give a recommendation:
-        * Approve - begin implementation
-        * Conditionally approve - Begin implementation once some small questions are answered offline
-        * Rereview - review again after more information is collected before implementing
-        * Downscope - Revise the project's scope or direction and rereview before implementing
-    * The Aqua committee member will decide the status of the RfC, or how to proceed, based on the recommendation tally.
-* **Final Approval** Following review, the discussion should be posted to the PR, including any action items. If approved or conditionally approved, the Aqua committee member will review the final document or changes, and approve and merge when appropriate. If designated for rereview or downscoping, the author(s) should address the concerns of the review participants, and re-initiate the design review process once ready.
-
-### Qiskit IBMQ Provider
-
-## RFC Postponement
+# RFC Postponement
 
 Some RFC pull requests are tagged with the "postponed" label when they are
 closed (as part of the rejection process). An RFC closed with "postponed" is
@@ -145,8 +130,7 @@ projects. The committee is responsible for guiding, reviewing and finally
 closing/approving the RFC.
 
 # Template
-Use the [Qiskit RFC template](0000-template.md) to prepare your RFC. Jupyter 
-notebooks (.ipynb files) may also be used with the same template. 
+Use the [Qiskit RFC template](0000-template.md) to prepare your RFC.
 
 ## License
 [License]: #license
