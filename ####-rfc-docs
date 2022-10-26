@@ -1,0 +1,126 @@
+# RFC Title
+
+| **Status**        | **Proposed/Accepted/Deprecated** |
+|:------------------|:---------------------------------------------|
+| **RFC #**         | ####                                         |
+| **Authors**       | Abby Mitchell (abby.s.mitchell@ibm.com)      |
+| **Submitted**     | 2022-10-26                                   |
+| **Updated**       | YYYY-MM-DD                                   |
+
+## Summary
+This proposal is for a restructure of our current documentation workflow. This document outlines the current procedure, highlights its limitations, and proposes an alternative for discussion.
+
+In short, the suggestion is to replace our existing workflow with this:
+
+- Individual Qiskit repos start running the sphinx JSON builder instead of the html builder (so the output is `json` files instead of `html`)
+- Individual Qiskit repos deploy their built `json` files somewhere that can be accessed by the `qiskit.org` repo
+- The qiskit.org repo integrates the documentation pages into it's development and deployment pipeline
+- The `qiskit_sphinx_theme` is sunset and Qiskit teams don't need to handle any of the frontend aspects of their docs anymore
+
+
+## Context - the current docs status quo
+
+The existing workflow for documentation (for each Qiskit repo) broadly follows this process:
+
+- Individual devs write docstrings in the files they touch during their regular work
+- At release time, as part of the deployment github workflow (usually triggered from `.github/workflows/docs-deployment`), a [sphinx](https://www.sphinx-doc.org/en/master/) build is run which generates a `_build/html` folder. The html files generated are then deployed to COS.
+- After this each individual html page is available for users to view at qiskit.org/documentation/path-to-file.
+- Each repo is responsible for maintaining their own sphinx build and deployment scripts
+- The UI styling is set by the `qiskit_sphinx_theme`, a pip installable package that each repo should be using during the sphinx build to enforce the styles. However, in reality many repos overwrite this theme in their `docs/_templates` folder. Additionally the `qiskit_sphinx_theme` repo has not been actively maintained until recently (the Qiskit Developer Adovacy squad is looking at refactoring this).
+
+### What are the drawbacks of this process?
+
+- Lack of consistency in UI/UX between qiskit.org and qiskit.org/documentation. The Qiskit Digital team implements the frontend for qiskit.org, qiskit.org/learn etc. using the Vue framework and a standard library of IBM Carbon components whereas qiskit.org/documentation mainly uses plain html and css (which is limited when it comes to more complex features, and requires more manual effort to style consistently).
+- Lack of consistency in UI/UX between different Qiskit repos due to each team overriding the `qiskit_sphinx_theme` slightly differently.
+- The `qiskit_sphinx_theme` is outdated and lacking maintainers, meaning it is not up to date with the latest design, UX/UI or acessibility standards set by IBM or the wider web development industry. The difference in quality is most noticeable when comparing qiskit.org/documentation with work produced by the Qiskit Digital team (i.e. qiskit.org itself and qiskit.org/learn).
+- It is difficult/impossible to integrate the qiskit.org components into the `qiskit_sphinx_theme` due to it being comprised of plain html/css/js.
+- Whenever the theme is updated, each Qiskit team needs to update their repo to pull in the latest version of the theme.
+- Individual devs on each team don't always have capacity to improve documentation frontend pieces, nor the depth of knowledge in sphinx or UX/UI to implement effectively.
+
+## Motivation
+
+Due to the significant drawbacks both to end users and Qiskit maintainer teams of the current status quo, this proposal ultimately aims to achieve the following goals:
+- Make qiskit.org/documentation as consistent as possible with the good UI/UX standards set by qiskit.org
+- Make it as easy as possible in future to maintain this alignment with qiskit.org
+- Have the Qiskit Main package maintainer teams need to do as little as possible to maintain their documentation frontend, and only focus on the actual content of docs (i.e. what's in the `.rst` files)
+
+## User Benefit
+There are 2 user groups who stand to benefit from this change:
+
+1. End users of Qiskit Main packages - Our users currently struggle to navigate the current qiskit.org/documentation website and don't understand the complexities behind the scenes of different teams being responsible for different projects/websites. Having qiskit.org consume documentation data would provide a more seamless user experience for Qiskit users
+
+2. Qiskit Main package maintainers - Not having to deal with the frontend aspects of the documentation will reduce the burden on maintainers. They can focus more on developing good quality content for the documentation, rather than styling etc.
+
+## Design Proposal
+
+### Phase 1 - Exploration
+The first step to all this is to explore what is possible and what further issues this could surface. I have opened a draft PR [here](https://github.com/Qiskit/qiskit.org/pull/2858) in qiskit.org to explore how things might be implemented on the qiskit.org side, but further investigation still needed. More expertise in sphinx, deployments and qiskit.org development woudl also be beneficial. See Detailed Design section for more info.
+
+
+### Phase 2 - Update qiskit.org
+
+The following features will need to be added to qiskit.org:
+
+- a mechanism for fetching the json data for docs pages
+- ability to dynamically render multiple docs pages, one for each json file fetched
+- a standard docs page structure, including restyling any sphinx html objects for the main body of the page
+
+### Phase 3 - Update Qiskit main package repos
+
+The main package repos will need to be updated to: 
+
+- remove the `qiskit_sphinx_theme` as a dependency
+- build their documentation files using the sphinx json builder insteda of the html builder
+- (maybe?) change the docs deployment process to deploy the json files somewhere (this step still TBD)
+
+This phase would start as a pilot with one Qiskit repo before having others follow the same implementation
+
+
+## Detailed Design
+
+1. To generate the sphinx json files I ran `sphinx-build -b json docs/ docs/_build_json/json`
+    - the files produced by the sphinx build include the following:
+        - a `globalcontext.fjson` which allows us to access any context variables set by individual Qiskit repos in their `docs/conf.py`
+        - a `searchindex.fjson` which should help us deal with search somehow (but not sure how yet)
+        - one `.fjson` file for each `.rst` file, which includes some TOC data and a `body` attribute consisting of an html string containing the main body of the page.
+2. For investigation purposes I just manually copied over the files into my fork of the qiskit.org repo (I had to change the file names from `.fjson` to `.json`)
+3. You can see my first pass at integrating the data into qiskit.org in my draft PR [here](https://github.com/Qiskit/qiskit.org/pull/2858).
+
+
+Here is a first screenshot of some experimenting with integrating a docs page into qiskit.org:
+
+<img width="1785" alt="Screenshot 2022-10-25 at 5 58 03 PM" src="https://user-images.githubusercontent.com/23662430/198141449-4a2298a8-9796-4105-a25b-9fa20ece4a0d.png">
+
+### Challenges/Limitations so far
+
+some initial challenges/drawbacks have been identified as part of the investigation phase so far:
+- each `json` file has a `body` attribute which contains the main content of the page (i.e. what gets rendered in the middle section of the screenshot). This attribute is a long html string that we can render with Vue BUT we need to go manually change all the styling. Doing this for every possible html tag and class name used in all the docstrings will be a large piece of work. The screenshot is pretty similar to the raw output, I haven't adjusted much of the css there.
+- Internal links within the `body` object get added to the html like this: `href="../../stubs/qiskit.circuit.QuantumCircuit/#qiskit.circuit.QuantumCircuit" `, which is not ideal, we’ll have to figure out how to adjust that for every link on every page
+- The sphinx build output is actually `.fjson` which is exactly like `.json` but with an f in front of it. This could maybhe cause issues?
+- Performance: the sphinx build produces 1 json file per documentation page - thats a LOT of pages that qiskit.oprg will need to render and deploy, which could cause performance issues on qiskit.org
+- Unclear how to deal with search, languages and different qiskit version docs?
+
+## Alternative Approaches
+
+The Developer Advocacy squad is currently working on refactoring the `qiskit_sphinx_theme` to use styles and components more consistent with the qiskit.org stack. Instead of the proposal outlined here an alternative would be to just have individual teams update their `qiskit_sphinx_theme` and commit to not overriding it going forward. 
+
+The drawbacks of this are:
+- It gives the Qiskit teams another dependency to keep track of.
+- Some of the more complex features/components in qiskit.org are very difficult (or simply not possible) to develop in plain html, css and a little js. Without the use of a full frontend framework like Vue and the IBM Vue Cabron Components we are limited in the complexity we can add to the `qiskit_sphinx_theme`
+- the `qiskit_sphinx_theme` was mostly copied over from another project template and as a result is a bit of a mess. Very painful to deal with and not easy for new team members or external contributors to jump in and help with.
+
+
+It is also possible to continue with the updating of the `qiskit_sphinx_theme` as an interim solution, until a full migration to qiskit.org can be achieved
+
+## Questions
+
+- Any alternative proposal for a better workflow?
+- Any suggestions for making the transition as pain-free as possible?
+- Any thoughts about how to handle different languages with this model?
+- Any thoughts about how to handle multiple package versions with this model?
+
+## Future Extensions
+Not many further ideas at this point in time (the current suggestion is already pretty ambitious), but open to any further ideas!
+
+Further ideas:
+- the "core pages" currently maintained in the Qiskit metapackage repo (e.g. docs landing page, contributor guide, deprecation policy) could be removed from the metapackage and instead rendered by qiskit.org
