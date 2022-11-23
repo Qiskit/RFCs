@@ -3,10 +3,10 @@
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | ####                                         |
-| **Authors**       | Naoki Kanazawa (nkanazawa1989@gmail.com), Gadi Aleksandrowicz gadial@gmail.com    |
+| **Authors**       | Naoki Kanazawa (nkanazawa1989@gmail.com), Gadi Aleksandrowicz (gadial@gmail.com)    |
 | **Deprecates**    | N/A                 |
 | **Submitted**     | 2022-08-25                                   |
-| **Updated**       | 2022-11-21                                   |
+| **Updated**       | 2022-11-23                                   |
 
 
 ## Summary
@@ -209,7 +209,7 @@ This artifact have two extra fields.
 
 ### C. Experiment service
 
-The experiment service acts as an intermediate layer between `qiskit-experiments`
+The experiment service acts as an intermediate layer between QE
 and the resultDB. The current structure of an analysis result contains the following fields:
 
 - uuid (str): Same as the proposed `result_id` field.
@@ -217,42 +217,43 @@ and the resultDB. The current structure of an analysis result contains the follo
 - type (str): Same as the proposed `name` field.
 - chisq (float): Same as the proposed `chisq` field.
 - device_components (List[DeviceComponent]): Same as the proposed `device_components` field.
-- quality (str): One of three possible values: `Bad`, `No Information`, `Good`. This is slightly different than the strings being used in `qiskit-experiments`.
+- quality (str): One of three possible values: `Bad`, `No Information`, `Good`. This is slightly different than the strings being used in QE.
 - tags (List[str]): Same as the proposed `tags` field.
 - verified (bool): Same as the proposed `verified` field.
 - device_name (str): Same as the proposed `backend` field.
-- created_at (string): An ISO 8601 timestemp indicating the creation time of the analysis
+- created_at (string): An ISO 8601 timestamp indicating the creation time of the analysis
 result inside the resultDB. This is similar to the `creation_datetime` field but not the same.
+Usually experimentalists are interested in the time at which the experiment was done, rather than a timestamp for the resultDB entry.
+This suggests these time information must be handled separately.
 - fit (dict): A free-form dictionary allowing the storage of arbitrary data.
 This can be used to store the `value`, `extra` and `source` fields.
 
-Two of the proposed fields do not make sense in a resultDB context and won't be saved/loaded but only handled by `qiskit-experiments`:
-- `created_in_db`
-- `experiment` 
+Two of the proposed fields do not make sense in a resultDB context and won't be saved/loaded but only handled by QE:
+- `created_in_db`: This has been conventionally managed internally in the `ExperimentData`.
+- `experiment`: This may be stored in the `fit` field. Not only experiment UUID, but also human readable representation of experiment is important to help experimentalists with filtering and sorting analysis parameters.
 
-To reduce the amount of work done by `qiskit-experiments`, we suggest that the experiment service `qiskit-ibm-experiment` will implement
-the capability to work with pandas dataframes in the suugested structure, and perform the
-following changes:
-- Break down the dataframe to individual results.
-- Translate the fields 
+To reduce the amount of work done by QE, we suggest that the experiment service `qiskit-ibm-experiment` will implement
+the capability to work with pandas data frames in the suggested structure, and perform the following changes:
+- Breakdown the data frame to individual results.
+- Translate the fields
    - `uuid` <--> `result_id`
    - `experiment_uuid` <--> `experiment_id`
    - `type` <--> `name`
    - `device_name` <--> `backend`
-   - `quality` (db format) <--> `quality` (`qiskit-experiments` format)
+   - `quality` (db format) <--> `quality` (QE format)
    - `fit` <--> `value`, `extra`, `source`
    - TODO: still need to determine the use of `creation_datetime`
 - Efficiently upload/download multiple results from the server. This depends on the
 API supplied by the server; currently mass loading/updating is possible in one API call,
 but mass creation is not supported, meaning the service might have to resort to multithreading.
 
-To preserve backward compatability, we suggest all dataframe handling in `qiskit-ibm-experiment` to be
+To preserve backward compatibility, we suggest all data frame handling in `qiskit-ibm-experiment` to be
 indicted using an optional parameter, `dataframe` (bool) which defaults to `False`, inside the methods
 
-- `IBMExperimentService.create_analysis_results`
-- `IBMExperimentService.update_analysis_results`
-- `IBMExperimentService.analysis_result` 
-- `IBMExperimentService.analysis_results`
+- `IBMExperimentService.create_analysis_results()`
+- `IBMExperimentService.update_analysis_results()`
+- `IBMExperimentService.analysis_result()`
+- `IBMExperimentService.analysis_results()`
 
 ## Migration plan
 
@@ -305,9 +306,6 @@ _Remove_
 - `AnalysisResult` and `AnalysisResultData`.
 - results argument from the `ExpeirmentData.add_analysis_results()`.
 - dataframe argument from the `ExpeirmentData.analysis_results()`.
-
-##### qiskit_ibm_experiment  v.0.x
-TODO write migration plan on service side.
 
 
 ## Alternative Approaches
