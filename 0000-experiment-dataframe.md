@@ -6,7 +6,7 @@
 | **Authors**       | Naoki Kanazawa (nkanazawa1989@gmail.com), Gadi Aleksandrowicz (gadial@gmail.com)    |
 | **Deprecates**    | N/A                 |
 | **Submitted**     | 2022-08-25                                   |
-| **Updated**       | 2022-11-23                                   |
+| **Updated**       | 2022-11-30                                   |
 
 
 ## Summary
@@ -176,30 +176,32 @@ See pandas documentation for more details.
 
 ### B. Introduction of artifacts
 
-Result database allows experimentalists to store `artifact` data per experiment ID. Thus, in QE, we can add `ExperimentData.artifact` to save supplementary data such as raw curve data points. In principle this can be a free-from dictionary, but it would be better to provide the artifact base class and subclasses to support saving the object in a particular data format, e.g. something like `DataFrame.to_csv()`. For IBM Experiment service, this would require a custom JSON serialization to generate the REST API payload. In the following we describe `CurveAnalysisArtifact` for `CurveAnalysis`. Note that artifact must be the [thread-safe container](https://github.com/Qiskit/qiskit-experiments/blob/b150427f86c74a02d638e06507864c7bb060c27c/qiskit_experiments/database_service/utils.py#L168-L245) subclass. Each analysis class must know the associated artifact subclass to populate the supplementary data.
+Result database allows experimentalists to store `artifact` data per experiment ID. Thus, in QE, we can add `ExperimentData.artifact` to save supplementary data such as raw curve data points and figures. In principle this can be a bare python data container, but it is better to use [thread-safe container](https://github.com/Qiskit/qiskit-experiments/blob/b150427f86c74a02d638e06507864c7bb060c27c/qiskit_experiments/database_service/utils.py#L168-L245) subclass.
+In principle, `ExpeirmentData.add_artifacts` can be called from the `_run_analysis` method, which is running on a Python concurrent thread, and therefore we need to protect the artifact container from the data collision from different analysis threads.
 
-The artifact is a part of `ExpeirmentData`, however, each `BaseAnalysis._run_analysis` method must instantiate and return a list of artifact instances to the experiment data. For example, a composite analysis instance may return multiple artifacts for each qubit or experiment.
+#### Data structure
 
+Experiment data artifact is a thread same list of `ArtifactData`. For example, T1 experiment analysis may generate three objects to store:
+- Figure of curve fitting
+- Curve data points (data frame, see below)
+- Fit status (dictionary, see below)
 
-#### BaseArtifact
+Once each data is added to the `ExperimentData`, the data is converted into a `ArtifactData` class that wraps the raw data with metadata:
 
-The base class of the artifact. Probably a Python `dataclass`. This class at least implements following methods with no code implementation, i.e. `NotImplementedError`, and subclass can override if necessary.
-- to_json(): Save this artifact in JSON data format.
-- to_pickle(): Save this artifact in pickle data format.
+- .data (Any): Raw data
+- .artifact_id (str): Random UUID (or unique ID) for this entry.
+- .date (datetime): When this data is created.
+- .experiment_id (str): ID of experiment that this data is associated with.
+- .name (str): Arbitrary name for this entry, such as "t1_plot".
 
-This base class may have the field for list of figures. In addition to this, artifact object must provide metadata including
-- experiment (str): Name of experiment that generated this data.
-- components (List[DeviceComponent]): List of device components that this data is associated with.
-- date (datetime): When this data is created. For example, an experimentalists can sort the artifacts by date to visualize the trend of curves in a heat map in line with time.
+An experimentalist can filter artifact by metadata, i.e. `exp_data.artifacts(name="t1_curves_data")`. Thus, the `ExperimentData` must implement the filtering mechanism.
 
+#### Common entries
 
-#### CurveAnalysisArtifact
+- Curve data points
 
-This artifact have two extra fields.
+  This is a data frame to store the formatted data points used in the `CurveAnalysis`. For example, an experimentalist can visualize fitting data with preferred format at a later time for publication by taking this entry. Note that this is currently stored as analysis result with the name `@Data_*`.
 
-- fit_status: A dictionary (that may provide nice html view) of fitting status. This is currently provided as analysis result entry with the name `@Parameters_*`. This is not really the analysis results and thus moved to artifact. This contains information about fitting, such as fit models, solver status, initial and final fit parameters and so forth. For example,
-
-- curve_data: Curve data points in the data frame format. This table may have the column:
   - x_val (float): X value.
   - y_val (float): Y value.
   - y_err (float): Y standard error.
@@ -207,6 +209,12 @@ This artifact have two extra fields.
   - model (str): Name of fit model associated with this data.
   - group (str): Name of fit group if composite curve analysis, e.g. Hamiltonian tomography analysis.
   - data_kind (str): Data type. Typically "raw" or "formatted". Raw data is used for visualization.
+  - components (List[DeviceComponent]): Device component associated with this data point.
+
+
+- Fit status
+
+  A dictionary to represent status of curve fitting, which is generated by, not limited to, the `CurveAnalysis`. In the curve analysis, this data is generated based off of the output of the LMFIT solver, and includes fit models, solver status, initial and final fit parameters and so forth. Note that this is currently stored as analysis result with the name `@Parameters_*`, but this sort of metadata to tell how the analysis parameter is estimated. Thus, it's more natural to move to artifact.
 
 
 ### C. Experiment service
