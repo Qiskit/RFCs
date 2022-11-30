@@ -62,10 +62,9 @@ We propose to replace `ExperimentData._analysis_results` data format from `Threa
 
 - name (str): Same as `AnalysisResultData.result_type`. This name will appear in the result database.
 - value (Any): Same as `AnalysisResultData.result_data["_value"]`. Any value that QE analysis will generate. This value must be serializable through the `ExperimentEncoder`.
-- chisq (float): Same as `AnalysisResultData.chisq`. Chi-squared value of the entry. Probably this can be moved to extra dict.
 - quality (str): Same as `AnalysisResultData.quality`. Systematically evaluated quality of the fitting to yield this data.
-- device_components (List[DeviceComponent]): Same as `AnalysisResultData.device_components`. Usually `.physical_qubits` of the experiment.
-- extra (Dict): Same as `AnalysisResultData.result_data["_extra"]`. Free-form dictionary for analysis metadata.
+- components (List[DeviceComponent]): Same as `AnalysisResultData.device_components`. Usually `.physical_qubits` of the experiment.
+- extra (Dict): Same as `AnalysisResultData.result_data["_extra"]`. Free-form dictionary for analysis metadata. This dictionary sometime contains `chisq` and `unit`. These are the standard metadata from the curve analysis. The IBM Experiment dashboard shows these fields for every entry and therefore the `AnalysisResultData` payload also contains these field as required. This dashboard is designed based off of the user stories from calibration engineers, where a parameter is typically a physical quantity which is estimated by the curve fit. However, this is not always the case in the Qiskit domain. For example, quantum volume and tomography experiments don't perform curve fit, and outcome is unitless.
 - experiment_id (str): Same as `AnalysisResultData.experiment_id`. The ID of the associated experiment.
 - verified (bool): Same as `AnalysisResultData.verified`. A boolean value to indicate if this entry is checked by human experimentalist. This can be removed since this is rarely used.
 - tags (List[str]): Same as `AnalysisResultData.tags`. An arbitrary strings to help filtering this entry.
@@ -73,7 +72,7 @@ We propose to replace `ExperimentData._analysis_results` data format from `Threa
 - created_in_db (bool): Same as `AnalysisResultData._created_in_db`. A boolean value to indicate wether this is loaded from the database or just created locally.
 - result_id (str): Same as `AnalysisResultData.result_id`. A unique ID of this entry.
 - backend (str): Same as `AnalysisResultData.backend_name`. Name of the associated backend.
-- creation_datetime (datetime): Same as `AnalysisResultData.creation_datetime`. A date time at which the experiment data received the job results.
+- date (datetime): Same as `AnalysisResultData.creation_datetime`. A date time at which the experiment data received the job results.
 - experiment (str): A string representation for the associated experiment for filtering.
 
 Each table row corresponding to a single analysis result entry, i.e. `AnalysisResultData` equivalent.
@@ -100,10 +99,10 @@ experiment_data.analysis_results(dataframe=True)
 
 Analysis results:
 
-|          | name   | value  | quality | device_components |  backend        | creation_datetime          | experiment | ... |
-|----------|--------|--------|---------|-------------------|-----------------|----------------------------|------------|-----|
-| 03fe91s1 | T1     | 100e-6 | good    | [Q0]              |  ibm_washington | 2022-11-22 03:55:30.313872 | T1         | ... |
-| 1c4ad2a1 | T1     | 120e-6 | good    | [Q1]              |  ibm_washington | 2022-11-22 03:55:30.313872 | T1         | ... |
+|          | name   | value  | quality | components |  backend        | date                       | experiment | ... |
+|----------|--------|--------|---------|------------|-----------------|----------------------------|------------|-----|
+| 03fe91s1 | T1     | 100e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 03:55:30.313872 | T1         | ... |
+| 1c4ad2a1 | T1     | 120e-6 | good    | [Q1]       |  ibm_washington | 2022-11-22 03:55:30.313872 | T1         | ... |
 
 
 #### Example 2: Batch experiment.
@@ -123,10 +122,10 @@ experiment_data.analysis_results(dataframe=True)
 
 Analysis results:
 
-|          | name   | value  | quality | device_components |  backend        | creation_datetime          | experiment | ... |
-|----------|--------|--------|---------|-------------------|-----------------|----------------------------|------------|-----|
-| 17636b47 | T1     | 100e-6 | good    | [Q0]              |  ibm_washington | 2022-11-22 03:58:36.523230 | T1         | ... |
-| 2f50a741 | T2star |  80e-6 | good    | [Q0]              |  ibm_washington | 2022-11-22 03:58:36.523230 | T2Ramsey   | ... |
+|          | name   | value  | quality | components |  backend        | date                       | experiment | ... |
+|----------|--------|--------|---------|------------|-----------------|----------------------------|------------|-----|
+| 17636b47 | T1     | 100e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 03:58:36.523230 | T1         | ... |
+| 2f50a741 | T2star |  80e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 03:58:36.523230 | T2Ramsey   | ... |
 
 
 #### Example 3: Repeating the same experiment.
@@ -146,18 +145,18 @@ for _ in range(2):
 
 Analysis results (combined):
 
-|          | name   | value  | quality | device_components |  backend        | creation_datetime          | experiment | ... |
-|----------|--------|--------|---------|-------------------|-----------------|----------------------------|------------|-----|
-| 03fe91s1 | T1     | 100e-6 | good    | [Q0]              |  ibm_washington | 2022-11-22 04:01:30.313872 | T1         | ... |
-| 1c4ad2a1 | T1     | 103e-6 | good    | [Q0]              |  ibm_washington | 2022-11-22 05:01:14.123201 | T1         | ... |
+|          | name   | value  | quality | components |  backend        | date                       | experiment | ... |
+|----------|--------|--------|---------|------------|-----------------|----------------------------|------------|-----|
+| 03fe91s1 | T1     | 100e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 04:01:30.313872 | T1         | ... |
+| 1c4ad2a1 | T1     | 103e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 05:01:14.123201 | T1         | ... |
 
 
 #### Complement
 
-As these examples show, experimentalist can distinguish the outcomes of batch (with `experiment`) and parallel experiments (with `device_components`). Even though there are multiple entries for the identical parameter (example 3), they have different result IDs and creation date times. In other words, one can sort the entries by `creation_datetime` and get the time-ordered sequence of `value` for the trend analysis:
+As these examples show, experimentalist can distinguish the outcomes of batch (with `experiment`) and parallel experiments (with `components`). Even though there are multiple entries for the identical parameter (example 3), they have different result and experiment IDs and creation date times. In other words, one can sort the entries by `date` and get the time-ordered sequence of `value` for the trend analysis:
 
 ```python
-sorted_frame = result_dataframe.sort_values(by=["creation_datetime"])
+sorted_frame = result_dataframe.sort_values(by=["date"])
 ```
 
 alternatively one can directly visualize the data frame with seaborn:
@@ -168,7 +167,7 @@ import seaborn as sns
 sns.relplot(
     data=result_dataframe,
     kind="line",
-    x="creation_datetime",
+    x="date",
     y="value",
 )
 ```
@@ -177,18 +176,21 @@ See pandas documentation for more details.
 
 ### B. Introduction of artifacts
 
-Result database allows experimentalists to store `artifact` data per experiment ID. Thus, in QE, we can add `ExperimentData.artifact` to save supplementary data such as raw curve data points. In principle this can be a free-from dictionary, but it would be better to provide the artifact base class and subclasses to support custom JSON serialization to generate the REST API payload and the input data type validation. In the following we describe `CurveAnalysisArtifact` for `CurveAnalysis`. Note that artifact must be the [thread-safe container](https://github.com/Qiskit/qiskit-experiments/blob/b150427f86c74a02d638e06507864c7bb060c27c/qiskit_experiments/database_service/utils.py#L168-L245) subclass. Each analysis class must know the associated artifact subclass to populate the supplementary data.
+Result database allows experimentalists to store `artifact` data per experiment ID. Thus, in QE, we can add `ExperimentData.artifact` to save supplementary data such as raw curve data points. In principle this can be a free-from dictionary, but it would be better to provide the artifact base class and subclasses to support saving the object in a particular data format, e.g. something like `DataFrame.to_csv()`. For IBM Experiment service, this would require a custom JSON serialization to generate the REST API payload. In the following we describe `CurveAnalysisArtifact` for `CurveAnalysis`. Note that artifact must be the [thread-safe container](https://github.com/Qiskit/qiskit-experiments/blob/b150427f86c74a02d638e06507864c7bb060c27c/qiskit_experiments/database_service/utils.py#L168-L245) subclass. Each analysis class must know the associated artifact subclass to populate the supplementary data.
 
 The artifact is a part of `ExpeirmentData`, however, each `BaseAnalysis._run_analysis` method must instantiate and return a list of artifact instances to the experiment data. For example, a composite analysis instance may return multiple artifacts for each qubit or experiment.
 
 
 #### BaseArtifact
 
-The base class of the artifact. Probably Python `dataclass`. This class implements `__json_encode__` and `__json_decode__` methods and subclass can override if necessary.
+The base class of the artifact. Probably a Python `dataclass`. This class at least implements following methods with no code implementation, i.e. `NotImplementedError`, and subclass can override if necessary.
+- to_json(): Save this artifact in JSON data format.
+- to_pickle(): Save this artifact in pickle data format.
+
 This base class may have the field for list of figures. In addition to this, artifact object must provide metadata including
 - experiment (str): Name of experiment that generated this data.
-- device_components (List[DeviceComponent]): List of device components that this data is associated with.
-- creation_datetime (datetime): When this data is created. For example, an experimentalists can sort the artifacts by date to visualize the trend of curves in a heat map in line with time.
+- components (List[DeviceComponent]): List of device components that this data is associated with.
+- date (datetime): When this data is created. For example, an experimentalists can sort the artifacts by date to visualize the trend of curves in a heat map in line with time.
 
 
 #### CurveAnalysisArtifact
@@ -215,14 +217,14 @@ and the resultDB. The current structure of an analysis result contains the follo
 - uuid (str): Same as the proposed `result_id` field.
 - experiment_uuid (str): Same as the proposed `experiment_id` field.
 - type (str): Same as the proposed `name` field.
-- chisq (float): Same as the proposed `chisq` field.
-- device_components (List[DeviceComponent]): Same as the proposed `device_components` field.
+- chisq (float): Same as the proposed `chisq` in the `_extra` dictionary.
+- device_components (List[DeviceComponent]): Same as the proposed `components` field.
 - quality (str): One of three possible values: `Bad`, `No Information`, `Good`. This is slightly different than the strings being used in QE.
 - tags (List[str]): Same as the proposed `tags` field.
 - verified (bool): Same as the proposed `verified` field.
 - device_name (str): Same as the proposed `backend` field.
 - created_at (string): An ISO 8601 timestamp indicating the creation time of the analysis
-result inside the resultDB. This is similar to the `creation_datetime` field but not the same.
+result inside the resultDB. This is similar to the `date` field but not the same.
 Usually experimentalists are interested in the time at which the experiment was done, rather than a timestamp for the resultDB entry.
 This suggests these time information must be handled separately.
 - fit (dict): A free-form dictionary allowing the storage of arbitrary data.
@@ -242,7 +244,7 @@ the capability to work with pandas data frames in the suggested structure, and p
    - `device_name` <--> `backend`
    - `quality` (db format) <--> `quality` (QE format)
    - `fit` <--> `value`, `extra`, `source`
-   - TODO: still need to determine the use of `creation_datetime`
+   - TODO: still need to determine the use of `date`
 - Efficiently upload/download multiple results from the server. This depends on the
 API supplied by the server; currently mass loading/updating is possible in one API call,
 but mass creation is not supported, meaning the service might have to resort to multithreading.
@@ -317,4 +319,4 @@ N/A
 
 ## Future Extensions
 
-In future, we can also replace `ExperimentData.data` with data frames, which is currently represented as a `List[Dict]`. We can also provide convenient QE helper methods by using the [pandas accessors](https://pandas.pydata.org/docs/development/extending.html#registering-custom-accessors).
+In future, we can also replace `ExperimentData.data` with data frames, which is currently represented as a `List[Dict]`. We can also provide convenient QE helper methods by using the [pandas accessors](https://pandas.pydata.org/docs/development/extending.html#registering-custom-accessors). Probably we can implement custom handling of extra field with this accessors.
