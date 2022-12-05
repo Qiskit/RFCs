@@ -6,7 +6,7 @@
 | **Authors**       | Naoki Kanazawa (nkanazawa1989@gmail.com), Gadi Aleksandrowicz (gadial@gmail.com)    |
 | **Deprecates**    | N/A                 |
 | **Submitted**     | 2022-08-25                                   |
-| **Updated**       | 2022-11-30                                   |
+| **Updated**       | 2022-12-06                                   |
 
 
 ## Summary
@@ -39,18 +39,6 @@ _Solutions_:
 
 This user wants to use data frames to make the curve data portable, and want to store it in `ExperimentData.artifacts`.
 
-#### User3
-
-User wants to easily perform custom analysis on outcomes of experiments. For example, the [probabilistic error cancellation](https://arxiv.org/abs/2201.09866) first estimates fidelities of various Pauli channels with RB family experiment, then an experimentalist will develop a noise model tailored to a quantum circuit with these fidelities.
-
-_Pain points_:
-
-Currently analysis results are retuned as a list of `AnalysisResult` and they are not well organized. The experimentalist needs to iterate over all list items and check the entry name and extra metadata to filter the result of interest.
-
-_Solutions_:
-
-This user wants to use data frame to organize the analysis results so it is easy to work with.
-
 
 ## Design Proposal
 
@@ -60,20 +48,27 @@ In this proposal, we are going to replace the data format of analysis results, b
 
 We propose to replace `ExperimentData._analysis_results` data format from `ThreadSafeOrderedDict` to the thread safe wrapper of the pandas data frame. This data frame may consists of following columns:
 
+#### Primary columns
+
+These columns exist for all analysis results.
+
 - name (str): Same as `AnalysisResultData.result_type`. This name will appear in the result database.
 - value (Any): Same as `AnalysisResultData.result_data["_value"]`. Any value that QE analysis will generate. This value must be serializable through the `ExperimentEncoder`.
 - quality (str): Same as `AnalysisResultData.quality`. Systematically evaluated quality of the fitting to yield this data.
 - components (List[DeviceComponent]): Same as `AnalysisResultData.device_components`. Usually `.physical_qubits` of the experiment.
-- extra (Dict): Same as `AnalysisResultData.result_data["_extra"]`. Free-form dictionary for analysis metadata. This dictionary sometime contains `chisq` and `unit`. These are the standard metadata from the curve analysis. The IBM Experiment dashboard shows these fields for every entry and therefore the `AnalysisResultData` payload also contains these field as required. This dashboard is designed based off of the user stories from calibration engineers, where a parameter is typically a physical quantity which is estimated by the curve fit. However, this is not always the case in the Qiskit domain. For example, quantum volume and tomography experiments don't perform curve fit, and outcome is unitless.
 - experiment_id (str): Same as `AnalysisResultData.experiment_id`. The ID of the associated experiment.
-- verified (bool): Same as `AnalysisResultData.verified`. A boolean value to indicate if this entry is checked by human experimentalist. This can be removed since this is rarely used.
-- tags (List[str]): Same as `AnalysisResultData.tags`. An arbitrary strings to help filtering this entry.
-- source (Dict): Same as `AnalysisResultData.result_data["_source"]`. Version information of QE that was used to generate this entry.
-- created_in_db (bool): Same as `AnalysisResultData._created_in_db`. A boolean value to indicate wether this is loaded from the database or just created locally.
+- tags (List[str]): Same as `AnalysisResultData.tags`. An arbitrary strings to help filtering this entry. If this entry is verified by human experimentalist, "verified" tag will be automatically added.
 - result_id (str): Same as `AnalysisResultData.result_id`. A unique ID of this entry.
 - backend (str): Same as `AnalysisResultData.backend_name`. Name of the associated backend.
-- date (datetime): Same as `AnalysisResultData.creation_datetime`. A date time at which the experiment data received the job results.
+- run_time (datetime): A date time at which the experiment data received the job results. Experiment base class must implement new feature to track this time.
 - experiment (str): A string representation for the associated experiment for filtering.
+
+#### Extra columns
+
+Analysis class can generate the analysis result with arbitrary number of extra information. If two analysis result entries have different extra information, the data frame column will be created for union of two data set and lacking data is filled with NaN value. Data frame can collapse or expand these extra information. These are the typical information belong to extra.
+
+- chisq (float): Chi-squared value from the curve analysis. This represents a goodness of fitting.
+- unit (float): Physical (SI) unit of the value.
 
 Each table row corresponding to a single analysis result entry, i.e. `AnalysisResultData` equivalent.
 The columns must contain all information that `AnalysisResultData` provides for the backward compatibility.
@@ -99,7 +94,7 @@ experiment_data.analysis_results(dataframe=True)
 
 Analysis results:
 
-|          | name   | value  | quality | components |  backend        | date                       | experiment | ... |
+|          | name   | value  | quality | components |  backend        | run_time                   | experiment | ... |
 |----------|--------|--------|---------|------------|-----------------|----------------------------|------------|-----|
 | 03fe91s1 | T1     | 100e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 03:55:30.313872 | T1         | ... |
 | 1c4ad2a1 | T1     | 120e-6 | good    | [Q1]       |  ibm_washington | 2022-11-22 03:55:30.313872 | T1         | ... |
@@ -122,7 +117,7 @@ experiment_data.analysis_results(dataframe=True)
 
 Analysis results:
 
-|          | name   | value  | quality | components |  backend        | date                       | experiment | ... |
+|          | name   | value  | quality | components |  backend        | run_time                   | experiment | ... |
 |----------|--------|--------|---------|------------|-----------------|----------------------------|------------|-----|
 | 17636b47 | T1     | 100e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 03:58:36.523230 | T1         | ... |
 | 2f50a741 | T2star |  80e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 03:58:36.523230 | T2Ramsey   | ... |
@@ -145,7 +140,7 @@ for _ in range(2):
 
 Analysis results (combined):
 
-|          | name   | value  | quality | components |  backend        | date                       | experiment | ... |
+|          | name   | value  | quality | components |  backend        | run_time                   | experiment | ... |
 |----------|--------|--------|---------|------------|-----------------|----------------------------|------------|-----|
 | 03fe91s1 | T1     | 100e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 04:01:30.313872 | T1         | ... |
 | 1c4ad2a1 | T1     | 103e-6 | good    | [Q0]       |  ibm_washington | 2022-11-22 05:01:14.123201 | T1         | ... |
@@ -153,10 +148,10 @@ Analysis results (combined):
 
 #### Complement
 
-As these examples show, experimentalist can distinguish the outcomes of batch (with `experiment`) and parallel experiments (with `components`). Even though there are multiple entries for the identical parameter (example 3), they have different result and experiment IDs and creation date times. In other words, one can sort the entries by `date` and get the time-ordered sequence of `value` for the trend analysis:
+As these examples show, experimentalist can distinguish the outcomes of batch (with `experiment`) and parallel experiments (with `components`). Even though there are multiple entries for the identical parameter (example 3), they have different result and experiment IDs and run times. In other words, one can sort the entries by `run_time` and get the time-ordered sequence of `value` for the trend analysis:
 
 ```python
-sorted_frame = result_dataframe.sort_values(by=["date"])
+sorted_frame = result_dataframe.sort_values(by=["run_time"])
 ```
 
 alternatively one can directly visualize the data frame with seaborn:
@@ -167,7 +162,7 @@ import seaborn as sns
 sns.relplot(
     data=result_dataframe,
     kind="line",
-    x="date",
+    x="run_time",
     y="value",
 )
 ```
@@ -177,7 +172,7 @@ See pandas documentation for more details.
 ### B. Introduction of artifacts
 
 Result database allows experimentalists to store `artifact` data per experiment ID. Thus, in QE, we can add `ExperimentData.artifact` to save supplementary data such as raw curve data points and figures. In principle this can be a bare python data container, but it is better to use [thread-safe container](https://github.com/Qiskit/qiskit-experiments/blob/b150427f86c74a02d638e06507864c7bb060c27c/qiskit_experiments/database_service/utils.py#L168-L245) subclass.
-In principle, `ExpeirmentData.add_artifacts` can be called from the `_run_analysis` method, which is running on a Python concurrent thread, and therefore we need to protect the artifact container from the data collision from different analysis threads.
+The `BaseAnalysis.run` method can call `ExpeirmentData.add_artifacts` to save extra data in the database, which is running on a Python concurrent thread, and therefore we need to protect the artifact container from the data collision from different analysis threads.
 
 #### Data structure
 
@@ -190,7 +185,7 @@ Once each data is added to the `ExperimentData`, the data is converted into a `A
 
 - .data (Any): Raw data
 - .artifact_id (str): Random UUID (or unique ID) for this entry.
-- .date (datetime): When this data is created.
+- .created_time (datetime): When this data is created.
 - .experiment_id (str): ID of experiment that this data is associated with.
 - .name (str): Arbitrary name for this entry, such as "t1_plot".
 
@@ -265,22 +260,105 @@ indicted using an optional parameter, `dataframe` (bool) which defaults to `Fals
 - `IBMExperimentService.analysis_result()`
 - `IBMExperimentService.analysis_results()`
 
+## Examples
+
+### A. Writing an analysis class
+
+When an experiment author writes a custom analysis class, one must override the `_run_analysis()` method of a `BaseAnalysis` subclass.
+This style doesn't change by our proposal to minimize the impact to user code.
+Even though the author can directly call the `ExperimentData.add_analysis_results()` and `ExperimentData.add_artifacts()` from the `_run_analysis()`, this pattern must be prohibited because this ties analysis to executor (i.e. we want to make `_run_analysis()` agnostic to the `ExperimentData` in future update).
+
+At present, the `_run_analysis()` method takes the `ExperimentData` as input and returns the `Tuple[List[AnalysisResult], List[Figure]]`. With this proposal, the return type will be generalized with artifact.
+
+```python
+from qiskit_experiments.framework import ExperimentData, AnalysisResult, ArtifactData
+
+class MyAnalysis(BaseAnalysis):
+
+  def _run_analysis(
+    experiment_data: ExperimentData
+  ) -> Tuple[List[AnalysisResult], List[ArtifactData]]:
+
+    # In future, _run_analysis will directly receive this.
+    data = experiment_data.data()
+    ...
+    # Do some analysis. Generate result and figure (and other artifacts).
+    ...
+    result1 = AnalysisResult(
+      name="param1",
+      value=0.1,
+      quality="good",
+      unit="Hz",
+    )
+    artifact1 = ArtifactData(
+      data=mpl_figure,
+      name="curve_plot",
+    )
+    artifact2 = ArtifactData(
+      data=curve_data_table,
+      name="curve_data",
+    )
+    return [result1], [artifact1, artifact2]
+
+```
+
+As you can see, some expected data fields are missing in `result1` in this example (such as component and run time). Note that the minimum required field that the author must provide are name and value. The missing data are implicitly filled by the following base class routine. After this canonicalize, `BaseAnalysis.run` calls `add_analysis_results()` and `add_artifacts()`. The formatted data frame is created (updated) in `ExperimentData` by `add_analysis_results()` call.
+
+### B. Adding new analysis results or artifacts.
+
+An end user (experimentalist) can directly call `add_analysis_results()` and `add_artifacts()` to create custom entry. For example,
+
+```python
+exp_data = MyExperiment(...).run().block_for_result()
+
+exp_data.add_analysis_results(
+  name="my_param1",
+  value="0.1",
+)
+exp_data.add_artifacts(
+  name="my_second_plot",
+  data=my_plot2,
+)
+```
+
+In this case, the user can bypass creation of `AnalysisResult` or `ArtifactData` since these are assumed to be a container used by an experiment author to write `_run_analysis`.
+
+### C. Updating existing results or artifacts.
+
+An end user (experimentalist) can modify analysis result or artifact after experiment.
+
+```python
+exp_data = MyExperiment(...).run().block_for_result()
+
+exp_data.update_analysis_results(
+  index="1fe131b2",
+  tags=["my_project1"],
+)
+exp_data.update_artifacts(
+  index="0ef121s1",
+  data = modified_plot,
+)
+```
+
+Because modified entry must be uniquely specified, `ExperimentData` newly provides methods `update_analysis_results()` and `update_artifacts()` that takes entry ID as a require argument.
+
+### D. Saving results.
+
+(currently save is done by experiment data, but this could be moved to service to decouple service API from data, i.e. `service.save(experiment_data)`)
+
+### E. Requesting particular analysis results to the service.
+
+(what is the syntax of the query?, what is the return format? -- returning the data frame?)
+
+
 ## Migration plan
 
 Even though this is the change of internal data structure, this may impact community developers who write own experiment on top of our base classes. Thus, the change should be made step by step to guarantee the backward compatibility.
 
 ##### qiskit_experiments v.0.6
 Implement the thread safe data class and subclasses for the analysis results. Replace internal analysis results data with the data frame.
-In this version, `ExpeirmentData.analysis_results()` method still returns a list of `AnalysisResult` by default, and calling with the option `dataframe=True` returns the data frame.
-When data frame is disabled, it internally converts data frame into a list of `AnalysisResult` to return.
-
-`ExperimentData.add_analysis_results()` dispatches the add logic.
-The method signature is updated to `results: Optional[Union[AnalysisResult, List[AnalysisResult]]] = None, **kwargs: Any`.
-If results argument is not None, this must be the legacy analysis result data.
-This implies existing analysis classes can still return this legacy object.
-Legacy result objects are internally converted into a single row of the data frame and added.
-If there are only keyword arguments, we can directly populate the analysis result data frame and bypasses generation of redundant `AnalysisResult` which no longer exists in the `ExperimentData`.
-Existing analysis classes in the Qiskit Experiments namespace will switch to this kwargs style, namely, it must directly populate analysis data from `_run_analysis` method.
+In this version, `ExpeirmentData.analysis_results()` method still returns a list of `AnalysisResult` by default, and calling with the option `dataframe=True` returns the data frame. When data frame is disabled, it internally converts data frame into a list of `AnalysisResult` to return.
+`ExperimentData.add_analysis_results()` still receives conventional `Union[AnalysisResult, List[AnalysisResult]]`, and it internally converts them into rows of the data frame to add.
 
 `ExperimentData.artifacts()` and `.add_artifacts()` methods are newly implemented with new protected member `ExpeirmentData._artifacts` which is a thread safe list of artifacts.
 This method may provide a filtering function based on the artifact metadata.
@@ -289,22 +367,21 @@ _Deprecations_
 - `CurveData` will be replaced with the data frame and thus immediately deprecated. This is in internal use for curve analysis, thus the impact is minimum.
 - Curve analysis options `return_data_points` (curve data) and `return_fit_parameters` (fit status). Now these are moved to artifacts rather than in the analysis results.
 - Add deprecation warning when `ExpeirmentData.analysis_results()` is called with `dataframe=False` (default).
+- Add deprecation warning when a user analysis class returns raw `Figure` object.
 
 _Remove_
 - None
 
 ##### qiskit_experiments v0.7
 In this version we switch the default option of `ExpeirmentData.analysis_results()` to `dataframe=None`. It returns data frame by defaults.
-We must write analysis classes so that it adds analysis results with keyword arguments.
 
 _Deprecations_
-- `AnalysisResult` and `AnalysisResultData`.
-- Deprecate calling `ExperimentData.add_analysis_results()` with results argument.
 - Calling with `ExpeirmentData.analysis_results()` with dataframe argument.
 
 _Remove_
 - `CurveData`
 - Remove fit status and curve data entry generation in analysis results. Curve analysis will complete migration to the artifact at this point.
+- No longer accept raw `Figure` object return from `_run_analysis`.
 
 ##### qiskit_experiments v0.8
 In this version we complete migration to data frame and legacy QE classes and methods are completely removed.
@@ -313,8 +390,6 @@ _Deprecations_
 - None
 
 _Remove_
-- `AnalysisResult` and `AnalysisResultData`.
-- results argument from the `ExpeirmentData.add_analysis_results()`.
 - dataframe argument from the `ExpeirmentData.analysis_results()`.
 
 
@@ -322,8 +397,7 @@ _Remove_
 N/A
 
 ## Questions
-- What data frame columns must be shown to end users.
-- How we expose `extra` column? A single column of a free-form dict is enough? We cannot apply convenient data frame filtering methods to such column. This must be flattened? This may cause problem when we have multiple experiments, i.e. BatchExperiment. Every experiment may have different extra dict keys.
+N/A
 
 ## Future Extensions
 
