@@ -2,13 +2,13 @@
 
 | **Status**        | **Proposed**                                 |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         | 0006                                         |
 | **Authors**       | Kevin Krsulich (kevin.krsulich@ibm.com),     |
 |                   | Luciano Bello (Luciano.Bello@ibm.com),       |
 |                   | Ali Javadi (Ali.Javadi@ibm.com),             |
 | **Deprecates**    |                                              |
-| **Submitted**     | YYYY-MM-DD                                   |
-| **Updated**       | YYYY-MM-DD                                   |
+| **Submitted**     | 2020-05-21                                   |
+| **Updated**       | 2020-05-21                                   |
 
 
 # Summary
