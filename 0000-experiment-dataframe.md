@@ -344,12 +344,47 @@ Because modified entry must be uniquely specified, `ExperimentData` newly provid
 
 ### D. Saving results.
 
-(currently save is done by experiment data, but this could be moved to service to decouple service API from data, i.e. `service.save(experiment_data)`)
+Since most end users don't need to explicitly use the service, saving is usually done
+in a transparent manner:
+
+```python
+exp_data = MyExperiment(...).run().block_for_result()
+exp_data.save()
+```
+A specific service can be explicitly given to enable flexibility:
+
+```python
+service = IBMExperimentService(...)
+exp_data = MyExperiment(...).run().block_for_result()
+exp_data.save(service=service)
+```
+
+`save` will return a status object which enables to see which of the save tasks
+succeeded and what errors were raised. Also, `save` can be nonblocking, in which case
+the status object can be used to query whether the save ended and to block:
+
+```python
+exp_data = MyExperiment(...).run().block_for_result()
+save_status = exp_data.save(blocking=False)
+if save_status.running():
+    save_status.block()
+for error in save_status.errors():
+    print(error)
+```
 
 ### E. Requesting particular analysis results to the service.
 
-(what is the syntax of the query?, what is the return format? -- returning the data frame?)
+In addition to accessing a specific expriment's analysis results, one can query
+the service directly to obtain a pandas dataframe:
 
+```python
+service = IBMExperimentService(...)
+df = service.analysis_results(
+    creation_datetime_after = datetime.now() - timedelta(days=3),
+    name = 'fine_amp',
+    tags = ['auto_cr_simul']
+)
+```
 
 ## Migration plan
 
