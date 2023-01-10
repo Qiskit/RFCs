@@ -372,6 +372,8 @@ for error in save_status.errors():
     print(error)
 ```
 
+Note that the experiment service already supports API to save artifacts. The payload must be JSON format.
+
 ### E. Requesting particular analysis results to the service.
 
 In addition to accessing a specific expriment's analysis results, one can query
@@ -429,11 +431,14 @@ _Remove_
 
 
 ## Alternative Approaches
-N/A
+- We can keep figure location as it is. IBM result database stores figures separately from the artifact, and moving the figure to artifact would introduce additional complexity to the experiment service, i.e. the service must investigate all artifacts and check the data type to get rid of figures, which is operation of O(N). If we keep the figure location, the return data of the `_run_analysis` method must be updated to `Tuple[List[AnalysisResult], List[Figure], List[ArtifactData]]` trio.
 
 ## Questions
-N/A
+- `run_time` field must be the job starting time rather than the time at which the local experiment client received the job results? Some monitoring type agent might be sensitive to the actual time but we need more effort to update job metadata.
+- How dataframe and artifact work with local service? Currently IBM result database is limited to internal.
 
 ## Future Extensions
 
 In future, we can also replace `ExperimentData.data` with data frames, which is currently represented as a `List[Dict]`. We can also provide convenient QE helper methods by using the [pandas accessors](https://pandas.pydata.org/docs/development/extending.html#registering-custom-accessors). Probably we can implement custom handling of extra field with this accessors.
+
+We also plan to decouple `ExperimentData` from `_run_analysis` method. Current implementation ties analysis routine to the service API through the `ExperimentData`, and allows an experiment author to directly store the unformatted result to the experiment data instance by directly calling `.add_analysis_results` method from there. This would unintentionally give the experiment author too much flexibility. The `_run_analysis` method just receives experiment result (e.g. IQ data or count dictionary) and returns the analysis results. This is why we must keep the `AnalysisResult` dataclass as a temporary payload although this will be eventually converted into the dataframe within the experiment data.
