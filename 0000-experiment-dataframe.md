@@ -372,7 +372,8 @@ for error in save_status.errors():
     print(error)
 ```
 
-Note that the experiment service already supports API to save artifacts. The payload must be JSON format.
+Note that the experiment service already supports API to save artifacts. The payload is usually in the JSON format. This JSON serialization must happen in the experiment service as the conventional IBM provider has own [IQXJsonEncoder](https://github.com/Qiskit/qiskit-ibmq-provider/blob/master/qiskit/providers/ibmq/utils/json_encoder.py). Currently QE has own [ExperimentEncoder](https://github.com/Qiskit/qiskit-experiments/blob/main/qiskit_experiments/framework/json.py#L381) but this should be moved the service. QE can attempt to save an artifact in arbitrary data format, but it may fail when the service doesn't support it. User can implement own local service with custom data handling on their responsibility. For example, one may use pickle instead of JSON to handle custom object. QE is agnostic to the data handling behind saving and it just calls the save API of associated service.
+
 
 ### E. Requesting particular analysis results to the service.
 
