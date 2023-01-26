@@ -60,7 +60,8 @@ These columns exist for all analysis results.
 - tags (List[str]): Same as `AnalysisResultData.tags`. An arbitrary strings to help filtering this entry. If this entry is verified by human experimentalist, "verified" tag will be automatically added.
 - result_id (str): Same as `AnalysisResultData.result_id`. A unique ID of this entry.
 - backend (str): Same as `AnalysisResultData.backend_name`. Name of the associated backend.
-- run_time (datetime): A date time at which the experiment data received the job results. Experiment base class must implement new feature to track this time.
+- run_time (datetime): A date time at which the latest job started to run on the provider. IBM backend reports this as the RUNNING time with the job object.
+- created_time (datetime): A date time at which this analysis result entry is created in the `ExperimentData`.
 - experiment (str): A string representation for the associated experiment for filtering.
 
 #### Extra columns
@@ -333,14 +334,16 @@ exp_data = MyExperiment(...).run().block_for_result()
 exp_data.update_analysis_results(
   index="1fe131b2",
   tags=["my_project1"],
+  inplace=False,
 )
 exp_data.update_artifacts(
   index="0ef121s1",
   data = modified_plot,
+  inplace=False,
 )
 ```
 
-Because modified entry must be uniquely specified, `ExperimentData` newly provides methods `update_analysis_results()` and `update_artifacts()` that takes entry ID as a require argument.
+Because modified entry must be uniquely specified, `ExperimentData` newly provides methods `update_analysis_results()` and `update_artifacts()` that takes entry ID as a require argument. The updated entry is newly saved in the `ExperimentData` with new `created_time` value when the `inplace` option is disabled. Otherwise the old entry is deleted.
 
 ### D. Saving results.
 
@@ -435,7 +438,6 @@ _Remove_
 - We can keep figure location as it is. IBM result database stores figures separately from the artifact, and moving the figure to artifact would introduce additional complexity to the experiment service, i.e. the service must investigate all artifacts and check the data type to get rid of figures, which is operation of O(N). If we keep the figure location, the return data of the `_run_analysis` method must be updated to `Tuple[List[AnalysisResult], List[Figure], List[ArtifactData]]` trio.
 
 ## Questions
-- `run_time` field must be the job starting time rather than the time at which the local experiment client received the job results? Some monitoring type agent might be sensitive to the actual time but we need more effort to update job metadata.
 - How dataframe and artifact work with local service? Currently IBM result database is limited to internal.
 
 ## Future Extensions
