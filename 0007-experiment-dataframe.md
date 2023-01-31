@@ -1,12 +1,12 @@
 # Dataframe for Qiskit Experiments
 
-| **Status**        | **Proposed** |
+| **Status**        | **Active** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         | 0007                                         |
 | **Authors**       | Naoki Kanazawa (nkanazawa1989@gmail.com), Gadi Aleksandrowicz (gadial@gmail.com)    |
 | **Deprecates**    | N/A                 |
 | **Submitted**     | 2022-08-25                                   |
-| **Updated**       | 2022-12-06                                   |
+| **Updated**       | 2023-01-26                                   |
 
 
 ## Summary
