@@ -150,7 +150,7 @@ the multi-controlled X.
 ## Questions
 
 1. At this point, the exact requirements for `Operation` are not fully
-   finalised.  This RFC will not be ready for implementation until they are.
+   finalized.  This RFC will not be ready for a complete implementation until they are.
 
 2. Will classical operations also be `Operation`, or will we do something
    different with them?
