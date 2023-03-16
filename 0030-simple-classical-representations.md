@@ -147,7 +147,7 @@ The mutation of global state required to do this makes the builder interface non
 
 ## Detailed Design
 
-The new functionality will live in in `qiskit.circuit.classical`.
+The new functionality will live in `qiskit.circuit.classical`.
 The expression-builder objects will all be exposed from `qiskit.circuit.classical.expr`, to allow people to bring the desired values into scope either with a namespace prefix `expr` or by a star-import of limited scope.
 
 > From this point on, I will omit the prefix `qiskit.circuit.classical.`.
@@ -208,7 +208,7 @@ PR 2 (depends on 1):
 - add support to `Expression` of evaluated type `Bool` to `IfElseOp.condition` and `WhileLoopOp.condition`
 
 PR 3 (depends on 2):
-- add support for exporting these `Expression` conditions to the OpenQASM 3 
+- add support for exporting these `Expression` conditions to OpenQASM 3 
 
 PR 4 (depends on 2):
 - add support for these `Expression` conditions into the `DAGCircuit` <-> `QuantumCircuit` conversions (i.e. enable the transpiler to work with them)
