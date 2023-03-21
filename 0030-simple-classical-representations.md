@@ -19,12 +19,12 @@ This is not required to be the final design for classical handling in Terra, it 
 
 - Current hardware is gaining support for runtime operations and subsequent conditions on classical bits
 - IBM dynamic-circuits hardware can do bit-level calculations, but there is no way to represent this in Qiskit to pass it on
-- On Terra, we need more of a feel for what will actually help us represent more complex classical constructs
+- In Terra, we need more of a feel for what will actually help us represent more complex classical constructs
 
 
 ## User Benefit
 
-- Users of IBM dynamic circuits will be able to take advantage of the classical-processing capabilities of those compilers from within Qiskit
+- Users of IBM dynamic circuits will be able to take advantage of the classical-processing capabilities of those systems from within Qiskit
 - This support is not limited to IBM so may extend further, but we are not aware of other dynamic-circuits hardware accessible through Qiskit
 - For Terra development: this is a "build one to throw away"-type sytem, so we can see in actual usage what works and doesn't for us before we commit to further classical processing.
 
@@ -82,7 +82,7 @@ All of these points are eligible to be included in future work, just not the MVP
 
 #### Stage 1
 
-This is a temporary representation, so it is a non-goal to produce the best possible UX for constructing these objects.
+This is an experimental representation, so it is a non-goal to produce the best possible UX for constructing these objects.
 In the initial representation phase, users will be required to build the expression-tree representations themselves.
 This will look _something_ like (names up for discussion):
 
