@@ -177,32 +177,34 @@ The expression-builder objects will all be exposed from `qiskit.circuit.classica
 
 > From this point on, I will omit the prefix `qiskit.circuit.classical.`.
 
-The class `expr.Expression` will be an abstract base class with two read-only fields:
+The class `expr.Expr` will be an abstract base class with one read-only field:
 ```python
 # file: qiskit/circuit/classical/expr.py
 
-class Expression(ABC):
-    resources: typing.Set[Clbit]
+class Expr(ABC):
     type: qiskit.circuit.classical.Type
 ```
 
-The `resources` field is effectively a `use-def` tracker, which will more easily enable the conversion to data-flow (`DAGCircuit`) format to evaluate the necessary wires of an instruction.
 The `type` field is a resolved type of the contained expression.
 In this initial release, the only time that `type` will not be a fully qualified type will be when representing a `expr.Value` of a `uint` literal.
 Type errors will raise immediately on attempted construction.
 In the future, we may consider relaxing this restriction and having a type-evaluation pass that runs on the complete `QuantumCircuit` AST representation, but that is for later work.
 
-The expressions in the above examples will be final (uninheritable) subclasses of `Expression`:
+The expressions in the above examples will be final (uninheritable) subclasses of `Expr`:
 ```python
-class Value(Expression):
+class Value(Expr):
     value: Any
 
-class Less(Expression):
-    left: Expression
-    right: Expression
+class Less(Expr):
+    left: Expr
+    right: Expr
 
 ...
 ```
+
+We will supply a base class `ExprVisitor` that can be subclassed to easily handle the double-dynamic dispatch needed to visit the children of an `Expr`.
+For an example implementation of a tree visitor, see the Python built-in `ast.NodeVisitor`.
+
 
 Similarly, the type system will be represented by values of the type `types.Type`:
 ```python
@@ -222,6 +224,8 @@ class Uint(Type):
     size: int | Literal[UNKNOWN]
 ```
 
+In this simple type system, there is likely no need for a `TypeVisitor` class yet, but if the type system expands to include compound types (functions, for example), we can supply one.
+
 
 ### Potential deprecation
 
@@ -234,23 +238,23 @@ A new implementation would _immediately_ be able to define new magic methods if 
 ## Implementation plan
 
 PR 1:
-- write representation of `Expression` and `Type`
+- write representation of `Expr` and `Type`
 - test that these objects can be constructed and handle type checking correctly
 
 PR 2 (depends on 1):
-- add support to `Expression` of evaluated type `Bool` to `IfElseOp.condition` and `WhileLoopOp.condition`
+- add support to `Expr` of evaluated type `Bool` to `IfElseOp.condition` and `WhileLoopOp.condition`
 
 PR 3 (depends on 2):
-- add support for exporting these `Expression` conditions to OpenQASM 3 
+- add support for exporting these `Expr` conditions to OpenQASM 3 
 
 PR 4 (depends on 2):
-- add support for these `Expression` conditions into the `DAGCircuit` <-> `QuantumCircuit` conversions (i.e. enable the transpiler to work with them)
+- add support for these `Expr` conditions into the `DAGCircuit` <-> `QuantumCircuit` conversions (i.e. enable the transpiler to work with them)
 
 PR 5 (depends on 1):
 - add the `expr.build()` context manager
 
 Pull requests 1 through 4 are required for minimal support in a Terra version.
-PRs 2 and 3 are semi-parallelisable; the export support can be made prospectively assuming that the `condition` field might be an `Expression`, but the final tests will need PR 2 merged first.
+PRs 2 and 3 are semi-parallelisable; the export support can be made prospectively assuming that the `condition` field might be an `Expr`, but the final tests will need PR 2 merged first.
 Pull request 5 can be permitted to follow in a subsequent Terra release, if necessary, despite being parallelisable with all PRs following 1.
 
 
