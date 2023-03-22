@@ -120,6 +120,24 @@ bounded_reg = expr.And(
 These expressions will then be given directly to `IfElseOp` or `WhileLoopOp` in their `condition` fields.
 These expressions will not be valid in the general `Instruction.condition` field; we do not want to expand any support for something we are already moving to remove.
 
+For example, a complete condition construction might look like (eliding `expr.Value` calls that could be inferred):
+```python
+from qiskit.circuit import QuantumCircuit, ClassicalRegister, QuantumRegister
+from qiskit.circuit.classical import expr
+
+cregs = [ClassicalRegister(3), ClassicalRegister(3)]
+qc = QuantumCircuit(QuantumRegister(3), *cregs)
+
+qc.h(0)
+qc.cx(0, 1)
+qc.cx(1, 2)
+qc.measure([0, 1, 2], cregs[0])
+qc.measure([0, 1, 2], cregs[1])
+with qc.if_test(expr.And(expr.Less(0, cregs[0]), expr.LessEqual(cregs[0], cregs[1]))):
+    # This is the same as the `bounded_reg` comparison above.
+    pass
+```
+
 
 #### Stage 2
 
@@ -138,7 +156,7 @@ with expr.build():
 
 It is not possible to overload the behaviour of the Python Boolean operators (`not`, `and` and `or`) for classes, which is why the bitwise operations `~` and `&` are used instead (with the corresponding precedence frustrations).
 Within the `expr.build()` context, the magic methods of `ClassicalRegister` and `Clbit` will be temporarily overridden to be an eager builder interface for the syntax tree given above.
-This means that the expressions will not need to be bound to variables in order to use them, as the resulting objects will be well-defined and the correct tree form.
+This means that `expr.build()` context can just contain the entire circuit construction without any changes to `QuantumCircuit`; nothing magic happens on exit of the builder context except for tidying up the monkey-patched methods.
 For example, it will be valid to do
 
 ```python
