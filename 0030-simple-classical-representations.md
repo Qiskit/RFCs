@@ -36,6 +36,13 @@ This representation is not required to be the base for future expansion; it will
 To that end, this proposal will not include adding any additional public methods to any existing Terra classes that might conflict with an alternative implementation.
 In particular, this proposal will not consider adding ease-of-use arithmetic methods to `Clbit` or `ClassicalRegister`, nor will it add expressions that can be used as the parameters to gates.
 
+Notes:
+
+- We want to keep a level of interoperability with the OpenQASM 3 description of hybrid quantum–classical programs, to have better cross-ecosystem compatibility.
+  When in doubt, we probably want to run towards the design choices made there.
+- There is no _requirement_ to throw this representation away again.
+  If it works, we can build on it and keep it.
+
 ### Representation
 
 `IfElseOp.condition` and `WhileLoopOp.condition` will expand their allowed values to be an "expression" that evaluates to Boolean.
@@ -196,6 +203,14 @@ UNKNOWN = object()
 class Uint(Type):
     size: int | Literal[UNKNOWN]
 ```
+
+
+### Potential deprecation
+
+If this is needed to be replaced, the module `qiskit.circuit.classical` can just be deprecated, and the replacement can be given a new name.
+Since none of this proposal involves new user-facing methods on any existing classes, there will be no trouble with replacing those with new behaviour.
+For example, since the magic method `Clbit.__add__` would only be defined when the `expr.build()` context is active, we can simply deprecate `expr.build` to remove the usage of the magic methods.
+A new implementation would _immediately_ be able to define new magic methods if desired, instead of needing to go through a full deprecate-and-remove cycle, because `Clbit.__add__` would only be monkey-patched on using the deprecated `expr.build`.
 
 
 ## Implementation plan
