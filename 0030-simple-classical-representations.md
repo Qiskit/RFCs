@@ -6,7 +6,7 @@
 | **Authors**       | Jake Lishman (jake.lishman@ibm.com)          |
 | **Deprecates**    | None                                         |
 | **Submitted**     | 2023-03-15                                   |
-| **Updated**       | 2023-03-15                                   |
+| **Updated**       | 2023-03-22                                   |
 
 
 ## Summary
@@ -223,6 +223,26 @@ Pull request 5 can be permitted to follow in a subsequent Terra release, if nece
 
 ## Alternative Approaches
 
+### Reuse of `ParameterExpression`
+
+We have talked about using the existing `ParameterExpression` before, for this.
+This poses several problems, because overloading it from its current use as a _compile-time_ stand-in for unknown values to involve arbitrary _run-time_ expressions opens the door for many errors where those two domains don't fully align.
+`ParameterExpression` is also build on `sympy`/`symengine`, which don't have any sort of rigorous type system for us to use.
+We would have to hack one on top of them, which would make a lot more of the manipulation interfaces around these types far more complex to use.
+These also perform (by default) aggressive simplifications based on arithmetic operations on the reals; this does not translate cleanly to storing operations on mixed types, or having casts from one type to another, and so on.
+
+### Reuse of `classicalfunction.BooleanExpression`
+
+This type is somewhat more similar to the immediate goals of this PR, but it:
+
+- has hard requirements on being a Python AST walker, which hurts ergonomics for construction of simple conditions (see next comment, and the "call" syntax to apply to given objects would need to implemented still);
+- relies on `tweedledum`, which is unmaintained (which is why `qiskit.circuit.classicalfunction` is pending complete removal from Terra);
+- cannot easily allow dynamic construction of conditions, since it relies on being a static analyser.
+
+It is also currently only defined for bit types, not the integer types we need for `ClassicalRegister` (despite the existence of `Int2`).
+This possibly could be extended, but the other points above are enough reason to dismiss this.
+
+
 ### AST-visitor builder interface
 
 The stage-2 builder interface for the expression syntax given above had a problem that Python does not allow classes to override the behaviour of binary Boolean operations.
@@ -245,9 +265,11 @@ This is possible with function decorators because the decorator can access the P
 
 This function-decorator method is not chosen because:
 
-- in practice, since it only applies to expressions and is not part of a larger circuit builder interface, it ends up being much more verbose due to the need to first define, then call
+- in practice, since it only applies to expressions and is not part of a larger circuit builder interface, it ends up being much more verbose due to the need to first define, then call;
 - it is harder to write and maintain a Python AST visitor, which makes it less ideal for a preliminary implementation
-- it has to do type checking twice; once during the AST visit, and once during the subsequent object call
+- it has to do type checking twice; once during the AST visit, and once during the subsequent object call.
+
+In the context of a larger circuit-builder interface, where the entirety of the `QuantumCircuit` is built up using such functions, many of the negatives of this form are reduced.
 
 
 ## Questions
