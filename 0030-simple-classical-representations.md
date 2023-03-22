@@ -54,8 +54,8 @@ The allowed expressions will be the following:
   - runtime `bool` (`Clbit`);
   - runtime `uint[n]` (`ClassicalRegister(size=n)`).
 - Unary:
-  - `uint[n] -> uint[n]`: `~` (bitwise negation);
-  - `bool -> bool`: `!` (boolean negation).
+  - `uint[n] -> uint[n]`: bitwise negation
+  - `bool -> bool`: Boolean negation
 - Binary:
   - `uint[n] * uint[n] -> uint[n]`: `&`, `|`, `^`;
   - `bool * bool -> bool`: `&&`, `||`;
