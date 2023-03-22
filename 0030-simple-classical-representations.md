@@ -1,4 +1,4 @@
-# RFC Title
+# Preliminary representation of rvalue classical expression in Qiskit
 
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
