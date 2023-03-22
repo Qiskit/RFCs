@@ -57,7 +57,7 @@ The allowed expressions will be the following:
   - `uint[n] -> uint[n]`: bitwise negation
   - `bool -> bool`: Boolean negation
 - Binary:
-  - `uint[n] * uint[n] -> uint[n]`: `&`, `|`, `^`;
+  - `uint[n] * uint[n] -> uint[n]` and `bool * bool -> bool`: `&`, `|`, `^`;
   - `bool * bool -> bool`: `&&`, `||`;
   - `uint[n] * uint[n] -> bool`: `==`, `!=`, `<`, `<=`, `>`, `>=`.
 
@@ -315,5 +315,5 @@ In the context of a larger circuit-builder interface, where the entirety of the 
 
 ## Future Extensions
 
-- An entire classical system including the ability to assign runtime expressions to variables that are managed by `QuantumCircuit`.
+- An entire classical system including casting between different types, and the ability to assign runtime expressions to variables that are managed by `QuantumCircuit`.
 - An extension of the type system to include values that can be used as the operands of gate objects.
