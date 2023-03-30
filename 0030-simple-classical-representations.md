@@ -1,8 +1,8 @@
 # Preliminary representation of rvalue classical expression in Qiskit
 
-| **Status**        | **Proposed/Accepted/Deprecated** |
+| **Status**        | **Accepted** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         |  30                                        |
 | **Authors**       | Jake Lishman (jake.lishman@ibm.com)          |
 | **Deprecates**    | None                                         |
 | **Submitted**     | 2023-03-15                                   |
@@ -308,10 +308,6 @@ This function-decorator method is not chosen because:
 
 In the context of a larger circuit-builder interface, where the entirety of the `QuantumCircuit` is built up using such functions, many of the negatives of this form are reduced.
 
-
-## Questions
-
-?
 
 ## Future Extensions
 
