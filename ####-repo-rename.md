@@ -1,4 +1,4 @@
-# Plan to rename Qiskit/qiskit-terra repo to Qiskit/qiskit
+# Plan to rename `Qiskit/qiskit-terra` repo to `Qiskit/qiskit`
 
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
@@ -57,15 +57,18 @@ gantt
     axisFormat %b
 
     section planned releases
-    0.24         : crit, release024, 2023-04-06, 28d    
+    %% From freeze to release
+    0.24         : crit, release024, 2023-04-06, 28d   
     release 0.24 : milestone, 2023-05-04   
+    %% From freeze to release
     0.25         : crit, release025, 2023-07-05, 22d
     release 0.25 : milestone, 2023-07-27    
     section preparation
     metapackage-repo :metapackage-repo, 2023-03-31, 1d
     rfc-discussion   :active, rfc-discussion, 2023-03-30, 10d
     rfc-merged   :milestone, rfc-merged, after rfc-discussion, 0d 
-    section empty-metapackage  
+    section empty-metapackage
+    %% These tasks are not interdepedendent and they need to be done before release025   
     ibmq-docs-out-of-metapackage    :ibmq-docs, after rfc-merged, 2w
     docs-out-of-metapackage         :docs, after ibmq-docs, 4w
     benchmarks-out-of-metapackage   :benchmarks, after docs, 4w
