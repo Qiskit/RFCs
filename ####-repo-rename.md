@@ -52,32 +52,33 @@ This will be done in the main stage of the plan: empty-metapackage. This is the 
 ```mermaid
 gantt
     dateFormat  YYYY-MM-DD
-    tickInterval 1week
+    tickInterval 1month
     todayMarker off
+    axisFormat %b
 
+    section planned releases
+    0.24         : crit, release024, 2023-04-06, 28d    
+    release 0.24 : milestone, 2023-05-04   
+    0.25         : crit, release025, 2023-07-05, 22d
+    release 0.25 : milestone, 2023-07-27    
     section preparation
     metapackage-repo :metapackage-repo, 2023-03-31, 1d
     rfc-discussion   :active, rfc-discussion, 2023-03-30, 10d
-    rfc-merged   :milestone, rfc-merged, after rfc-discussion, 
-    section planned releases
-    0.24         : crit, release024, 2023-04-06, 4w    
-    release 0.24 : milestone, 2023-05-04   
-    0.25         : crit, release025, 2023-07-05, 3w
-    release 0.25 : milestone, 2023-07-27    
+    rfc-merged   :milestone, rfc-merged, after rfc-discussion, 0d 
     section empty-metapackage  
-    docs-out-of-metapackage         :docs, after rfc-merged, 4w
-    benchmarks-out-of-metapackage   :benchmarks, after rfc-merged, 4w
-    tutorials-out-of-metapackage    :tutorials, after rfc-merged, 4w
     ibmq-docs-out-of-metapackage    :ibmq-docs, after rfc-merged, 2w
+    docs-out-of-metapackage         :docs, after ibmq-docs, 4w
+    benchmarks-out-of-metapackage   :benchmarks, after docs, 4w
+    tutorials-out-of-metapackage    :tutorials, after benchmarks, 4w
     section archive-metapackage
     ibmq-out-of-metapackage        :ibmq-archived, after release025, 1d
     move-setup-out-of-metapackage  :setup, after release025, 1d
     pre-archive-doc                :archive-doc, after release025, 2d
     archive-metapackage            :archive-meta, after archive-doc setup, 1d  
     section final
-    final-rename    : m1, after archive-meta, 1d
-    fix-time:       : fix-time, after m1, 2w
-    final-announcement : milestone, m2
+    final-rename    : finalrename, after archive-meta, 1d
+    fix-time:       : fix-time, after finalrename, 2w
+    final-announcement : milestone, finalannoun
 ```
 
 ### preparation stage
