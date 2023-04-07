@@ -9,12 +9,12 @@
 
 
 ## Summary
-In 2021, Qiskit began an evolution from a large monolithic install which included by default the Aer simulator, the IBM Quantum provider, and large characterization and application libraries, into a leaner and more modular structure.
-The end goal of that progression has been a Qiskit based on core components of circuit construction, compilation, and device interfaces, and a new [ecosystem](https://qiskit.org/ecosystem/) of installable extensions which users can explore, install, and contribute to based on their interests.
-As Qiskit moes towards this leaner definition, the distinction with the existing `qiskit` and `qiskit-terra` repositories is getting more and more blurry.
-Many of the packages included with the Qiskit metapackage are now removed and the rest are on their way to being removed.
-Once the metapackage consists only of qiskit-terra, there will be no effective difference between Qiskit and qiskit-terra.
-However, the two repository structure might be confusing for new comers in, for example, trying to identify where they should submit an issue when encountering a problem in Qiskit, or where a particular piece of source code or infrastructure lives.
+In 2021, Qiskit began an evolution from a large monolithic install, which included by default the Aer simulator, the IBM Quantum provider, and large characterization and application libraries, into a leaner and more modular structure.
+The results of that progression are a Qiskit based on core components of circuit construction, compilation, and device interfaces, and a new [ecosystem](https://qiskit.org/ecosystem/) of extensions which users can explore, install, and contribute to based on their interests.
+
+As Qiskit moved towards this leaner definition, the functionality in the current `qiskit-terra` has come to make up an increasing share of Qiskit's core.
+However, having separate `qiskit` and `qiskit-terra` repositories results in additional indirection when, for example, trying to identify where users should submit an issue when encountering a problem in Qiskit, or where a particular piece of source code or infrastructure lives.
+
 As a result, we are planning to rename the current `Qiskit/qiskit-terra` repository in GitHub as `Qiskit/qiskit`.
 This document traces a plan for that renaming, including migration paths for all of the content currently in `Qiskit/qiskit`, both to inform the community about the potential for upcoming breaking changes, and to ask help identifying and defining mitigations for usages that may be impacted by this change.
 
