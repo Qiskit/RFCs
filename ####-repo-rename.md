@@ -9,7 +9,7 @@
 
 
 ## Summary
-In 2021, Qiskit began an evolution from a large monolithic install, which included by default the Aer simulator, the IBM Quantum provider, and large characterization and application libraries, into a leaner and more modular structure.
+[In 2021](https://research.ibm.com/blog/qiskit-application-modules), Qiskit began an evolution from a large monolithic install, which included by default the Aer simulator, the IBM Quantum provider, and large characterization and application libraries, into a leaner and more modular structure.
 The results of that progression are a Qiskit based on core components of circuit construction, compilation, and device interfaces, and a new [ecosystem](https://qiskit.org/ecosystem/) of extensions which users can explore, install, and contribute to based on their interests.
 
 As Qiskit moved towards this leaner definition, the functionality in the current `qiskit-terra` has come to make up an increasing share of Qiskit's core.
