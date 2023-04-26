@@ -51,7 +51,28 @@ Currently
 ```mermaid
 gantt
     dateFormat  YYYY-MM-DD
-    tickInterval 1month
+    tickInterval 3month
+    todayMarker off
+    axisFormat %b-%Y
+    0.17    :r017, 2021-04-01, 2021-07-12
+    0.18    :r018, after r017, 2021-12-06
+    0.19    :r019, after r018, 2022-03-31
+    0.20    :r020, after r019, 2022-06-30
+    0.21rc  :r021rc, 2022-06-23, 2022-06-30
+    0.21    :r021, after r020, 2022-10-13
+    0.22rc  :r022rc, 2022-10-07, 2022-10-13
+    0.22    :r022, after r021, 2023-01-26
+    0.23rc  :r023rc, 2023-01-16, 2023-01-26
+    0.23    :r024, after r022, 2023-05-04
+    0.24rc  :r024rc, 2023-04-20, 2023-05-04
+    0.24    :milestone, 2023-05-04
+```
+
+Suggest
+```mermaid
+gantt
+    dateFormat  YYYY-MM-DD
+    tickInterval 3month
     todayMarker off
     axisFormat %b-%Y
     0.17    :r017, 2021-04-01, 2021-07-12
