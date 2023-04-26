@@ -1,4 +1,4 @@
-# RFC Title
+# Qiskit release cycle and versioning
 
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
