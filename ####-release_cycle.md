@@ -74,19 +74,25 @@ gantt
     dateFormat  YYYY-MM-DD
     tickInterval 3month
     todayMarker off
-    axisFormat %b-%Y
-    0.17    :r017, 2021-04-01, 2021-07-12
-    0.18    :r018, after r017, 2021-12-06
-    0.19    :r019, after r018, 2022-03-31
-    0.20    :r020, after r019, 2022-06-30
-    0.21rc  :r021rc, 2022-06-23, 2022-06-30
-    0.21    :r021, after r020, 2022-10-13
-    0.22rc  :r022rc, 2022-10-07, 2022-10-13
-    0.22    :r022, after r021, 2023-01-26
-    0.23rc  :r023rc, 2023-01-16, 2023-01-26
-    0.23    :r024, after r022, 2023-05-04
-    0.24rc  :r024rc, 2023-04-20, 2023-05-04
-    0.24    :milestone, 2023-05-04
+    axisFormat %b
+    section X.*
+    X.0   :rX0Y0, 2024-01-31, 91d
+    X.1   :rX0Y1, after rX0Y0, 91d
+    X.2   :rX0Y2, after rX0Y1, 91d
+    X.3   :rX0Y3, after rX0Y2, 91d
+    X.3.*   :done, X0Y3s, after rX0Y3, 183d
+    section X+1.*
+    X+1.0    :rX1Y0, after rX0Y3, 91d
+    X+1.1    :rX1Y1, after rX1Y0, 91d
+    X+1.2    :rX1Y2, after rX1Y1, 91d
+    X+1.3    :rX1Y3, after rX1Y2, 91d
+    X+1.3.*  :done, rX1Y3s, after rX1Y3, 183d
+    section X+2.*
+    X+2.0    :rX2Y0, after rX1Y3, 91d
+    X+2.1    :rX2Y1, after rX2Y0, 91d
+    X+2.2    :rX2Y2, after rX2Y1, 91d
+    X+2.3    :rX2Y3, after rX2Y2, 91d
+    X+2.3.*  :done, rX2Y3s, after rX2Y3, 183d
 ```
 
 ## Detailed Design
