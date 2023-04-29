@@ -20,7 +20,7 @@ facilitate that and collect feedback prior to implementation.
 
 | RFC | Status | References/Discussion |
 | --- | ------ | --------------------- |
-| `0011` [Plan to rename `Qiskit/qiskit-terra` repo to `Qiskit/qiskit`](0011-repo-rename.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/31) |
+| `0011` [Plan to rename `Qiskit/qiskit-terra` repo to `Qiskit/qiskit`](0011-repo-rename.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/31) [Implementation](https://github.com/Qiskit/RFCs/issues/41) |
 | `0010` [Preliminary representation of rvalue classical expression in Qiskit](0010-simple-classical-representations.md) | | [RFC PR](https://github.com/Qiskit/RFCs/pull/30) |
 | `0009` [`Operation`: the interface for valid `QuantumCircuit` operations](0009-interface-for-circuit-operations.md) | Implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/25) [Implementation](https://github.com/Qiskit/qiskit-terra/pull/7087)|
 | `0008` [Unify Pulse Commands and Instructions](0008-unify-pulse-commands-and-instructions.md) | Implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/12) [Implementation](https://github.com/Qiskit/qiskit-terra/issues/3750)
