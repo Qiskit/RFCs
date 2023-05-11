@@ -2,7 +2,7 @@
 
 | **Status**        | **Accepted** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         |  30                                        |
+| **RFC #**         |  10                                        |
 | **Authors**       | Jake Lishman (jake.lishman@ibm.com)          |
 | **Deprecates**    | None                                         |
 | **Submitted**     | 2023-03-15                                   |
