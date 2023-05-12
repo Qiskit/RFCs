@@ -1,22 +1,13 @@
-# Qiskit RFCs
+# Qiskit Request for Comments (RFC) process
 
 The purpose of a Qiskit Request for Comments (RFC) is to communicate and engage
 with the wider community in the development and direction of Qiskit. RFCs enable
-engineering and research stakeholders to communicate design changes to any
-component of the larger Qiskit project.
-
-Many changes, including bug fixes and documentation improvements can be
-implemented and reviewed via the normal GitHub pull request workflow.
+engineering and research stakeholders to communicate design changes to the larger
+Qiskit ecosystem, as weel as to document the desion making process.
 
 Some changes though are "substantial", and we ask that these be put through a
 bit of a design process and produce a consensus among the Qiskit community and
-the sub-teams.
-
-This repository is for any project in the Qiskit project to make these design
-proposals and review and discuss the changes. An RFC can be contained to a
-single project or it can span multiple projects, if a design decision requires
-some planning and discussion before implementation an RFC can be used to
-facilitate that and collect feedback prior to implementation.
+the core team.
 
 # When Should You Write an RFC?
 
