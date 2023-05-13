@@ -8,10 +8,9 @@
 | **Updated**       | YYYY-MM-DD                                   |
 
 ## Summary
-> One paragraph explanation of the feature.
 
-Qiskit release cycle had been in a process of stabilization with planned minor releases.
-Thinking in a "beyond 0.x", what kind of release cycle would provide users with the tools for planning and stability while reduce the impact in the development workflow.
+Balancing stable backward compatibility with the rapid pace of technology is a crucial consideration for Qiskit. This RFC is a public discussion that aims to find a harmonious solution that offers users a clear and transparent support contract while minimizing the burden on developers and users. Ideally, we are in  the search for an approach that also maximizes flexibility to accommodate new hardware and services, which often necessitate the development of new features.
+
 
 ## Motivation
 
@@ -20,10 +19,22 @@ Thinking in a "beyond 0.x", what kind of release cycle would provide users with 
 > - What will be the outcome?
 > - Who will benefit?
 
+Qiskit is known for its dynamic nature and frequent deprecation of features. However, it [deprecation policy](https://qiskit.org/documentation/deprecation_policy.html) places a strong emphasis on stability and guarantees a relatively lengthy transition period (usually longer than six months from the notification point on) when removing a feature. For the last years, Qiskit also introduced planned releases for mitigating the impact of coming changes, as well as pre-releases.
+
+However, there is a demand for a more transparent release cycle with longer periods of backwards compatibility support. In order to get ready for a "beyond Qiskit 0.x", a discussion on how that cycle would like is key to understand the trade-offs among:
+
+ * developer effort: Supporting several stable versions requires significant development resources. At the same time, rolling releases tend to create technical debt and few chance of rebuild from scratch particular modules. 
+ * user support: users tend to demand longer support periods to avoid regular updates on their code and software.
+ * new feature support for coming technology: the quantum computing field and hardware is in constant change and scaling to it many time requires big changes in Qiskit, not always compatible with previous approaches.
+
+The outcome of the RFC is an agreement for release cycle and a versioning schema that would provide users with the tools for planning and stability while reduce the impact in the development workflow.
+
+**out-of-scope**: 
+The starting date for the implementation of this RFC is, in principle, outside the scope of this document.
+
 ## User Benefit
 
-> - Who are the target users of this work?
-> - How will users or contributors benefit from the work proposed?
+The RFC aims to benefit users and Qiskit ecosystem developers, because they will have guaranties that their software will run for a defined period of time and they could plan the transition period. 
 
 ## Design Proposal
 > This is the focus of the document. Explain the proposal from the perspective of
