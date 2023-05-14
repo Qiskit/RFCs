@@ -1,12 +1,11 @@
 # Unify Pulse Commands and Instructions
 
-| **Status**        | **Proposed**             |
+| **Status**        | **Implemented**                              |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0008                                         |
 | **Authors**       | Thomas Alexander (talexander@ibm.com)        |
-| **Deprecates**    | None                                         |
 | **Submitted**     | 2020-02-04                                   |
-| **Updated**       | 2020-02-04                                   |
+| **Updated**       | 2023-05-10                                   |
 
 ## Summary
 `Command`s were initially created so as to allow pulses to be only defined once as a `SamplePulse` and then have their usage tracked based on the class instance through equality checking. To enable this, every `Instruction` instance was defined as containing a `Command` and its `Channel` operands that the command would be applied to. This resulted in a confusing API as one must first define a command and then call it with a channel to emit an instruction. We we propose a way of gracefully unifying `Command`s and `Instruction`s to make pulse programming more straightforward and in-line with traditional instruction sets.

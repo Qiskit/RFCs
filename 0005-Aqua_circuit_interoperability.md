@@ -1,6 +1,12 @@
 # Aqua Circuit Interoperability Update
 
-_Donny Greenberg, Julien Gacon, Ali Javadi, Steve Wood, 24-Mar-19_
+| **Status**        | **Deprecated**                                |
+|:------------------|:----------------------------------------------|
+| **RFC #**         | 0005                                          |
+| **Authors**       | Donny Greenberg (donny@ibm.com), Julien Gacon, Ali Javadi, Steve Wood |
+| **Submitted**     | 2019-03-24                                    |
+| **Updated**       | 2023-05-10                                    |
+
 
 ## Basic Vision & End Goal
 

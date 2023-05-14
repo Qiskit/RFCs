@@ -1,12 +1,12 @@
 # `Operation`: the interface for valid `QuantumCircuit` operations
 
-| **Status**        | **Proposed**                                 |
+| **Status**        | **Implemented**                              |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0009                                         |
 | **Authors**       | Jake Lishman (jake.lishman@ibm.com)          |
 | **Deprecates**    | None                                         |
 | **Submitted**     | 2022-05-31                                   |
-| **Updated**       | 2022-05-31                                   |
+| **Updated**       | 2023-05-10                                   |
 
 
 ## Summary
