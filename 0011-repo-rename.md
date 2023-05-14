@@ -2,10 +2,10 @@
 
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         | 0011                                         |
 | **Authors**       | [Luciano Bello](https://github.com/1ucian0), [Kevin Krsulich](https://github.com/kdk)  |
 | **Submitted**     | 2023-03-31                                   |
-| **Updated**       | YYYY-MM-DD                                   |
+| **Updated**       | 2023-04-27                                   |
 
 
 ## Summary

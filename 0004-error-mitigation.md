@@ -1,12 +1,10 @@
-# RFC Title
+# Richardson error mitigation
 
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0004                                         |
 | **Authors**       | Daniel Egger (deg@zurich.ibm.com)            |
-| **Deprecates**    | RFC that this RFC deprecates                 |
-| **Submitted**     | YYYY-MM-DD                                   |
-| **Updated**       | YYYY-MM-DD                                   |
+| **Submitted**     | 2020-05-20                                   |
 
 ## Summary
 Error mitigation can greatly improve results on noisy quantum hardware.
@@ -81,7 +79,7 @@ Qiskit-ignis would most likely need to be involved ontop of qiskit-aqua and qisk
 Here we focus on the implementation details of the Backend constrained error mitigation.
 An overview of this method is shown in the figure below.
 
-![](202001_ErrorMitigation_summary.png)
+![](0004-error-mitigation/202001_ErrorMitigation_summary.png)
 
 The backend will have a set of calibrated gates with different stretch factors that will be made available to Qiskit through the config file.
 A backend may implement as many stretch factors as is deemed reasonable by those who maintain the backend.
@@ -247,7 +245,7 @@ Here are some additional considerations:
 See section Simple error mitigation and section User specified error mitigation.
 
 Another alternative implementation is to encode the configuration of error mitigation in the `run_config` instanced passed to the `execute` function.
-This would avoid modyfing the signiture of the `execute` function. 
+This would avoid modyfing the signature of the `execute` function. 
 
 ## Questions
 - The Backend constrained error mitigation requires extra effort from the backend to calibrate gates with different stretch factors. We need to check that the resulting overhead is acceptable.
