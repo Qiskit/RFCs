@@ -117,10 +117,11 @@ gantt
 > - Reference definition, eg., formal definitions.
 
 
-### Deprecations
+### Deprecations and removals
 
+* deprecation warnings cannot be introduced in patch releases
 * deprecation warnings can only occur 1+ minor releases after the replacement functionality is added
-* deprecation warnings must be emitted for a complete major version" (i.e. 1+ year)
+* deprecation warnings must be emitted for a complete major version (i.e. 1+ year)
 
 ## Alternative Approaches
 > Discuss other approaches to solving this problem and why these were not
