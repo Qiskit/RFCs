@@ -60,8 +60,10 @@ For Qiskit Ecosystem developers: A platform to highlight their work. Optionally 
 The following tiers are suggested:
 
  * Main
- * Extensions
- * Community
+ * Extensions:
+   * Must: IBM Quantum sponsored (written or driven by IBMer)
+ * Community:
+   * Musts: Open-source projects
 
 ## Detailed Design
 > Technical reference level design. Elaborate on details such as:
