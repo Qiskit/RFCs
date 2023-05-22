@@ -78,6 +78,8 @@ The following tiers are suggested:
 > Discuss other approaches to solving this problem and why these were not
 > selected.
 
+ * How to include or remove projects from each tier?
+
 ## Questions
 > Open questions for discussion and an opening for feedback.
 
