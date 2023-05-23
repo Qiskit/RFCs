@@ -37,6 +37,7 @@ The starting date for the implementation of this RFC is, in principle, outside t
 The RFC aims to benefit users and Qiskit ecosystem developers, because they will have guaranties that their software will run for a defined period of time and they could plan the transition period. 
 
 ## Design Proposal
+<!--
 > This is the focus of the document. Explain the proposal from the perspective of
 > educating another user on the proposed features.
 > 
@@ -56,8 +57,9 @@ The RFC aims to benefit users and Qiskit ecosystem developers, because they will
 > - Dependencies
 > - Maintenance
 > - Compatibility
+-->
 
-The current `0.*` release cycle increases the minor version in approximate periods of 3 months on a scheduled basis and, with the exception of the pre-release period (from one to two weeks) does not support more than one stable version at the time, i.e. the support of `0.X` finishes with the release of `0.X+1`. 
+The current *0.** release cycle increases the minor version in approximate periods of 3 months on a scheduled basis and, with the exception of the pre-release period (from one to two weeks) does not support more than one stable version at the time, i.e. the support of `0.X` finishes with the release of `0.X+1`. 
 
 ```mermaid
 gantt
@@ -112,7 +114,14 @@ gitGraph
 The main branch is a single development branch from which some bugfixes are ported to the stable branch, from which releases are done.
 
 
-Suggest
+The new release cycle could include:
+
+ * [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)
+ * Critical bugfix support for a year or longer
+ * 6-month transition period for updating to a new major while having support.
+ * Non-breaking new features in a 3-month cycle (as currently)
+
+
 ```mermaid
 gantt
     dateFormat  YYYY-MM-DD
