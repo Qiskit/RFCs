@@ -57,7 +57,7 @@ The RFC aims to benefit users and Qiskit ecosystem developers, because they will
 > - Maintenance
 > - Compatibility
 
-Currently 
+The current `0.*` release cycle increases the minor version in approximate periods of 3 months on a scheduled basis and, with the exception of the pre-release period (from one to two weeks) does not support more than one stable version at the time, i.e. the support of `0.X` finishes with the release of `0.X+1`. 
 
 ```mermaid
 gantt
@@ -78,6 +78,39 @@ gantt
     0.24rc  :r024rc, 2023-04-20, 2023-05-04
     0.24    :milestone, 2023-05-04
 ```
+
+The `0.*` branch scheme is like this:
+
+```mermaid
+gitGraph
+    commit id:"feature/0"
+    commit id: "ready_for_release" type:HIGHLIGHT
+    branch stable/0.X
+    commit id: "tag_0.X.0rc1" tag: "v0.X.0rc1"
+    checkout main
+    commit id:"bugfix/1"
+    checkout stable/0.X
+    cherry-pick id:"bugfix/1"
+    commit id: "tag_0.X.0" tag: "v0.X.0"
+    checkout main
+    commit id:"feature/1"
+    commit id:"feature/2"
+    commit id:"bugfix/2"
+    checkout stable/0.X
+    cherry-pick id:"bugfix/2"
+    checkout main
+    commit id:"feature/3"
+    commit id:"bugfix/3"
+    checkout stable/0.X
+    cherry-pick id:"bugfix/3"
+    checkout main
+    commit id:"feature/4"
+    checkout stable/0.X
+    commit id: "tag_0.X.1" tag: "v0.X.1"
+```
+
+The main branch is a single development branch from which some bugfixes are ported to the stable branch, from which releases are done.
+
 
 Suggest
 ```mermaid
