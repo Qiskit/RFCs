@@ -1,11 +1,11 @@
 # Aqua 0.7: Ansatz Design Doc
 
-| **Status**        | **Accepted** |
+| **Status**        | **Deprecated** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0001                                         |
 | **Authors**       | Julien Gacon (jul@zurich.ibm.com)            |
 | **Submitted**     | 2020-01-06                                   |
-| **Updated**       | 2020-01-24                                   |
+| **Updated**       | 2023-05-10                                   |
 
 # Overview
 
