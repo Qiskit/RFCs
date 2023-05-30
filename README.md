@@ -27,7 +27,8 @@ facilitate that and collect feedback prior to implementation.
 | `0007` [Dataframe for Qiskit Experiments](0007-experiment-dataframe.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/rfcs/pull/28) [Implementation (Step 1)](https://github.com/Qiskit/qiskit-experiments/pull/1133) |
 | `0006` [Generalized Unroller and Equivalence Library](0006-rfc-generalized-unroller-and-equivalence-library.md) | Implemented | [RFC PR](https://github.com/Qiskit/rfcs/pull/6) [Qiskit Terra implementation](https://github.com/Qiskit/qiskit-terra/pull/3946)|
 | `0005` [Aqua Circuit Interoperability Update](0005-Aqua_circuit_interoperability.md) | Deprecated | [RFC PR](https://github.com/Qiskit/RFCs/pull/17) |
-| `0004` [Richardson error mitigation](0004-error-mitigation.md) |  | [RFC PR](https://github.com/Qiskit/rfcs/pull/3) [Original PR](https://github.com/Qiskit/qiskit-metapackage/pull/768)| 
+| `0004` [Richardson error mitigation](0004-error-mitigation.md) | Implemented | [RFC PR](https://github.com/Qiskit/rfcs/pull/3) [Original PR](https://github.com/Qiskit/qiskit-metapackage/pull/768) [Implementation](https://github.com/qiskit-community/prototype-zne
+)| 
 | `0003` [Aqua 0.7 Operator Redesign](0003-Aqua_0.7_operator_redesign.md) | Deprecated | [RFC PR](https://github.com/Qiskit/rfcs/pull/8) [Original Aqua PR](https://github.com/Qiskit/qiskit-aqua/pull/742)|
 | `0002` [Aqua 0.7 Release Priorities and Plan](0002-Aqua_0.7_release_priorities_and_plan.md) | Deprecated |[RFC PR](https://github.com/Qiskit/rfcs/pull/7) [Original Aqua PR](https://github.com/Qiskit/qiskit-aqua/pull/785)|
 | `0001` [Aqua 0.7: Ansatz Design Doc](0001-ansatz-rfc.md) | Deprecated |[RFC PR](https://github.com/Qiskit/rfcs/pull/5) [Original Aqua PR](https://github.com/Qiskit/qiskit-aqua/pull/747) |
