@@ -14,11 +14,6 @@ Balancing stable backward compatibility with the rapid pace of technology is a c
 
 ## Motivation
 
-> - Why are we doing this?
-> - What will this enable?
-> - What will be the outcome?
-> - Who will benefit?
-
 Qiskit is known for its dynamic nature and frequent deprecation of features. However, it [deprecation policy](https://qiskit.org/documentation/deprecation_policy.html) places a strong emphasis on stability and guarantees a relatively lengthy transition period (usually longer than six months from the notification point on) when removing a feature. For the last years, Qiskit also introduced planned releases for mitigating the impact of coming changes, as well as pre-releases.
 
 However, there is a demand for a more transparent release cycle with longer periods of backwards compatibility support. In order to get ready for a "beyond Qiskit 0.x", a discussion on how that cycle would like is key to understand the trade-offs among:
@@ -133,20 +128,77 @@ gantt
     X.1   :rX0Y1, after rX0Y0, 91d
     X.2   :rX0Y2, after rX0Y1, 91d
     X.3   :rX0Y3, after rX0Y2, 91d
-    X.4.*   :done, X0Y3s, after rX0Y3, 183d
+    X.3.*   :done, X0Y3s, after rX0Y3, 183d
     section X+1.*
     X+1.0    :rX1Y0, after rX0Y3, 91d
     X+1.1    :rX1Y1, after rX1Y0, 91d
     X+1.2    :rX1Y2, after rX1Y1, 91d
     X+1.3    :rX1Y3, after rX1Y2, 91d
-    X+1.4.*  :done, rX1Y3s, after rX1Y3, 183d
+    X+1.3.*  :done, rX1Y3s, after rX1Y3, 183d
     section X+2.*
     X+2.0    :rX2Y0, after rX1Y3, 91d
     X+2.1    :rX2Y1, after rX2Y0, 91d
     X+2.2    :rX2Y2, after rX2Y1, 91d
     X+2.3    :rX2Y3, after rX2Y2, 91d
-    X+2.4.*  :done, rX2Y3s, after rX2Y3, 183d
+    X+2.3.*  :done, rX2Y3s, after rX2Y3, 183d
 ```
+
+Notice that there is no i.4, since it coincides with i+1.0. The period between October and January is the window where tracking changes are allowed into main.
+
+```mermaid
+gitGraph
+    commit id:"feature/0"
+    commit id: "ready_for_X" type:HIGHLIGHT
+    branch stable/X.0
+    commit id: "tag_X.0.0" tag: "vX.0.0"
+    checkout main
+    commit id:"bugfix/1"
+    checkout stable/X.0
+    cherry-pick id:"bugfix/1"
+    checkout main
+    commit id:"feature/1"
+    checkout stable/X.0
+    commit id: "tag_X.0.1" tag: "vX.0.1"
+    checkout main
+    commit id: "ready_for_1" type:HIGHLIGHT
+    branch "stable/X.1"
+    commit id: "tag_X.1" tag: "vX.1"
+    checkout main
+    commit id: "ready_for_2" type:HIGHLIGHT
+    branch "stable/X.2"
+    commit id: "tag_X.2" tag: "vX.2"
+    checkout main
+    commit id: "ready_for_3" type:HIGHLIGHT
+    branch "stable/X.3"
+    commit id: "tag_X.3.0" tag: "vX.3.0"
+    checkout main
+    commit id:"feature/2"
+    commit id:"bugfix/2"
+    checkout "stable/X.3"
+    cherry-pick id:"bugfix/2"
+    checkout main
+    commit id:"breaking/1"
+
+    checkout stable/X.3
+    commit id: "tag_X.3.1" tag: "vX.3.1"
+
+    checkout main
+    commit id: "ready_for_plus_one" type:HIGHLIGHT
+    branch "stable/X+1.0"
+    commit id: "tag_X+1.0.0" tag: "vX+1.0.0"
+
+    checkout main
+    commit id:"bugfix/3"
+    checkout "stable/X.3"
+    cherry-pick id:"bugfix/3"
+    checkout "stable/X+1.0"
+    cherry-pick id:"bugfix/3"
+    checkout "stable/X.3"
+    commit id: "tag_X.3.2" tag: "vX.3.2"
+    checkout "stable/X+1.0"
+    commit id: "tag_X+1.0.1" tag: "vX+1.0.1"
+```
+
 
 ## Detailed Design
 
