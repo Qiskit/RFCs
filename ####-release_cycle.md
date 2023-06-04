@@ -143,7 +143,7 @@ gantt
     X+2.3.*  :done, rX2Y3s, after rX2Y3, 183d
 ```
 
-Notice that there is no i.4, since it coincides with i+1.0. The period between October and January is the window where tracking changes are allowed into main.
+Notice that there is no i.4, since it coincides with i+1.0.
 
 ```mermaid
 gitGraph
@@ -199,6 +199,9 @@ gitGraph
     commit id: "tag_X+1.0.1" tag: "vX+1.0.1"
 ```
 
+Similarly to the current branching model, non-breaking features (`feature/*`) and bug fixes (`bugfix/*`) can be merged into `main` at any point. Non-breaking features (`feature/*`) are released in minor releases, when branched out of `main` for `tag_X.*`. Bug fixes are cherry-picked from main into the respective `stable/X.*` branch.
+
+The main difference with the 0.* schema is that breaking changes cannot be introduced at any point, but only between the release of X.3.0 and X+1.0.0 (between October and January).
 
 ## Detailed Design
 
