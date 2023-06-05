@@ -127,23 +127,20 @@ gantt
     X.0   :rX0Y0, 2024-01-31, 91d
     X.1   :rX0Y1, after rX0Y0, 91d
     X.2   :rX0Y2, after rX0Y1, 91d
-    X.3   :rX0Y3, after rX0Y2, 91d
-    X.3.*   :done, X0Y3s, after rX0Y3, 183d
+    X.3   :done, rX0Y3, after rX0Y2, 274d
     section X+1.*
-    X+1.0    :rX1Y0, after rX0Y3, 91d
+    X+1.0    :rX1Y0, 2025-01-31, 91d
     X+1.1    :rX1Y1, after rX1Y0, 91d
     X+1.2    :rX1Y2, after rX1Y1, 91d
-    X+1.3    :rX1Y3, after rX1Y2, 91d
-    X+1.3.*  :done, rX1Y3s, after rX1Y3, 183d
+    X+1.3    :done, rX1Y3, after rX1Y2, 274d
     section X+2.*
-    X+2.0    :rX2Y0, after rX1Y3, 91d
+    X+2.0    :rX2Y0, 2026-01-31, 91d
     X+2.1    :rX2Y1, after rX2Y0, 91d
     X+2.2    :rX2Y2, after rX2Y1, 91d
-    X+2.3    :rX2Y3, after rX2Y2, 91d
-    X+2.3.*  :done, rX2Y3s, after rX2Y3, 183d
+    X+2.3    :done, rX2Y3s, after rX2Y2, 274d
 ```
 
-Notice that there is no i.4, since it coincides with i+1.0.
+Notice that i.3 has an extra 6 month bug fixing support. There is no i.4, since it coincides with i+1.0, where new features (and possibly breaking changes) are released.
 
 ```mermaid
 gitGraph
