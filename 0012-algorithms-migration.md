@@ -62,6 +62,10 @@ copy in the past.
 publish out like apps repos do. And as mentioned above the docs can include a copy of the algorithms migration - 
 maybe the short url points to this published copy.
 
+### docs
+1. Similarly to the application modules, the algorithm docs could be rendered in `qiskit.org/ecosystem/algorithms`
+2. During the deprecation, a redirect could be set up to go from `qiskit.org/documentation/` to `qiskit.org/ecosystem/algorithms`
+
 
 ### Alternatives considered but disregarded
 
@@ -76,8 +80,9 @@ things more independent.
 
 ### Timeline
 
-As this is an urgent move, the deprecations and new installable package should be in place for the terra 0.25 release, 
-and the final move should happen on 0.26.
+As this is an urgent move, the deprecations and new installable package should be in place for the terra 0.25 release. 
+Docs can be updated in between releases.
+The deprecation period should allow for the final decoupling to happen for 0.26.
 
 ## Questions
 
