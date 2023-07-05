@@ -4,34 +4,83 @@
 |:------------------|:------------------------------------------------------------------------------------------|
 | **RFC #**         | ####                                                                                      |
 | **Authors**       | [Elena Peña Tapia](https://github.com/ElePT), [Steve Wood](https://github.com/woodsp-ibm) |
-| **Submitted**     | 2023-06-27                                                                                |
+| **Submitted**     | 2023-07-05                                                                                |
 | **Updated**       | YYYY-MM-DD                                                                                |
 
 
 ## Summary
 
-As part of Qiskit's move towards a leaner definition, `qiskit.algorithms` should no longer be part of 
-`Qiskit/qiskit-terra`, soon to be `Qiskit/qiskit`, and instead become an independent repository in the Qiskit
-Ecosystem: `Qiskit-community/qiskit-algorithms`
+This RFC was created to document the discussions around the future of the `qiskit.algorithms` module.
+This module provides a series of interfaces and implementations of commonly used quantum algorithms based on 
+Qiskit's core components. Historically, the module was created as part of Qiskit Aqua, together with the now
+community-based application modules (Nature, Machine Learning, Optimization, Finance). It currently "lives"
+in `qiskit-terra`, and over the past year has been refactored to use the Qiskit Primitives and sustain the 
+Opflow and Quantum Instance deprecations.
 
-This document traces a plan for this migration, to inform the community about the potential for upcoming breaking
-changes, and to ask help identifying and defining mitigations for usages that may be impacted by this change.
+The content of `qiskit.algorithms` is heterogeneous. Some components are algorithm implementations, while others
+are "sub-routines" or algorithm utilities, such as gradients, optimizers or state fidelities. Some of these
+utilities are implementatons from scratch, others are wrappers over commonly used libraries (such as the 
+SciPy optimizers).
+
+With Qiskit moving towards a leaner definition, we are now revisiting the future of this module. 
+We would like to tell apart the fundamental components for algorithm design from algorithm implementations, and 
+find a better suiting location for both of them while minimizing the disruption caused to users.
 
 
-## Design Proposal - Migration Plan
+## Design Proposal
 
-### Repos affected by the change
-`Qiskit/qiskit-terra` and `Qiskit/qiskit-tutorials`
+There are several design decisions to be made as part of this "`qiskit.algorithms` revision":
 
-### Migration plan
+1. Which classes stay in `qiskit-terra`
+2. Where do they stay within `qiskit-terra` (i.e. do they stay in `qiskit.algorithms`? or is the module 
+renamed or split to better define its purpose?)
+3. Where do the "non-chosen" classes go. We have to keep in mind that these algorithms are extensively used by
+the community and until now, they have been one of the main access points to our stack. Even if we stop their 
+maintenance, there would ideally still be a self-contained, installable package that the community can access
+while they transition to the new alternatives. 
 
-We believe that fastest way to disentangle `qiskit.algorithms` from `qiskit-terra` while crating minimal disruption to users would 
-be to create a standalone `qiskit-algorihtms` repo with a similar setup to the applications repos (including CI, docs...),
+### Main Idea
+
+We believe that fastest way to disentangle `qiskit.algorithms` from `qiskit-terra` while crating minimal 
+disruption to users would 
+be to create a standalone `qiskit-algorithms` repo with a similar setup to the applications repos (including CI, docs...),
 perform a history-preserving copy of the content of `qiskit.algorithms` to `qiskit-algorithms`, and have a temporary
 namespace redirect during the deprecation period that will raise a deprecation warning asking users to change the import.
 This is the strategy that was followed when `qiskit-aer` was moved out of the providers. 
 
-The step-by-step breakdown of the plan is as follows:
+In the event that we decided to keep certain algorithms in `qiskit-terra`, there would be two possible paths:
+
+**Path 1**
+
+1. All contents of `qiskit.algorithms` are moved over to `qiskit-algorithms`, and the module as a whole
+is deprecated.
+2. Some components are moved back to `qiskit-terra`, potentially to a new location 
+(`qiskit.gradients`, `qiskit.optimizers`, `qiskit.state_fidelities`...), and are potentially refactored during this move.
+
+This alternative allows to have a "clean slate" for developers with the downside of potentially moving some components 
+out of qiskit and back into qiskit again in a short period of time. The migration path is easier in this alternative, but 
+deprecations are a huge hassle for users, and if we 
+are sure of which components we want to keep, (if we want to keep any) this might not
+be the best way (or the most popular) from a user-friendliness point of view.
+
+**Path 2**
+
+1. Only part of the contents of `qiskit.algorithms` are moved over to `qiskit-algorithms`, and classes
+are deprecated individually.
+2. This allows for refactorings to happen in-place as a second step
+
+This alternative is more conservative, and requires a better understanding of what the future components of 
+`qiskit.algorithms` will be, and whether we want to keep the module's name and current structure. The plans
+to release Qiskit 1.0 should also be taken into account, as they imply a commitment to whatever is kept 
+in Qiskit. 
+
+
+After analizing pros and cons for both options, our current plan is to design a migration plan that
+follows **Path 1**. Should new considerations be taken into account, this plan could change.
+
+### Migration plan
+
+**Repos immediately affected by the plan**: `Qiskit/qiskit-terra` and `Qiskit/qiskit-tutorials`
 
 ### qiskit-terra
 
@@ -45,7 +94,12 @@ be ready and be published ahead of terra releasing]
 for users still coming to/using 
 `qiskit.algorithms` but make a copy in `qiskit-algorithms` as it makes sense there too (maybe the copy needs some editing 
 for references etc). After the deprecation period, we can remove it from terra.
-4. During the deprecation period, we can focus on moving issues, closing pending PRs, and finishing up other details
+4. What about already deprecated algorithms (i.e HHL)? Given that the deprecation period for these algorithms
+will already be over
+by the time we make the move, and links to the textbook tutorials have already been specified as an alternative
+to these classes, the deprecated algorithms probably don't need to be moved over to the new location, and can 
+be directly removed.
+5. During the deprecation period, we can focus on moving issues, closing pending PRs, and finishing up other details
 
 ### qiskit-tutorials
 
