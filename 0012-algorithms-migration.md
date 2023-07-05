@@ -26,6 +26,7 @@ With Qiskit moving towards a leaner definition, we are now revisiting the future
 We would like to tell apart the fundamental components for algorithm design from algorithm implementations, and 
 find a better suiting location for both of them while minimizing the disruption caused to users.
 
+**Note**: In this document, the terms `qiskit-terra` and `qiskit` are interchangeable.
 
 ## Design Proposal
 
@@ -34,20 +35,27 @@ There are several design decisions to be made as part of this "`qiskit.algorithm
 1. Which classes stay in `qiskit-terra`
 2. Where do they stay within `qiskit-terra` (i.e. do they stay in `qiskit.algorithms`? or is the module 
 renamed or split to better define its purpose?)
-3. Where do the "non-chosen" classes go. We have to keep in mind that these algorithms are extensively used by
-the community and until now, they have been one of the main access points to our stack. Even if we stop their 
-maintenance, there would ideally still be a self-contained, installable package that the community can access
-while they transition to the new alternatives. 
+3. Where do the "non-chosen" classes go
+
+We have to keep in mind that these algorithms are extensively used by
+the community and until now, they have been one of the main access points to our stack. For example, the 
+`MinimumEigensolver` class is a fundamental 
+dependency for Qiskit Nature, which relies on this definition to interface with classical chemistry codes via 
+plugins. 
+
+Even if we stop their maintenance, it would still be highly valuable to have a self-contained, installable package 
+that the community can access and add as a dependency to avoid having to reimplement research code or libraries.
 
 ### Main Idea
 
-We believe that fastest way to disentangle `qiskit.algorithms` from `qiskit-terra` while crating minimal 
+We believe that fastest way to disentangle `qiskit.algorithms` from `qiskit-terra` while causing minimal 
 disruption to users would 
 be to create a standalone `qiskit-algorithms` repo with a similar setup to the applications repos (including CI, docs...),
 perform a history-preserving copy of the content of `qiskit.algorithms` to `qiskit-algorithms`, and have a temporary
 namespace redirect during the deprecation period that will raise a deprecation warning asking users to change the import.
 This is the strategy that was followed when `qiskit-aer` was moved out of the providers. 
 
+This repository can be created regardless of whether we decide to keep some algorithms in `qiskit-terra` or not.
 In the event that we decided to keep certain algorithms in `qiskit-terra`, there would be two possible paths:
 
 **Path 1**
@@ -74,9 +82,12 @@ This alternative is more conservative, and requires a better understanding of wh
 to release Qiskit 1.0 should also be taken into account, as they imply a commitment to whatever is kept 
 in Qiskit. 
 
+**Decision**
 
 After analizing pros and cons for both options, our current plan is to design a migration plan that
-follows **Path 1**. Should new considerations be taken into account, this plan could change.
+follows **Path 1**. This allows us to focus on the move to the new repository as an initial step, without
+deciding specifically which algorithms/utilities might be added back to Qiskit.
+Should new considerations be taken into account, this plan could change.
 
 ### Migration plan
 
@@ -138,6 +149,30 @@ As this is an urgent move, the deprecations and new installable package should b
 Docs can be updated in between releases.
 The deprecation period should allow for the final decoupling to happen for 0.26.
 
-## Questions
+## Open Questions
+
+There are 2 main open questions left:
+
+1. Are any algorithms going to stay in terra?
+2. If so, where would they stay?
+
+Under the assumption that we only want to keep 
+"fundamental building blocks" for algorithm design, our current proposal would be to maintain
+sub-routines and utilities (gradients, fidelities, optimizers that are not wrappers), 
+and replace specific algorithm implementations with well crafted tutorials/documentation. Because of the independent
+`qiskit-algorithms` repository, users that relied on other algorithm implementations would still have access to these 
+classes.
+
+Specifically, if we look at the current non-deprecated contents of the module, the proposed distribution would be:
+
+- `amplitude_estimators` -> tutorial
+- `eigensolvers` -> tutorial
+- `gradients` -> **utility that stays**
+- `minimum_eigensolvers` -> tutorial
+- `optimizers` -> **those that don't wrap scipy ara a utility that stays**
+- `phase_estimators` -> tutorial
+- `state_fidelities` -> **utility that stays**
+- `time_evolvers` -> tutorial
+
 
 ## Future Extensions
