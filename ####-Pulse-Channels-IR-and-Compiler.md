@@ -55,16 +55,18 @@ However, supporting this change adds significant compilation needs, which are ha
 - Qiskit Pulse users will have easier access to qudit control.
 
 ## Design Proposal
-One can schematically split the user interface of Qiskit Pulse into three layers -
+The new pulse compiler will be a pass based compiler. Dedicated passes will perform every analysis,
+transformation and validation operations needed to convert a pulse program into a desired output format. A detailed workflow will be described below, but the main tasks include
+concretely scheduling `ScheduleBlock` programs, mapping logical qubits to physical ones, applying backend constraints, and converting to desired output format. To support this,
+the new IR will consist of nested instruction blocks, which will be transformed by the compiler as it operates.
+
+On the user facing interface, one can schematically split Qiskit Pulse into three layers -
 
 - Pulse level (`SymbolicPulse`,`WaveForm`)
 - Instruction level (`Play`,`Delay`...)
 - Program level (`Schedule`,`ScheduleBlock`)
-This proposal focuses on the instruction level, and the necessary compilation needs that will arise.
-The main goal is to allow for clear and simple backend agnostic (but not architecture agnostic) pulse templates.
-To do this, one must move away from the `Channel`s setup, which can't be used without specific backend mapping.
-
-The new Pulse IR and compiler will support the transition, and provide a unified compilation tool for every need and desired output format.
+This proposal focuses on the instruction level. The main goal is to allow for clear and simple backend agnostic (but not architecture agnostic) pulse templates.
+To do this, the legacy `Channel`s will be supplemented by `Frame`s and `LogicalElement`s.
 
 No API breaking changes are needed. New and legacy options can coexist.
 
@@ -74,6 +76,7 @@ To replace the legacy Channels we propose to specify instructions in terms of `L
 
 - `LogicalElement` - every type of element in the HW which the user can control ("play pulses on"). For example, a qubit is a `LogicalElement`, and not the specific port used to drive it. The most notable example of a logical element is of course the `Qubit`, but in the future one can imagine dedicated couplers, flux controls and so on.
 - `Frame` - a combination of frequency and phase. Subclasses used to identify the frame with a backend default. Notable examples are `QubitFrame` and `MeasurementFrame` associated with the default driving and measurement frequencies (respectively) of a qubit.
+
 Using these objects, the above code takes the form:
 
 ```
@@ -93,8 +96,96 @@ The new code not only allows to work with logical backend-agnostic qubits, but i
 On top of the `LogicalElement` and the `Frame`, another layer of `MixedFrame` will be introduced.
 The `MixedFrame` is simply a combination of a LogicalElement and a Frame, and in many ways is similar to the legacy `Channel`.
 The difference being that a `MixedFrame` does not depend on the backend mapping and has clear relations with other `MixedFrames` as opposed to a `Channel` which hasn't.
+Play\Delay instructions will be allowed to take one of `LogicalElement`+`Frame`, `MixedFrame` or `Channel` (for backwards compatibility).
+Set\Shift Frequency\Phase will be allowed to take one of `Frame` (to be broadcast to every associated `MixedFrame`), `MixedFrame` (not to be broadcasted) or `Channel`.
 
 It should be noted that custom `Frame` and `MixedFrame` will make it easier to control qudit experiments.
+
+Classes hierarchy:
+
+```
+class LogicalElement(ABC):
+    @property
+    def index(self) -> Tuple[int, ...]
+        # index
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        # opcode/string identifier
+
+class Qubit(LogicalElement):
+    
+    def __init__(self, index: int):
+        ....
+
+    @property
+    def index(self) -> int
+        return self._index
+
+    @property
+    def name(self) -> str:
+        return f"Q{index}"
+
+class Coupler(LogicalElement):
+    
+    def __init__(self, *index: int):
+        ....
+
+    @property
+    def index(self) -> Tuple[int, ...]
+        return self._index
+
+    @property
+    def name(self) -> str:
+        qubits = ",".join(self._index)
+        return f"Coupler({qubits})"
+
+class Frame(ABC):
+
+    @property
+    def name(self) -> str:
+        # opcode/string identifier
+
+class GenericFrame(Frame):
+    def __init__(self, name, frequency, phase):
+       ....
+    
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def frequency(self) -> float:
+
+    @property
+    def phase(self) -> float:
+
+
+class QubitFrame(Frame):
+    def __init__(self, index):
+        ....
+     
+    @property
+    def index(self) -> int
+        # qubit index
+
+    @property
+    def name(self) -> str:
+        return f"QFrame{self.index}"
+
+class MeasurementFrame(Frame):
+    def __init__(self, index):
+        ....
+     
+    @property
+    def index(self) -> int
+        # qubit index
+
+    @property
+    def name(self) -> str:
+        return f"MFrame{self.index}"
+```
 
 ### Pulse IR
 The Pulse IR will provide the framework for the compiler to work on and perform the necessary compilation steps. The main components of the IR will be:
