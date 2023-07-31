@@ -1,4 +1,4 @@
-# RFC Title
+# Pulse Compiler & IR
 
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
@@ -9,18 +9,23 @@
 | **Updated**       | YYYY-MM-DD                                   |
 
 ## Summary
-This RFC summarizes the proposed changes to Qiskit Pulse's channel model, and the introduction of Pulse IR and compiler. The proposal is based on a series of discussions
+This RFC summarizes the proposal for new Pulse Compiler & IR. The introduction of the new compiler paves the way to the transition to frame aware model, which is also discussed. 
+The proposal is based on a series of discussions
 within Qiskit Pulse's development team, and is brought here for the community to weigh in. The main changes proposed include:
 
+- Introduce new pass based Pulse Compiler and the supporting Pulse IR (intermediate representation).
 - Introduce new model to supplement the existing `Channel` model, that will allow writing backend-agnostic template pulse programs.
-- Introduce new Pulse IR (intermediate representation) and compiler to support the new channels model, and streamline pulse programs compilation needs.
 
 Comments are welcome.
 
-
-
 ## Motivation
-The legacy Channels correspond to what the backend calls a mixed frame - a combination of specific HW port, and the frame (frequency and phase) needed to play pulses.
+Qiskit Pulse currently has no unified compilation pathway. Different tasks are handled by the different code segments. This not only creates code clutter which is hard to maintain,
+but also limits the ability of vendors to adapt Qiskit Pulse, or adjust Qiskit Pulse to new HW developments. The circuit module of Qiskit already uses a pass based compilation process,
+which gives the flexibility to add\change\adapt passes according to the changing needs.
+
+A prime example for the need for a better compilation process, is given by the second part of this proposal - rework of the `Channel` model.
+
+The legacy `Channel`s correspond to what the backend calls a mixed frame - a combination of specific HW port, and the frame (frequency and phase) needed to play pulses.
 However, to specify a Channel one must be aware of the backend mapping. For example, the following pulse schedule is an ECR pulse for qubits 3 and 4:
 
 ```
@@ -41,15 +46,13 @@ This dependency on the backend prohibits the ability to write a template code, w
 
 Under the new proposal, the dependency on backend mapping will be removed, and Qiskit Pulse users (and particularly Qiskit Experiments users) will be able to write
 backend-agnostic template programs, which could be used across devices. Additionally, custom frames will make it easier to experiment with qudit control.
-
-The extra compilation needs introduced by the new channel model motivate the introduction the new Pulse IR and compiler. However, this was also
-a long standing goal on its own, further motivated by the desire to unify pulse compilation and allow for more flexibility in output formats.
+However, supporting this change adds significant compilation needs, which are hard to implement in the current workflow.
 
 ## User Benefit
+- Qiskit contributors as well as vendors will have a unified compilation code which will be simpler to adjust for future needs and changes.
 - Qiskit Pulse users will have a clearer and more efficient way to write their Pulse programs.
 - Qiskit Experiments users will be able to write more streamlined template experiments.
 - Qiskit Pulse users will have easier access to qudit control.
-- Maintainers and contributors to Qiskit Pulse will have a unified compilation code which will be simpler to adjust for future needs and changes.
 
 ## Design Proposal
 One can schematically split the user interface of Qiskit Pulse into three layers -
