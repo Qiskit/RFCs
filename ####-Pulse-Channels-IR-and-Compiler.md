@@ -229,7 +229,7 @@ A typical compiler call will look like:
 ```
 payload = compile(my_pulse_prog, backend, target="pulse_qobj")
 ```
-where the backend is provided to accomodate the compiled program to the backend constraints and mappings. An optional argument will be a mapping between logical and physical qubits, as under the new model all indices will be assumed logical. If no mapping is provided, the trivial one will be used.
+where the backend is provided to accomodate the compiled program to the backend constraints and mappings. An optional argument will be a mapping between logical and physical qubits, as under the new model all indices will be assumed logical. If no mapping is provided, the trivial one will be used. The mapping should be done before all other operations.
 
 The first step of every compiler run will be to initialize the IR of the pulse program. The IR will be initialized with no concrete timing, and the scheduling will be carried out next.
 
