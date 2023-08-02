@@ -129,11 +129,11 @@ class Qubit(LogicalElement):
 
 class Coupler(LogicalElement):
     
-    def __init__(self, *index: int):
-        ....
+    def __init__(self, index: Tuple[int, int]):
+        self._index = index
 
     @property
-    def index(self) -> Tuple[int, ...]
+    def index(self) -> Tuple[int, int]
         return self._index
 
     @property
@@ -149,22 +149,24 @@ class Frame(ABC):
 
 class GenericFrame(Frame):
     def __init__(self, name, frequency, phase):
-       ....
+        self._name = name
+        self._frequency = frequency
+        self._phase = phase
     
     @property
     def name(self) -> str:
         return self._name
 
     @property
-    def frequency(self) -> float:
+    def frequency(self) -> float: # The initial frequency of the frame
 
     @property
-    def phase(self) -> float:
+    def phase(self) -> float: # The initial phase of the frame
 
 
 class QubitFrame(Frame):
     def __init__(self, index):
-        ....
+        self._index = index
      
     @property
     def index(self) -> int
@@ -176,7 +178,7 @@ class QubitFrame(Frame):
 
 class MeasurementFrame(Frame):
     def __init__(self, index):
-        ....
+        self._index = index
      
     @property
     def index(self) -> int
@@ -190,42 +192,78 @@ class MeasurementFrame(Frame):
 ### Pulse IR
 The Pulse IR will provide the framework for the compiler to work on and perform the necessary compilation steps. The main components of the IR will be:
 
-- IR Block - A block of instructions (or nested blocks) with an alignment context. This structure is similar to the structure of ScheduleBlock and needed to support one of the main tasks of the compiler - scheduling.
+- IR Block - A block of instructions (or nested blocks) with an alignment context. This structure is similar to the structure of `ScheduleBlock` and needed to support one of the main tasks of the compiler - scheduling.
 - IR Instruction - A pulse program instruction. Typically, it will be initialized without concrete timing, and will be scheduled during the compiler operation.
 
-The typical attributes of the instructions will be: t0 (starting time), duration, payload (instruction details) and the target associated with the instruction (`Frame`, `MixedFrame` or the legacy `Channel`). For example:
+Two instructions types are used:
+- `GenericInstruction` - for play, delay, set\shift frequency\phase. Assignment of `LogicalElement` will be optional for set\shift frequency\phase and will determine whether or not the instruction will be
+broadcaseted to all mixed frames associated with the frame or not.
+- `AcquireInstruction` - for acquire instructions (due to the different elements involved).
 
-- `MixedFrameInstruction` - target is `MixedFrame` (or `Channel`). Additional attribute operand (Play\Delay). The payload attribute will be the pulse to be played (for Play) or delay duration (for Delay).
-- `FrameInstruction` - target is `Frame` (or `MixedFrame`/`Channel`). Additional attribute operand (Set\Shift Frequency\Phase). The payload will be the phase\frequency value.
-- `AcquireInstruction` - target is a tuple of `Qubit` and classical registry.
+```
+class PulseIR:
+    def __init__(self):
+        self.instructions # List of instructions or nested PulseIR objects
+        self.alignment  
+
+class GenericInstruction:
+    def __init__(
+        self,
+        instruction_type: str, 
+        duration: int, 
+        logical_element: Optional[LogicalElement] = None, 
+        frame: Optional[Frame] = None, 
+        **operands,
+    ):  
+        self.t0 = None
+        self.instruction = instruction_type  # opcode
+        self.duration = duration
+        self.logical_element = logical_element
+        self.frame = frame
+        self.operands = operands
+```
 
 ### Compiler
-The compiler will be built with a shared design of Qiskit's pass manager (based on PR #10474), and will thus be easily extendable to other tasks. Here we will outline the minimal requirements from the compiler in light of the new proposal.
+The compiler will be built with a shared design of Qiskit's pass manager (based on PR #10474), and will thus be easily extendable to other tasks. The pass based approach allows for simple modification of the lowering process for vendors or Qiskit team. 
+A typical compiler call will look like:
+```
+payload = compile(my_pulse_prog, backend, target="pulse_qobj")
+```
+where the backend is provided to accomodate the compiled program to the backend constraints and mappings. An optional argument will be a mapping between logical and physical qubits, as under the new model all indices will be assumed logical. If no mapping is provided, the trivial one will be used.
+
+The first step of every compiler run will be to initialize the IR of the pulse program. The IR will be initialized with no concrete timing, and the scheduling will be carried out next.
+
+Next we highlight some of the tasks handled by the compiler.
 
 #### Scheduling
-- IR initialization - For a given ScheduleBlock the IR will initialized as nested blocks (with no concrete timing).
 - Canonicalization (transform pass) - If legacy `Channel`s were used, they will be mapped to `MixedFrame`s using the backend mapping. This is the only scenario where backend mapping will be needed for this stage.
 - Identify frames and mixed frames (characterization pass) - `FrameInstruction`s will need to be broadcasted to every `MixedFrame` associated with that `Frame`. Therefore, we need identify every `MixedFrame`, `Frame` and the relations between them.
 - Schedule each block -
-  - starting from the lowest blocks, each block will be scheduled on its own.
-  - `FrameInstruction` defined on a `Frame` will be broadcasted to every associated `MixedFrame`, and these `MixedFrame`s will be considered "blocked" by this IR block.
-  - `FrameInstruction` defined on a `MixedFrame` will not be broadcasted to other `MixedFrame`. This will leave the user the ability to control the frame of `MixedFrame`s individually if wanted.
+  - Starting from the lowest blocks, each block will be scheduled on its own.
+  - Set\shift frequency\phase instructions will be broadcasted when necessary, and the additional mixed frames will be added to the block.
   - According to the alignment, the instructions will be scheduled within the block.
   - Nested blocks will be shifted according to the alignment, but their internal timing will not be altered by parent block alignment.
 - Apply backend scheduling constraints.
 - Validate timing and constraints.
 
 #### Mapping to backend aware "channels"
-The `Frame`s and `MixedFrame`s will have to be converted to backend aware "channels".
-It remains to be seen if this conversion will be done on the frontend or the backend, but a scheme for frontend mapping could look like this:
+For a target format consumed by a backend, the `Frame`s and `MixedFrame`s will have to be converted to backend aware "channels".
+It remains to be seen if this conversion will be done on the frontend or the backend, but a scheme for frontend mapping could look like this.
 
-- First, map `MixedFrame`s which natively map to the backend. For example, a `MixedFrame` associated with `Qubit(1)` and `QubitFrame(1)` is natively mapped to the backend's Q1 "channel".
-  Similarly MixedFrame associate with `Qubit(1)` and `QubitFrame(2)` is natively mapped to the backend's CR12 "channel".
+- Consume the backend accepted channels (For example, "D0" is the driving mixed frame of qubit 0 while "CR12" is the cross resonance mixed frame of qubit 1 in the frame of qubit 2.).
+- First, map `MixedFrame`s which natively map to the backend. For example, a `MixedFrame` associated with `Qubit(1)` and `QubitFrame(1)` is natively mapped to the backend's "D1" "channel" in the example above.
+  Similarly MixedFrame associate with `Qubit(1)` and `QubitFrame(2)` is natively mapped to the backend's "CR12" "channel".
 - Next, map remaining `MixedFrames` into unused "channels".
 - Lastly, provide the backend with `MixedFrame` which couldn't have been mapped by the frontend, in hope that the backend could support them. (This will obviously require dedicated backend support).
 
 #### Conversion to output format
 There is still ongoing discussion about desired output formats, but every choice of output format could be supported at the cost of creating a conversion mechanism from IR to that format.
+One can imagine various tasks associated with this step:
+- Conversion of `SymbolicPulse` to `Waveform` for non-backend-supported pulses.
+- Creation of pulse dictionary to reduce payload memory foot print.
+
+#### Optimizations
+While pulse level programs are low level, one might consider optimization passes, like dynamical decoupling addition. The pass based compiler will allow such optimization passes to be created and applied.
 
 ## Alternative Approaches
 This proposal combines two seemingly separate issues - the channel model rework and the introduction of Pulse IR and Compiler. It would be possible to do one without the other, but it seems like this is
