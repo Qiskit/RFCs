@@ -28,7 +28,7 @@ A prime example for the need for a better compilation process, is given by the s
 The legacy `Channel`s correspond to what the backend calls a mixed frame - a combination of specific HW port, and the frame (frequency and phase) needed to play pulses.
 However, to specify a Channel one must be aware of the backend mapping. For example, the following pulse schedule is an ECR pulse for qubits 3 and 4:
 
-```
+```python
 with builder.build() as ecr_schedule_q3q4:
     with align_sequential():
         with align_left():
@@ -79,7 +79,7 @@ To replace the legacy Channels we propose to specify instructions in terms of `L
 
 Using these objects, the above code takes the form:
 
-```
+```python
 with builder.build() as ecr_schedule_q3q4:
     with align_sequential():
         with align_left():
@@ -103,7 +103,7 @@ It should be noted that custom `Frame` and `MixedFrame` will make it easier to c
 
 Classes hierarchy:
 
-```
+```python
 class LogicalElement(ABC):
     @property
     def index(self) -> Tuple[int, ...]
@@ -200,7 +200,7 @@ Two instructions types are used:
 broadcaseted to all mixed frames associated with the frame or not.
 - `AcquireInstruction` - for acquire instructions (due to the different elements involved).
 
-```
+```python
 class PulseIR:
     def __init__(self):
         self.instructions # List of instructions or nested PulseIR objects
@@ -226,7 +226,7 @@ class GenericInstruction:
 ### Compiler
 The compiler will be built with a shared design of Qiskit's pass manager (based on PR #10474), and will thus be easily extendable to other tasks. The pass based approach allows for simple modification of the lowering process for vendors or Qiskit team. 
 A typical compiler call will look like:
-```
+```python
 payload = compile(my_pulse_prog, backend, target="pulse_qobj")
 ```
 where the backend is provided to accomodate the compiled program to the backend constraints and mappings. An optional argument will be a mapping between logical and physical qubits, as under the new model all indices will be assumed logical. If no mapping is provided, the trivial one will be used. The mapping should be done before all other operations.
