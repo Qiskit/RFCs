@@ -237,7 +237,7 @@ Next we highlight some of the tasks handled by the compiler.
 
 #### Scheduling
 - Canonicalization (transform pass) - If legacy `Channel`s were used, they will be mapped to `MixedFrame`s using the backend mapping. This is the only scenario where backend mapping will be needed for this stage.
-- Identify frames and mixed frames (characterization pass) - `FrameInstruction`s will need to be broadcasted to every `MixedFrame` associated with that `Frame`. Therefore, we need identify every `MixedFrame`, `Frame` and the relations between them.
+- Collect frames and mixed frames (analysis pass) - Shift\set frequency\phase instructions will need to be broadcasted to every `MixedFrame` associated with that `Frame`. Therefore, we need collect every `MixedFrame`, `Frame` and the relations between them.
 - Schedule each block -
   - Starting from the lowest blocks, each block will be scheduled on its own.
   - Set\shift frequency\phase instructions will be broadcasted when necessary, and the additional mixed frames will be added to the block.
