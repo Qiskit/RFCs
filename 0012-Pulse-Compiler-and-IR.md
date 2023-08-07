@@ -2,11 +2,11 @@
 
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         | 0012                                         |
 | **Authors**       | Tsafrir Armon (tsafrir.armon@ibm.com),  Naoki Kanazawa (knzwnao@jp.ibm.com)    |
 | **Deprecates**    | -                 |
 | **Submitted**     | 2023-07-31                                   |
-| **Updated**       | YYYY-MM-DD                                   |
+| **Updated**       | 20223-08-07                                   |
 
 ## Summary
 This RFC summarizes the proposal for new Pulse Compiler & IR. The introduction of the new compiler paves the way to the transition to frame aware model, which is also discussed. 
