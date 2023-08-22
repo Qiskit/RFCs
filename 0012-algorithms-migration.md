@@ -22,9 +22,9 @@ are "sub-routines" or algorithm utilities, such as gradients, optimizers or stat
 utilities are implementatons from scratch, others are wrappers over commonly used libraries (such as the 
 SciPy optimizers).
 
-With Qiskit moving towards a leaner definition, we are now revisiting the future of this module. 
-We would like to tell apart the fundamental components for algorithm design from algorithm implementations, and 
-find a better suiting location for both of them while minimizing the disruption caused to users.
+With Qiskit moving towards a leaner definition and focusing on primitives as quantum hardware access model, the future of `qiskit.algorithms` is being revisited. The classes in the module tend to hide the primitives interfaces and serve as convenience wrappers for abstractions, beyond the current definition of Qiskit.
+As such, they do provide value to users to it would be important to 
+find a better suiting location for them while minimizing the disruption caused to users.
 
 **Note**: In this document, the terms `qiskit-terra` and `qiskit` are interchangeable.
 
