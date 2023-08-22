@@ -590,6 +590,46 @@ How to communicate with community developers?
 How to avoid breaking API change?
 What is the reasonable timeline for migration?
 
+Another important situation that we may need to cover is the break of the executor run.
+Job queueing in a quantum system may take very long time (sometime more than a day) if you don't reserve the device, 
+and we often terminate the kernel where the job executor is actively running.
+In this situation, we may want to restart from the analysis, once after all jobs successfully complete.
+
+```python
+exp = MyExperiment((0,), **exp_options)
+exp_data = exp.run()  
+exp_data.save()
+exp_data.block_for_results()
+
+... # decide to terminate after few hours of waiting
+```
+
+(in a fresh kernel)
+```python
+new_exc = Executor()
+new_exc.run(experiment_id = "...")
+```
+
+Probably something like this is convenient. Since in principle we can save all experiment classes in the experiment service artifact, we can reconstruct discarded executor from the experiment ID.
+Alternatively, we can locally save the `Executor` instance itself. Namely,
+
+```python
+exp.executor.withdraw()
+
+...
+
+new_exc = Executor()
+new_exc.rerun(0)
+```
+
+This mechanism doesn't require the access authorization to the IBM experiment service.
+To recover the executor instance, we just need to store the job ids in the job executor and the analysis callbacks in the analysis executor.
+Note that the analysis callbacks are now callable analysis instances, and they can provide class information and attached option values.
+We just need to store this information locally in a temporary or application folder. 
+This is somewhat like `git stash save` and `git stash pop`.
+We should also discuss how we can address this problem with new `Executor` class.
+
+
 ## Future Extensions
 
 In the future, we should implement `RuntimeExecutor` which is a drop-in replacement of `JobExecutor`.
