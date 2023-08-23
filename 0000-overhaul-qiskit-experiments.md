@@ -247,16 +247,16 @@ to help a human experimentalist to scrutinize the device issue. Otherwise, we co
 Following sequence diagram proposes new workflow of QE run. 
 Note that now we have four local components, `Experiment`, `Analysis`, `Executor`, and `ExperimentData`.
 The experiment data becomes a data container which also implements the interface to the experiment service (this feature can be mix-in).
-Executor has two sub-executors `JobExecutor` and `AnalysisExecutor`.
-At run time, the experiment passes circuit payloads to the job executor and builds analysis task dependency with the analysis executor.
+Executor has two sub-executors `CircuitExecutor` and `AnalysisExecutor`.
+At run time, the experiment passes circuit payloads to the circuit executor and builds analysis task dependency with the analysis executor.
 Once after circuits are set and all tasks are scheduled, the executor runs subroutines with proper concurrency management.
 
 <img src="./0000-overhaul-qiskit-experiments/seq_diagram_proposed.png" style="width: 7in">
 
-In contrast to the existing implementation, the job executor takes bare QuantumCircuit input and submit the job by itself. 
+In contrast to the existing implementation, the circuit executor takes bare QuantumCircuit input and submit the job by itself. 
 This design is reasonable in terms of future integration with Qiskit Runtime, which is going to be a standard 
 execution path in IBM Quantum systems. The Runtime API doesn't take conventional provider Job object.
-The job executor just receives circuits to run on a backend, and returns a canonical result data. 
+The circuit executor just receives circuits to run on a backend, and returns a canonical result data. 
 The details of job execution is hidden, and we can easily switch to different communication model without breaking the rest of machinery.
 
 Returned job results (this can be composite experiment results) are added to the experiment data. 
@@ -375,10 +375,10 @@ Component analysis execution will be managed by the `AnalysisExecutor` once afte
 Eventually call to the superclass method is not necessary (it will still work but just introduce redundant overhead).
 The (pending) deprecation warning is to notify the developers the future update of this logic.
 
-2. Implement `JobExecutor`
+2. Implement `CircuitExecutor`
 
-In this step, we replace the [ExperimentData._job_executor](https://github.com/Qiskit-Extensions/qiskit-experiments/blob/c66034c90dad73d705af25be7e9ed9617e7eb2ef/qiskit_experiments/framework/experiment_data.py#L227) with the `JobExecutor` class instance,
-and delegate job handling from experiment data to this class. Also run options and backend tied to `BaseExperiment` will be moved to the job executor class.
+In this step, we replace the [ExperimentData._job_executor](https://github.com/Qiskit-Extensions/qiskit-experiments/blob/c66034c90dad73d705af25be7e9ed9617e7eb2ef/qiskit_experiments/framework/experiment_data.py#L227) with the `CircuitExecutor` class instance,
+and delegate job handling from experiment data to this class. Also run options and backend tied to `BaseExperiment` will be moved to the circuit executor class.
 This indicates that an empty `ExperimentData` container must be initialized in the constructor of the experiment class (currently it's initialized at run time), but I don't think this change hurts existing user workflow.
 Note that once we introduce `Executor` class in a followup PR, the experiment data is instantiated along with the executor inside the experiment class constructor anyway.
 
@@ -397,7 +397,7 @@ Probably this step is the toughest part in this journey.
 
 4. Implement `Executor` and cleanup `ExperimentData`
 
-Finally, we can completely remove the thread management machinery from the experiment data. Implement `Executor` and move the job executor and analysis executor to this class. 
+Finally, we can completely remove the thread management machinery from the experiment data. Implement `Executor` and move the circuit executor and analysis executor to this class. 
 The base experiment constructor is instantiated with the `Executor` class, and the experiment data becomes almost a pure data container.
 Remember we should implement lock mechanism in the experiment data so that we can continue to support `.block_for_results` method.
 The `ExperimentData` would look more maintainable after this cleanup.
@@ -421,9 +421,9 @@ and (3) build task graph with the executor.
 ```python
 exp = MyExperiment((0,), **exp_options)
 exp.set_run_options(shots=1000)
-# Directly update executor.job_executor options (delegate)
+# Directly update executor.circuit_executor options (delegate)
 exp.backend = some_backend
-# Directly update executor.job_executor (delegate)
+# Directly update executor.circuit_executor (delegate)
 
 exp_data = exp.run()  
 # Add transpiled circuits to executor
@@ -434,11 +434,11 @@ exp_data.block_for_results()
 # Wait until lock is released
 ```
 
-This is rough design for the `JobExecutor`, `AnalysisExecutor` and `Executor` class.
+This is rough design for the `CircuitExecutor`, `AnalysisExecutor` and `Executor` class.
 Implementation details can be changed.
 
 ```python
-class JobExecutor:
+class CircuitExecutor:
     """Job manager. This can be replaced in future with Runtime API.
     
     Role:
@@ -510,7 +510,7 @@ class Executor:
     
     def __init__(self):        
         self.experiment_data = None
-        self.job_executor = JobExecutor()
+        self.circuit_executor = CircuitExecutor()
         self.analysis_executor = AnalysisExecutor()
     
     def initialize_experiment_data(self):
@@ -530,8 +530,8 @@ See [Qiskit-Experiments/#1222](https://github.com/Qiskit-Extensions/qiskit-exper
 
 ```python
 exc = Executor()
-exc.job_executor.backend = some_backend
-exc.job_executor.add_circuits(transpiled_circuits)
+exc.circuit_executor.backend = some_backend
+exc.circuit_executor.add_circuits(transpiled_circuits)
 exc.analysis_executor.add_callback(T1Analysis())
 exc.run()
 
@@ -592,7 +592,7 @@ What is the reasonable timeline for migration?
 
 Another important situation that we may need to cover is the break of the executor run.
 Job queueing in a quantum system may take very long time (sometime more than a day) if you don't reserve the device, 
-and we often terminate the kernel where the job executor is actively running.
+and we often terminate the kernel where the circuit executor is actively running.
 In this situation, we may want to restart from the analysis, once after all jobs successfully complete.
 
 ```python
@@ -623,7 +623,7 @@ new_exc.rerun(0)
 ```
 
 This mechanism doesn't require the access authorization to the IBM experiment service.
-To recover the executor instance, we just need to store the job ids in the job executor and the analysis callbacks in the analysis executor.
+To recover the executor instance, we just need to store the job IDs in the circuit executor and the analysis callbacks in the analysis executor.
 Note that the analysis callbacks are now callable analysis instances, and they can provide class information and attached option values.
 We just need to store this information locally in a temporary or application folder. 
 This is somewhat like `git stash save` and `git stash pop`.
@@ -632,7 +632,7 @@ We should also discuss how we can address this problem with new `Executor` class
 
 ## Future Extensions
 
-In the future, we should implement `RuntimeExecutor` which is a drop-in replacement of `JobExecutor`.
+In the future, we should implement `RuntimeExecutor` which is a drop-in replacement of `CircuitExecutor`.
 This executor will support the Qiskit Runtime execution path, and we can enable the session feature for 
 iterated experiments (see [Qiskit-Experiments/#626](https://github.com/Qiskit-Extensions/qiskit-experiments/pull/626)) 
 which is convenient for execution of error amplification experiments.
