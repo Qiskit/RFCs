@@ -26,7 +26,7 @@ This is not required to be the final design for classical handling in Terra, it 
 
 - Users of IBM dynamic circuits will be able to take advantage of the classical-processing capabilities of those systems from within Qiskit
 - This support is not limited to IBM so may extend further, but we are not aware of other dynamic-circuits hardware accessible through Qiskit
-- For Terra development: this is a "build one to throw away"-type sytem, so we can see in actual usage what works and doesn't for us before we commit to further classical processing.
+- For Terra development: this is a "build one to throw away"-type system, so we can see in actual usage what works and doesn't for us before we commit to further classical processing.
 
 
 ## Design Proposal
