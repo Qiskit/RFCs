@@ -14,7 +14,7 @@ This RFC was created to document discussions concerning the future of the `qiski
 This module provides a series of interfaces and implementations of commonly used quantum algorithms based on 
 Qiskit's core components. Historically, the module was created as part of Qiskit Aqua, together with the now
 community-based application modules (Nature, Machine Learning, Optimization, Finance). 
-It [currently "lives" in `qiskit-terra`](https://github.ibm.com/IBM-Q-General/user-feedback/issues),  
+It [currently "lives" in `qiskit-terra`](https://github.com/Qiskit/qiskit),  
 and over the past year has been refactored to use the Qiskit Primitives and sustain the 
 Opflow and Quantum Instance deprecations.
 
