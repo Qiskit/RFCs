@@ -636,3 +636,25 @@ In the future, we should implement `RuntimeExecutor` which is a drop-in replacem
 This executor will support the Qiskit Runtime execution path, and we can enable the session feature for 
 iterated experiments (see [Qiskit-Experiments/#626](https://github.com/Qiskit-Extensions/qiskit-experiments/pull/626)) 
 which is convenient for execution of error amplification experiments.
+
+We can also separately discuss execution pattern of the experiment. 
+At some point we may move away from the current pattern of `Experiment.run().block_for_results()`, and switch to more context-like execution for seamless integration of runtime.
+This can be done by adding two dunder methods to `Executor`, namely
+
+```python
+
+class Executor:
+    
+    def __enter__(self):
+        pass
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+    
+    ...
+```
+
+This means we don't need to immediately decide new syntax for experiment run. 
+This can be a future extension, and we can focus on internal rework of our core components in this RFC; separation of execution from the data container (i.e. single responsibility principle),
+and encapsulation of circuit execution for future runtime integration (i.e. dependency inversion principle), in addition to moving the responsibility of analysis execution from 
+individual analysis class to a dedicated executor for better control of parallelism.
