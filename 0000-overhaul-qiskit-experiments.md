@@ -539,6 +539,19 @@ exc.experiment_data.block_for_results()
 exc.experiment_data.save()
 ```
 
+Analysis class may optionally provide a validation mechanism for circuit metadata, which might be called by the `Executor.run`.
+
+```python
+class BaseAnalysis:
+
+    def validate_metadata(self, metadata: dict[str, Any]):
+        pass
+
+```
+
+For example, an experiment circuit for T1Analysis must have `xval` in metadata, which represents the delay duration in between state preparation and measurement.
+The circuit metadata of a composite experiment has more complicated data structure, and implementation of the `CompositeAnalysis.validate_metadata` might become complicated.
+
 Note that [`BaseAnalysis.run`](https://github.com/Qiskit-Extensions/qiskit-experiments/blob/c66034c90dad73d705af25be7e9ed9617e7eb2ef/qiskit_experiments/framework/base_analysis.py#L118-L123) is not called in the new workflow.
 This method conventionally takes `ExperimentData` and mutates the input container through a callback.
 It internally wraps the `_run_analysis` method as a local function in which created analysis data are formatted and added to the experiment data.
