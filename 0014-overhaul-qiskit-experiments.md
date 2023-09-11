@@ -83,7 +83,7 @@ To run a single experiment on few hundreds qubit device (such as IBM Osprey proc
 This is non-negligible downtime for a quantum computing system because the system calibration workflow often consists of [dependent tasks](https://arxiv.org/abs/1803.03226),
 and the following experiment run might be on hold until predecessor results become available.
 
-<img src="./0000-overhaul-qiskit-experiments/scaling.png" style="width: 6in">
+<img src="./0014-overhaul-qiskit-experiments/scaling.png" style="width: 6in">
 
 (see [this gist](https://gist.github.com/nkanazawa1989/41428cd21b7307a70be720779b364ca3) for more details.)
 
@@ -145,7 +145,7 @@ namely, the experiment data receives job objects from the experiment class, wait
 collects outcomes from the callbacks and finally stores them in the experiment service.
 The internal flow of experiment run is simplified to some extent and shown in the diagram below.
 
-<img src="./0000-overhaul-qiskit-experiments/seq_diagram_current.png" style="width: 8in">
+<img src="./0014-overhaul-qiskit-experiments/seq_diagram_current.png" style="width: 8in">
 
 As you find, `ExperimentData` is more than a data container, and indeed this is executor + data container and too complicated to maintain.
 If you are familiar with [concurrency](https://docs.python.org/3/library/concurrent.futures.html), you may know there are two different implementations; 
@@ -251,7 +251,7 @@ Executor has two sub-executors `CircuitExecutor` and `AnalysisExecutor`.
 At run time, the experiment passes circuit payloads to the circuit executor and builds analysis task dependency with the analysis executor.
 Once after circuits are set and all tasks are scheduled, the executor runs subroutines with proper concurrency management.
 
-<img src="./0000-overhaul-qiskit-experiments/seq_diagram_proposed.png" style="width: 7in">
+<img src="./0014-overhaul-qiskit-experiments/seq_diagram_proposed.png" style="width: 7in">
 
 In contrast to the existing implementation, the circuit executor takes bare QuantumCircuit input and submit the job by itself. 
 This design is reasonable in terms of future integration with Qiskit Runtime, which is going to be a standard 
@@ -287,7 +287,7 @@ Although composite analysis are nested, the outer (composite) analysis just recu
 In addition, `T1Analysis` and `T2HahnAnalysis` are interchangeable.
 In other words, component analyses are all independent, and we just need to throw all analysis callbacks into the process pool.
 
-<img src="./0000-overhaul-qiskit-experiments/ex3_dag.png" style="width: 5in">
+<img src="./0014-overhaul-qiskit-experiments/ex3_dag.png" style="width: 5in">
 
 This allows us to manage parallelism with a single `ProcessPoolExecutor.map`, which dramatically simplifies the implementation.
 In the next example, we slightly modify above workflow.
@@ -311,7 +311,7 @@ However, the `TphiAnalysis` computes new `Tphi` value by consuming the `T1` and 
 Therefore, the Tphi analysis callback has dependency on other two callbacks.
 The execution consists of two layers in this case, namely, running all T1 and T2 Hahn analysis callbacks in parallel, then run Tphi analysis callback in parallel.
 
-<img src="./0000-overhaul-qiskit-experiments/ex4_dag.png" style="width: 5in">
+<img src="./0014-overhaul-qiskit-experiments/ex4_dag.png" style="width: 5in">
 
 The [MitigatedTomographyAnalysis](https://github.com/Qiskit-Extensions/qiskit-experiments/blob/main/qiskit_experiments/library/tomography/mit_tomography_analysis.py) is 
 another example with this pattern. This is the analysis for tomography experiments with consideration of the readout error.
