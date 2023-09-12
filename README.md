@@ -20,6 +20,7 @@ facilitate that and collect feedback prior to implementation.
 
 | RFC | Status | References/Discussion |
 | --- | ------ | --------------------- |
+| `0014` [Overhaul Qiskit Experiments](0014-overhaul-qiskit-experiments.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/47) \| [Implementation](https://github.com/Qiskit-Extensions/qiskit-experiments/issues/1268) |
 | `0011` [Plan to rename `Qiskit/qiskit-terra` repo to `Qiskit/qiskit`](0011-repo-rename.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/31) \| [Implementation](https://github.com/Qiskit/RFCs/issues/41) |
 | `0010` [Preliminary representation of rvalue classical expression in Qiskit](0010-simple-classical-representations.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/30) \| [Implementation](https://github.com/Qiskit/qiskit-terra/issues/10239) |
 | `0009` [`Operation`: the interface for valid `QuantumCircuit` operations](0009-interface-for-circuit-operations.md) | Implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/25) \| [Implementation](https://github.com/Qiskit/qiskit-terra/pull/7087)|
