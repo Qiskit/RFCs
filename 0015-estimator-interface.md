@@ -267,3 +267,12 @@ Open questions for discussion and an opening for feedback.
 ## Future Extensions
 
 In this proposal we have typed circuits as `QuantumCircuit`. It would be possible to extend this to a `CircuitLike` class which could be as simple as `Union[QuantumCircuit, str]` to explicitly allow OpenQASM3 circuits as first-class inputs.
+
+A consequence of switching to the concept of Tasks, alluded to in the section that introduced them, is that this will allow us to introduce the `.run()` method into `BasePrimitive`
+
+```python
+class BasePrimitive(ABC, Generic[T]):
+    ...
+    def run(self, T | Iterable[T], **options) -> List[ResultBundle]:
+        ...
+```
