@@ -53,11 +53,34 @@ For all users, the interface changes in this proposal will enable specific primi
 
 ## Design Proposal <a name="design-proposal"></a>
 
+We use the (non-standard) notation that `Type<attrs>` denotes an instance of the given type with a constraint on attributes such as shape or format.
+
+```python
+Estimator.run(Union[Iterable[ObservablesTask<shape_i>], ObservablesTask], **options) → List[ResultBundle<{evs: ndarray<shape_i>, stds: ndarray<shape_i>}>]
+```
+
+### Example 1
+
+```python
+circuit = QuantumCircuit() 
+... # populate with 2039 parameters
+
+parameter_values = np.random((4, 32, 2039))
+observables = ["ZZIIIIIII", "IZXIIIIII", "IIIIIIYZI", "IZXIIYIII"]
+
+estimator = Estimator()
+job = estimator.run((circuit, parameter_values, observables))
+
+job.result()
+
+>> [ResultBundle<{evs: ndarray<4, 32>, stds: ndarray<4, 32>}>, metadata]
+```
+
 ### Tasks <a name="tasks"></a>
 
 In this proposal, we introduce the concept of a Task, which we define as a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
 
-For example, a circuit with unbound parameters (or in OQ3 terms, a circuit with inputs) alone could never qualify as a Task for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an OQ3 circuit with no inputs) alone could form a Task for a hypothetical primitive that just runs circuits and returns counts. This suggests a natural base for all Tasks:
+For example, a circuit with unbound parameters (or in OQ3 terms, a circuit with inputs) alone could never qualify as a Task for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an OQ3 circuit with no inputs) alone could form a Task for a hypothetical primitive that just runs circuits and returns counts. This suggests (using an ad-hoc annotation convention) a natural base for all Tasks:
 
 ```python
 BaseTask = NamedTuple[circuit: QuantumCircuit]
@@ -104,7 +127,6 @@ BindingsArray(kwargs={(a, c): <50, 2>, b: <50>})
 BindingsArray(<50, 2>, {c: <50>}) 
 ```
 
-Note that `BindingsArray` is somewhat constrained by how `Parameters` currently work in Qiskit, namely, there is no support for array-valued inputs in the same way that there is in OpenQASM 3; `BindingsArray` assumes that every parameter represents a single number like a `float` or an `int`.
 
 ### ObservablesArray <a name="observablesarray"></a>
 
@@ -164,30 +186,6 @@ FAQ1: Why make `BindingArrays` `nd`, and not just `list`-like?
 * A3: It lets us specify certain common scenarios for `ObservablesTask` more efficiently. For example, suppose we want one axis to represent twirling variates, and the other axis to represent observable bases. Then, via broadcasting, described below, the information that needs to be transferred over the wire appears 1D  for both the twirling variate phase information and the list of observables. Without `nd-array` support, broadcasting would have to be done client-side.
 
 We propose that any subtype of `ArrayTask` use broadcasting rules on auxillary data.
-
-### Primitive Interface <a name="primitive-interface"></a>
-
-We use the (non-standard) notation that `Type<attrs>` denotes an instance of the given type with a constraint on attributes such as shape or format.
-
-```python
-Estimator.run(Union[Iterable[ObservablesTask<shape_i>], ObservablesTask], **options) → List[ResultBundle<{evs: ndarray<shape_i>, stds: ndarray<shape_i>}>]
-```
-
-Example:
-
-```python
-circuit = QuantumCircuit # with 2039 parameters
-
-parameter_values = np.random((9, 32, 2039))
-observables = [<list of 9 different paulis>]
-job = estimator.run((circuit, parameter_values, observables))
-
-job.result()
-
->> [ResultBundle<{evs: ndarray<9, 32>, stds: ndarray<9, 32>}>, metadata]
-
-Sampler.run(Union[Iterable[ArrayTask<shape_i], ArrayTask]) -> List[ResultBundle[{creg_name: CountsArray}]]
-```
 
 ### Type Coercion Strategy <a name="type-coercion-strategy"></a>
 
