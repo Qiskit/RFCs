@@ -75,13 +75,177 @@ ObservablesTask = NamedTuple[
 
 We expect the formal primitive API and primitive implementations to have a strong sense of Tasks, but we will not demand that users construct them manually in Python as they are little more than named tuples, and we do not wish to overburden them with types. This is discussed further in the “Type Coersion” section.
 
+### BindingsArray
+
+It is common for a user to want to do a sweep over parameter values, that is, to execute the same parametric circuit with many different parameter binding sets. `BindingsArray` specifies multiple sets of parameters that can be bound to a circuit. For example, if a circuit has 200 parameters, and a user wishes to execute the circuit for 50 different sets of values, then a single instance of `BindingsArray` could represent 50 sets of 200 parameter values. Moreover, it is array-like (see the next section), so in this example the `BindingsArray` instance would be one-dimensional and have shape equal `(50,)`. 
+
+We expect the formal primitive API and primitive implementations to have a strong sense of `BindingsArray`, but we will not demand that users construct them manually because we do not wish to overburden them with types, and we need to remain backwards compatible. This is discussed further in the "Type Coercion" and "Migration Path" sections.
+
+The "BindingsArray" object will support, at a minimum, the following constructor examples for a circuit with three input parameters `a`, `b`, and `c`, where we will use `<>` to denote some `array_like` of the specified shape:
+
+```python
+# specify all 50 binding parameter sets in one big array
+BindingsArray(<50, 3>) 
+
+# specify bindings separately for each parameter, required if they have different types
+BindingsArray([<50>, <50>, <50>]) 
+
+# include parameter names with the arrays, where parameters can be grouped together in tuples, or supplied separately
+BindingsArray(kwargs={(a, c): <50, 2>, b: <50>}) 
+
+# “args” and “kwargs” can be mixed
+BindingsArray(<50, 2>, {c: <50>}) 
+```
+
+Note that `BindingsArray` is somewhat constrained by how `Parameters` currently work in Qiskit, namely, there is no support for array-valued inputs in the same way that there is in OpenQASM 3; `BindingsArray` assumes that every parameter represents a single number like a `float` or an `int`.
+
+### ObservablesArray
+
+With the `Estimator`, it is common for a user to want to estimate many observables of a single circuit. For example, all weight-1 and weight-2 Paulis that are adjacent on the connectivity graph. For a one-hundred qubit device, this corresponds to hundreds of unique estimates to be made for a single circuit, noting that for this particular example, on the heavy-hex graph, in the absence of mitigation, only 9 circuits need to be physically run.
+
+The `ObservablesArray` object will be an object array, where each element corresponds to a observable the user wants an estimated expectation value of. It is up to an `Estimator` implementation to solve a graph coloring problem to decide how to produce a sufficient set of physical circuits that are capable of producing data to make each of these estimates.
+
+### Arrays and Broadcasting
+
+An `nd-array` is an object whose elements are indexed by a tuple of integers, where each integer must be bounded by the dimension of that axis. The tuple of dimensions, one for each axis, is called the shape of the `nd-array`. For example, 1D list of 10 objects (typically numbers) is a vector and has shape `(10,)`; a matrix with 5 rows and 2 columns is 2D and has shape `(5, 2)`; a single number is 0D and has an empty shape tuple `()`; an `nd-array` with shape (20, 10, 5) can be interpreted as a length-20 list of 10×5 matrices.
+
+```python
+shape1=(1, 5), shape2=(4, 1), broadcasted_shape=(4,5)
+
+shape1=(1, 5), shape2=(4, 1), broadcasted_shape=(4,5)
+
+shape1=(), shape2=(5, 10), broadcasted_shape=(5,10)
+```
+
+FAQ1: Why make `BindingArrays` `nd`, and not just `list`-like? 
+
+* A1: The primitives are meant to be a convenient execution framework, and allowing multiple axes relieves certain book-keeping burdens from the caller. `nd-arrays` are a standard construct in data manipulation. Different axes can be assigned different operational meanings, for example axis 0 could be a sweep over basis transformations, and axis 1 could be a sweep over Pauli randomizations.
+
+* A2: There are different places in the runtime stack that binding can occur. in the runtime container, as a fast parametric. Having multiple axes gives us the freedom to offer this as an explicit feature in the future (?).
+
+* A3: It lets us specify certain common scenarios for `ObservablesTask` more efficiently. For example, suppose we want one axis to represent twirling variates, and the other axis to represent observable bases. Then, via broadcasting, described below, the information that needs to be transferred over the wire appears 1D  for both the twirling variate phase information and the list of observables. Without `nd-array` support, broadcasting would have to be done client-side.
+
+We propose that any subtype of `ArrayTask` use broadcasting rules on auxillary data.
+
+### Primitive Interface
+
+We use the (non-standard) notation that `Type<attrs>` denotes an instance of the given type with a constraint on attributes such as shape or format.
+
+```python
+Estimator.run(Union[Iterable[ObservablesTask<shape_i>], ObservablesTask], **options) → List[ResultBundle<{evs: ndarray<shape_i>, stds: ndarray<shape_i>}>]
+```
+
+Example:
+
+```python
+circuit = QuantumCircuit # with 2039 parameters
+
+parameter_values = np.random((9, 32, 2039))
+observables = [<list of 9 different paulis>]
+job = estimator.run((circuit, parameter_values, observables))
+
+job.result()
+
+>> [ResultBundle<{evs: ndarray<9, 32>, stds: ndarray<9, 32>}>, metadata]
+
+Sampler.run(Union[Iterable[ArrayTask<shape_i], ArrayTask]) -> List[ResultBundle[{creg_name: CountsArray}]]
+```
+
+### Type Coercion Strategy
+
+To minimize the number of container types that an every-day user will need to interact with, and to make the transition more seamless, we propose that several container types be associated with a `TypeLike` pattern and a static method
+
+```python
+def coerce(argument: TypeLike) -> Type
+```
+
+that is invoked inside of the `run()` method.
+
+For example,
+
+```python
+BindingsArrayLike=Union[BindingsArray, ArrayLike, Iterable[float], Mapping[Parameter, float]]
+```
+
+and
+
+```python
+@staticmethod
+def coerce(bindings_array: BindingsArrayLike) -> BindingsArray:
+    if isinstance(bindings_array, (list, ArrayLike)):
+        bindings_array = BindingsArray(bindings_array)
+    elif isinstance(bindings_array, Mapping):
+        bindings_array = BindingsArray([], bindings_array)
+
+    return bindings_array
+```
+
+In particular, we propose this kind of Coercion for the types:
+* `ArrayTask`
+* `ObservablesTask`
+* `BindingsArray`
+* `ObservablesArray`
+
+### ResultBundles
+
+The results from each `Task` will be array valued. However, we may require several arrays, possibly of different types. Consider an `ObservablesTask` with shape `<20, 30>`, where the shape has come from some combination of multiplexing an observables sweep with a parameter values sweep. This will result in a 20×30 array of real estimates. Moreover, we will want to return an array of standard deviations of the same shape. This would result in a bundle of broadcastable arrays:
+
+```python
+ResultBundle({“evs”: <20, 30>, “stds”: <20, 30>}, metadata)
+```
+
+The reason we are proposing a generic container for the return type instead of, e.g., an `Estimator`-specific container, is because
+
+1. Provides unified experience across primitives for users. 
+1. code-reuse
+1. Provides a certain certain amount of flexibility for what can be returned without modifying the container object. Here are some examples:
+  1. Suppose that we want to give users the option of additionally returning the covariances between estimates that arise because of the circuit multiplexing, then we could update with the field `{"cov": <20,30,20,30>}`.
+  1. Suppose we want to return some indication of which estimates came from the same physical circuit.
+
 ## Detailed Design
 Technical reference level design. Elaborate on details such as:
 - Implementation procedure
   - If spans multiple projects cover these parts individually
 - Interaction with other features
 - Dissecting corner cases
-- Reference definition, eg., formal definitions.
+- Reference definition, e.g., formal definitions.
+
+## Migration Path
+
+We need to remain backwards compatible with the existing interface to adhere to the [Qiskit Deprecation Policy](https://qiskit.org/documentation/deprecation_policy.html). Notice that for both `Sampler` and `Estimator`, the first argument of the `run()` call will either contain `Tasks` (or `TaskLike`s) or it won’t.
+
+We propose a migration strategy based on this: If the user has provided no `TaskLike`s, proceed with the old API and old API output and emit a deprecation warning, or an error if something mandatory like `observables` has been omitted. Otherwise, proceed with the new API, raising if they have tried to use the old arguments in addition to providing tasks.
+
+```python
+def run(
+        self,
+        circuits: Sequence[QuantumCircuit] | QuantumCircuit,
+        observables: Sequence[BaseOperator | PauliSumOp | str] | BaseOperator | PauliSumOp | str,
+        parameter_values: Sequence[Sequence[float]] | Sequence[float] | float | None = None,
+        **run_options,
+    )
+```
+
+```python
+def run(self, tasks, observables=None, parameter_values=None, **run_options):
+    has_tasks = isinstance(tasks, QuantumCircuit) or all(isinstance(task, QuantumCircuit) for task in tasks)
+
+    if not has_tasks:
+        # Trigger old API and disallow new one
+        if not all_circuits:
+            raise ValueError("Cannot mix and match old API with new API")
+
+        if observables is None:
+            raise ValueError("`observables` is required argument in the old API")
+
+        circuits = [tasks] if isinstance(tasks, QuantumCircuit) else tasks
+        observables = [observables] is isinstance(observables, (BaseOperator, PauliSumOp, str)) else observables
+        tasks = zip(circuits, observables, parameter_values)
+        warnings.warn(<deprecation>)
+    tasks = ObservableTask.coerce(task) for task in tasks
+
+    return self._run_old_api(...) if no_tasks else return self._run(...)
+```
 
 ## Alternative Approaches
 
