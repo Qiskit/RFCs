@@ -307,3 +307,13 @@ class BasePrimitive(ABC, Generic[T]):
     def run(self, T | Iterable[T], **options) -> List[ResultBundle]:
         ...
 ```
+
+### `BindingsArray` generalizations
+
+`BindingsArray` is somewhat constrained by how `Parameters` currently work in Qiskit, namely, there is no support for array-valued inputs in the same way that there is in OpenQASM 3; `BindingsArray` assumes that every parameter represents a single number like a `float` or an `int`.
+One solution could be to extend the class to allow different sub-arrays to have extra dimensions.
+For example, for an input angle-array `input angle[15] foo;`, and for a bindings array with shape `(30, 20)`, the corresponding array could have shape `(30, 20, 1, 15)`.
+
+Another generalization is to allow broadcastable shapes inside of a single `BindingsArray`.
+For example, one could have one array with shape `(1, 4, 5)` for five parameters, and another with shape `(3, 1, 2)` for two parameters, resulting in a bindings array with shape `(3, 4)`.
+The advantage of this is allowing sparser representations of bindings arrays, and also specifying "fast" and "slow" parameters.
