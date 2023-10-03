@@ -55,20 +55,27 @@ For all users, the interface changes in this proposal will enable specific primi
 This is the focus of the document. Explain the proposal from the perspective of
 educating another user on the proposed features.
 
-This generally means:
-- Introducing new concepts and nomenclature
-- Using examples to introduce new features
-- Implementation and Migration path with associated concerns
-- Communication of features and changes to users
+### Tasks
 
-Focus on giving an overview of impact of the proposed changes to the target
-audience.
+In this proposal, we introduce the concept of a Task, which we define as a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
 
-Factors to consider:
-- Performance
-- Dependencies
-- Maintenance
-- Compatibility
+For example, a circuit with unbound parameters (or in OQ3 terms, a circuit with inputs) alone could never qualify as a Task for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an OQ3 circuit with no inputs) alone could form a Task for a hypothetical primitive that just runs circuits and returns counts. This suggests a natural base for all Tasks:
+
+```python
+BaseTask = NamedTuple[circuit: QuantumCircuit]
+```
+
+For the `Estimator` primitive, in order to satisfy the definition as stated above, we propose the task structure
+
+```python
+ObservablesTask = NamedTuple[
+    circuit: QuantumCircuit, 
+    parameter_values: BindingsArray, 
+    observables: ObservablesArray
+]
+```
+
+We expect the formal primitive API and primitive implementations to have a strong sense of Tasks, but we will not demand that users construct them manually in Python as they are little more than named tuples, and we do not wish to overburden them with types. This is discussed further in the “Type Coersion” section.
 
 ## Detailed Design
 Technical reference level design. Elaborate on details such as:
