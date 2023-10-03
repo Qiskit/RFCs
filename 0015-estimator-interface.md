@@ -297,7 +297,11 @@ Open questions for discussion and an opening for feedback.
 
 ## Future Extensions <a name="future-extensions"></a>
 
+### Circuit Formats
+
 In this proposal we have typed circuits as `QuantumCircuit`. It would be possible to extend this to a `CircuitLike` class which could be as simple as `Union[QuantumCircuit, str]` to explicitly allow OpenQASM3 circuits as first-class inputs.
+
+### Tasks in the base class (and other primitives)
 
 A consequence of switching to the concept of Tasks (mentioned in [Tasks](#tasks)) is that this will allow us to introduce the `.run()` method into `BasePrimitive`
 
