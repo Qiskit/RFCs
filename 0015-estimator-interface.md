@@ -9,7 +9,7 @@
 | **Updated**       | YYYY-MM-DD                                   |
 
 
-## Summary
+## Summary <a name="summary"></a>
 The current `Estimator.run()` method requires that a user provide one circuit for every observable and set of parameter values that they wish to run.
 (This was not always the case, but the history will not be discussed here.)
 It is common, if not typical, for a user to want to estimate many observables corresponding to a single circuit. Likewise, it is common, if not typical, for a user to want to supply multiple parameter value sets for the same circuit.
@@ -18,7 +18,7 @@ This RFC proposes to fix these issues by changing the `Estimator.run()` in the f
  1. Take the transpose of the current signature; rather than accepting `circuits`, `parameter_values`, and `observables` as three different (iterable) arguments which are to be zipped together, instead localize the distinct tasks to be run via an iterable of triples `(circuit, parameter_values, observables)`.
  2. In combination with 1, extend `parameter_values` and `observables` to be array-valued, that is, add the ability to explicity and conveniently specify multiple parameter value sets and observables for a single circuit.
 
-## Motivation
+## Motivation <a name="motivation"></a>
 
 Here is a summary of pain-points with the current `Estimator.run()` interface:
 
@@ -31,7 +31,7 @@ Here is a summary of pain-points with the current `Estimator.run()` interface:
 1. _Performance._ Given that `QuantumCircuit` hashing should be avoided and circuit equality checks can be expensive, we should move away from an interface that necessitates performant primitive implementations to go down this path. As one example, qubit-wise commuting observables like `"IZZ"` and `"XZI"` can both be estimated using the same simulation/execution, but only if the estimator understands that they share a base circuit. As a second example, when the circuits need to be seriazed before they are simulated/executed (e.g. runtime or pickling-for-multi-processing), it puts the onus on the primitive implementation to detect circuit duplications.
    
 
-Here is why the detailed section of this proposal suggests "transposing" the signatureß and using array-based arguments with broadcasting:
+Here is why the [Detailed Design](#detailed-design) section suggests "transposing" the signatureß and using array-based arguments with broadcasting:
 
  1. Transposing the signature will make it obvious what the primitive intends to do with each circuit.
  2. Transposing the signature will let us introduce and reason about the notion  "primitive unit of work", and carry it to other primitives.
@@ -43,7 +43,7 @@ Here is why the detailed section of this proposal suggests "transposing" the sig
     4. take all NxM combinations of N parameter value sets with M observables
     5. etc.
 
-## User Benefit
+## User Benefit <a name="user-benefit"></a>
 
 All users of the primitives stand to benefit from this proposal.
 Immediately, it will enable sophisticated and convenient workflows for power users though arrays and broadcasting.
@@ -51,9 +51,9 @@ However, standard broadcasting rules are such that the 0D and 1D cases will feel
 
 For all users, the interface changes in this proposal will enable specific primitive implementations to enhance performance through reduced bandwidth on the runtime, compatibility with fast parameter binding, and multiplexing qubit-wise commuting observables.
 
-## Design Proposal
+## Design Proposal <a name="design-proposal"></a>
 
-### Tasks
+### Tasks <a name="tasks"></a>
 
 In this proposal, we introduce the concept of a Task, which we define as a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
 
@@ -73,13 +73,13 @@ ObservablesTask = NamedTuple[
 ]
 ```
 
-We expect the formal primitive API and primitive implementations to have a strong sense of Tasks, but we will not demand that users construct them manually in Python as they are little more than named tuples, and we do not wish to overburden them with types. This is discussed further in the “Type Coersion” section.
+We expect the formal primitive API and primitive implementations to have a strong sense of Tasks, but we will not demand that users construct them manually in Python as they are little more than named tuples, and we do not wish to overburden them with types. This is discussed further in [Type Coersion Strategy](#type-coercion-strategy).
 
-### BindingsArray
+### BindingsArray <a name="bindingsarray"></a>
 
-It is common for a user to want to do a sweep over parameter values, that is, to execute the same parametric circuit with many different parameter binding sets. `BindingsArray` specifies multiple sets of parameters that can be bound to a circuit. For example, if a circuit has 200 parameters, and a user wishes to execute the circuit for 50 different sets of values, then a single instance of `BindingsArray` could represent 50 sets of 200 parameter values. Moreover, it is array-like (see the next section), so in this example the `BindingsArray` instance would be one-dimensional and have shape equal `(50,)`. 
+It is common for a user to want to do a sweep over parameter values, that is, to execute the same parametric circuit with many different parameter binding sets. `BindingsArray` specifies multiple sets of parameters that can be bound to a circuit. For example, if a circuit has 200 parameters, and a user wishes to execute the circuit for 50 different sets of values, then a single instance of `BindingsArray` could represent 50 sets of 200 parameter values. Moreover, it is array-like (see [ObservablesArray](#observablesarray)), so in this example the `BindingsArray` instance would be one-dimensional and have shape equal `(50,)`. 
 
-We expect the formal primitive API and primitive implementations to have a strong sense of `BindingsArray`, but we will not demand that users construct them manually because we do not wish to overburden them with types, and we need to remain backwards compatible. This is discussed further in the "Type Coercion" and "Migration Path" sections.
+We expect the formal primitive API and primitive implementations to have a strong sense of `BindingsArray`, but we will not demand that users construct them manually because we do not wish to overburden them with types, and we need to remain backwards compatible. This is discussed further in the [Type Coercion Strategy](#type-coercion-strategy) and [Migration Path](#migration-path) sections.
 
 The "BindingsArray" object will support, at a minimum, the following constructor examples for a circuit with three input parameters `a`, `b`, and `c`, where we will use `<>` to denote some `array_like` of the specified shape:
 
@@ -99,13 +99,13 @@ BindingsArray(<50, 2>, {c: <50>})
 
 Note that `BindingsArray` is somewhat constrained by how `Parameters` currently work in Qiskit, namely, there is no support for array-valued inputs in the same way that there is in OpenQASM 3; `BindingsArray` assumes that every parameter represents a single number like a `float` or an `int`.
 
-### ObservablesArray
+### ObservablesArray <a name="observablesarray"></a>
 
 With the `Estimator`, it is common for a user to want to estimate many observables of a single circuit. For example, all weight-1 and weight-2 Paulis that are adjacent on the connectivity graph. For a one-hundred qubit device, this corresponds to hundreds of unique estimates to be made for a single circuit, noting that for this particular example, on the heavy-hex graph, in the absence of mitigation, only 9 circuits need to be physically run.
 
 The `ObservablesArray` object will be an object array, where each element corresponds to a observable the user wants an estimated expectation value of. It is up to an `Estimator` implementation to solve a graph coloring problem to decide how to produce a sufficient set of physical circuits that are capable of producing data to make each of these estimates.
 
-### Arrays and Broadcasting
+### Arrays and Broadcasting <a name="arrays-and-broadcasting"></a>
 
 An `nd-array` is an object whose elements are indexed by a tuple of integers, where each integer must be bounded by the dimension of that axis. The tuple of dimensions, one for each axis, is called the shape of the `nd-array`. For example, 1D list of 10 objects (typically numbers) is a vector and has shape `(10,)`; a matrix with 5 rows and 2 columns is 2D and has shape `(5, 2)`; a single number is 0D and has an empty shape tuple `()`; an `nd-array` with shape (20, 10, 5) can be interpreted as a length-20 list of 10×5 matrices.
 
@@ -158,7 +158,7 @@ FAQ1: Why make `BindingArrays` `nd`, and not just `list`-like?
 
 We propose that any subtype of `ArrayTask` use broadcasting rules on auxillary data.
 
-### Primitive Interface
+### Primitive Interface <a name="primitive-interface"></a>
 
 We use the (non-standard) notation that `Type<attrs>` denotes an instance of the given type with a constraint on attributes such as shape or format.
 
@@ -182,7 +182,7 @@ job.result()
 Sampler.run(Union[Iterable[ArrayTask<shape_i], ArrayTask]) -> List[ResultBundle[{creg_name: CountsArray}]]
 ```
 
-### Type Coercion Strategy
+### Type Coercion Strategy <a name="type-coercion-strategy"></a>
 
 To minimize the number of container types that an every-day user will need to interact with, and to make the transition more seamless, we propose that several container types be associated with a `TypeLike` pattern and a static method
 
@@ -217,7 +217,7 @@ In particular, we propose this kind of Coercion for the types:
 * `BindingsArray`
 * `ObservablesArray`
 
-### ResultBundles
+### ResultBundles <a name="resultbundles"></a>
 
 The results from each `Task` will be array valued. However, we may require several arrays, possibly of different types. Consider an `ObservablesTask` with shape `<20, 30>`, where the shape has come from some combination of multiplexing an observables sweep with a parameter values sweep. This will result in a 20×30 array of real estimates. Moreover, we will want to return an array of standard deviations of the same shape. This would result in a bundle of broadcastable arrays:
 
@@ -233,7 +233,7 @@ The reason we are proposing a generic container for the return type instead of, 
   1. Suppose that we want to give users the option of additionally returning the covariances between estimates that arise because of the circuit multiplexing, then we could update with the field `{"cov": <20,30,20,30>}`.
   1. Suppose we want to return some indication of which estimates came from the same physical circuit.
 
-## Detailed Design
+## Detailed Design <a name="detailed-design"></a>
 Technical reference level design. Elaborate on details such as:
 - Implementation procedure
   - If spans multiple projects cover these parts individually
@@ -241,7 +241,7 @@ Technical reference level design. Elaborate on details such as:
 - Dissecting corner cases
 - Reference definition, e.g., formal definitions.
 
-## Migration Path
+## Migration Path <a name="migration-path"></a>
 
 We need to remain backwards compatible with the existing interface to adhere to the [Qiskit Deprecation Policy](https://qiskit.org/documentation/deprecation_policy.html). Notice that for both `Sampler` and `Estimator`, the first argument of the `run()` call will either contain `Tasks` (or `TaskLike`s) or it won’t.
 
@@ -278,7 +278,7 @@ def run(self, tasks, observables=None, parameter_values=None, **run_options):
     return self._run_old_api(...) if no_tasks else return self._run(...)
 ```
 
-## Alternative Approaches
+## Alternative Approaches <a name="alternative-approaches"></a>
 
 An alternative is to consider letting the `run()` method accept, effectively, only a single `ObservablesTask`:
 
@@ -292,14 +292,14 @@ by invoking the estimator multiple times. The disadvantages, which we feel are s
  1. For real backends, the user would lose the ability to cause multiple types of circuits to be loaded into the control hardware at one time. For example, if using an estimator to perform randomized benchmarking, each circuit depth would need to be a separate job.
  2. It would be difficult for implementations that include mitigation to share resources between tasks. For example, if different tasks represent different trotter step counts, there would need to be a complicated mechanism to share learning resources---that are specific to the application circuits---between multiple jobs.
 
-## Questions
+## Questions <a name="questions"></a>
 Open questions for discussion and an opening for feedback.
 
-## Future Extensions
+## Future Extensions <a name="future-extensions"></a>
 
 In this proposal we have typed circuits as `QuantumCircuit`. It would be possible to extend this to a `CircuitLike` class which could be as simple as `Union[QuantumCircuit, str]` to explicitly allow OpenQASM3 circuits as first-class inputs.
 
-A consequence of switching to the concept of Tasks, alluded to in the section that introduced them, is that this will allow us to introduce the `.run()` method into `BasePrimitive`
+A consequence of switching to the concept of Tasks (mentioned in [Tasks](#tasks)) is that this will allow us to introduce the `.run()` method into `BasePrimitive`
 
 ```python
 class BasePrimitive(ABC, Generic[T]):
