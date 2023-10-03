@@ -52,8 +52,6 @@ However, standard broadcasting rules are such that the 0D and 1D cases will feel
 For all users, the interface changes in this proposal will enable specific primitive implementations to enhance performance through reduced bandwidth on the runtime, compatibility with fast parameter binding, and multiplexing qubit-wise commuting observables.
 
 ## Design Proposal
-This is the focus of the document. Explain the proposal from the perspective of
-educating another user on the proposed features.
 
 ### Tasks
 
@@ -89,26 +87,19 @@ Technical reference level design. Elaborate on details such as:
 
 An alternative is to consider letting the `run()` method accept, effectively, only a single `ObservablesTask`:
 
-`Estimator.run(cirucuit, parameter_values_array, observables_array)`
+```python
+Estimator.run(cirucuit, parameter_values_array, observables_array)
+```
 
 This has the advantage of a simpler interface, where multiple tasks could be run 
 by invoking the estimator multiple times. The disadvantages, which we feel are significant enough to forego this simplification, are that:
 
  1. For real backends, the user would lose the ability to cause multiple types of circuits to be loaded into the control hardware at one time. For example, if using an estimator to perform randomized benchmarking, each circuit depth would need to be a separate job.
- 2. It would be more difficult for implementations that include mitigation to share resources between tasks. For example, if different tasks represent different trotter step counts, there would need to be a complicated mechanism to share learning resources---that are specific to the application circuit---between multiple jobs.
+ 2. It would be difficult for implementations that include mitigation to share resources between tasks. For example, if different tasks represent different trotter step counts, there would need to be a complicated mechanism to share learning resources---that are specific to the application circuits---between multiple jobs.
 
 ## Questions
 Open questions for discussion and an opening for feedback.
 
 ## Future Extensions
-Consider what extensions might spawn from this RFC. Discuss the roadmap of
-related projects and how these might interact. This section is also an opening
-for discussions and a great place to dump ideas.
-
-If you do not have any future extensions in mind, state that you cannot think
-of anything. This section should not be left blank.
-
-Primitive.run
-Sampler.run
 
 In this proposal we have typed circuits as `QuantumCircuit`. It would be possible to extend this to a `CircuitLike` class which could be as simple as `Union[QuantumCircuit, str]` to explicitly allow OpenQASM3 circuits as first-class inputs.
