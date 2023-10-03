@@ -84,6 +84,13 @@ We expect the formal primitive API and primitive implementations to have a stron
 The "BindingsArray" object will support, at a minimum, the following constructor examples for a circuit with three input parameters `a`, `b`, and `c`, where we will use `<>` to denote some `array_like` of the specified shape:
 
 ```python
+# a single value for each a, b, and c; 0-dimensional, and compatible with current interface
+BindingsArray([0.0, 1.0, 2.0])
+
+# a single value for each a, b, and c; 0-dimensional, and compatible with current interface
+# satisfies user wish to be able to specify values by name
+BindingsArray(kwvals={Parameter("a"): 0.0, Parameter("b"): 1.0, Parameter("c"): 2.0})
+
 # specify all 50 binding parameter sets in one big array
 BindingsArray(<50, 3>) 
 
