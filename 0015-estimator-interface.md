@@ -109,13 +109,44 @@ The `ObservablesArray` object will be an object array, where each element corres
 
 An `nd-array` is an object whose elements are indexed by a tuple of integers, where each integer must be bounded by the dimension of that axis. The tuple of dimensions, one for each axis, is called the shape of the `nd-array`. For example, 1D list of 10 objects (typically numbers) is a vector and has shape `(10,)`; a matrix with 5 rows and 2 columns is 2D and has shape `(5, 2)`; a single number is 0D and has an empty shape tuple `()`; an `nd-array` with shape (20, 10, 5) can be interpreted as a length-20 list of 10×5 matrices.
 
+Here are some examples of common patterns expressed in terms of array broadcasting, and their accompanying visual representation in the figure below:
+
 ```python
-shape1=(1, 5), shape2=(4, 1), broadcasted_shape=(4,5)
+# Broadcast single observable
+parameter_values = np.array(1.0)
+parameter_values.shape == ()
+observables = ObservablesArray([Pauli("III"), Pauli("XXX"), Pauli("YYY"), Pauli("ZZZ"), Pauli("XYZ")])
+observables.shape == (5,)
+>> result_bundle.shape == (5,)
 
-shape1=(1, 5), shape2=(4, 1), broadcasted_shape=(4,5)
+# Inner/Zip
+parameter_values = BindingsArray(np.random.uniform(size=(5,)))
+parameter_values.shape == (5,)
+observables = ObservablesArray([[Pauli("III")], [Pauli("XXX")], [Pauli("YYY")], [Pauli("ZZZ")], [Pauli("XYZ")]])
+observables.shape == (5,1)
+>> result_bundle.shape == (5,)
 
-shape1=(), shape2=(5, 10), broadcasted_shape=(5,10)
+# Outer/Product
+parameter_values = BindingsArray(np.random.uniform(size=(1,6)))
+parameter_values.shape == (1,6)
+observables = ObservablesArray([[Pauli("III"), Pauli("XXX"), Pauli("YYY"), Pauli("ZZZ"), Pauli("XYZ"), Pauli("IIZ")]])
+observables.shape == (4,1)
+>> result_bundle.shape == (4,6)
+
+# Standard nd generalization
+parameter_values = BindingsArray(np.random.uniform(size=(3,6)))
+parameter_values.shape == (3,6)
+observables = ObservablesArray([
+    [[Pauli(...), Pauli(...)]],
+    [[Pauli(...), Pauli(...)]],
+    [[Pauli(...), Pauli(...)]]
+])
+observables.shape == (3,1,2)
+>> result_bundle.shape == (3,2,6)
+
 ```
+
+<img src="./0015-estimator-interface/broadcasting.svg">
 
 FAQ1: Why make `BindingArrays` `nd`, and not just `list`-like? 
 
