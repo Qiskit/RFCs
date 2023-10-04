@@ -115,14 +115,14 @@ ObservablesArrayLike = Union[
     Iterable[str | Pauli | SparsePauliOp]
 ]
 
-ObservableTaskLike = Union[
-    ObservablesTask,
+EstimatorTaskLike = Union[
+    EstimatorTask,
     Tuple[QuantumCircuit, ObservablesArrayLike, BindingsArrayLike]
 ]
 
 class EstimatorBase(ABC, Generic[T]):
     ...
-    def run(self, tasks: ObservableTaskLike | Iterable[ObservableTaskLike], **options) -> T:
+    def run(self, tasks: EstimatorTaskLike | Iterable[EstimatorTaskLike], **options) -> T:
         pass
 ```
 
@@ -144,7 +144,7 @@ This base class can be added to qiskit if and when needed as a non-breaking chan
 Most relevant, for the `Estimator` primitive, in order to satisfy the definition as stated above, we propose the task structure
 
 ```python
-class ObservablesTask(BaseTask):
+class EstimatorTask(BaseTask):
     observables: ObservablesArray = None
     parameter_values: BindingsArray = None, 
 ```
@@ -286,14 +286,14 @@ def coerce(bindings_array: BindingsArrayLike) -> BindingsArray:
 ```
 
 In particular, we propose this kind of Coercion for the types:
-* `ObservablesTask`
+* `EstimatorTask`
 * `BindingsArray`
 * `ObservablesArray`
 
 ### TaskResults <a name="TaskResults"></a>
 
-The results from each `ObservablesTask` will be array valued, and each `ObservablesTask` in the same job may have a different shape.
-Consider an `ObservablesTask` with shape `<20, 30>`, where the shape has come from the broadcasting rules discussed elsewhere. 
+The results from each `EstimatorTask` will be array valued, and each `EstimatorTask` in the same job may have a different shape.
+Consider an `EstimatorTask` with shape `<20, 30>`, where the shape has come from the broadcasting rules discussed elsewhere. 
 This will result in a 20×30 array of real estimates.
 Moreover, we will want to return an array of standard deviations of the same shape.
 This would result in a bundle of broadcastable arrays:
@@ -337,11 +337,11 @@ We propose the migration to using tasks in two phases.
 ### Deprecation Phase 1
 
 In the first phase:
-* Introduce `tasks: Sequence[ObservablesTask] | ObservablesTask` as the only positional argument, and make `circuits` a keyword argument.
+* Introduce `tasks: Sequence[EstimatorTask] | EstimatorTask` as the only positional argument, and make `circuits` a keyword argument.
 * Coerce the arguments to account for the fact that the only existing positional argument is `circuit: Sequence[QuantumCircuit] | QuantumCircuit`.
 * Check that the user does not attempt to mix the old/new APIs.
-* If necessary, coerce the old-API arguments (now all keyword arguments) into `ObservableTask`s, **raise deprecation warning**.
-* Always eventually run with `Estimator._run(tasks: Sequence[ObservablesTask], **run_options)`.
+* If necessary, coerce the old-API arguments (now all keyword arguments) into `EstimatorTask`s, **raise deprecation warning**.
+* Always eventually run with `Estimator._run(tasks: Sequence[EstimatorTask], **run_options)`.
 
 Here is a mock implementation, with missing type annotations as above:
 ```python
@@ -349,7 +349,7 @@ class Estimator(BasePrimitive):
 
     def run(
         self, 
-        tasks: Sequence[ObservablesTask] | ObservablesTask, 
+        tasks: Sequence[EstimatorTask] | EstimatorTask, 
         circuits = None,
         observables = None, 
         parameter_values = None, 
@@ -380,12 +380,12 @@ class Estimator(BasePrimitive):
             if isinstance(observables, (BaseOperator, PauliSumOp, str)):
                 observables = [observables]
 
-            # Coerce old form into `ObservablesTask`s
-            tasks = [ObservablesTask.coerce(task) for task in zip(circuits, observables, parameter_values)]
+            # Coerce old form into `EstimatorTask`s
+            tasks = [EstimatorTask.coerce(task) for task in zip(circuits, observables, parameter_values)]
             warnings.warn("Deprecated API use")
         
         # Coerce into sequence form
-        if isinstance(tasks, ObservablesTasks):
+        if isinstance(tasks, EstimatorTasks):
             tasks = [tasks]
         
         # Run using only tasks
@@ -401,11 +401,11 @@ class Estimator(BasePrimitive):
 
     def run(
         self, 
-        tasks: Sequence[ObservablesTask] | ObservablesTask, 
+        tasks: Sequence[EstimatorTask] | EstimatorTask, 
         **run_options
     ):
         # Coerce into sequence form
-        if isinstance(tasks, ObservablesTasks):
+        if isinstance(tasks, EstimatorTasks):
             tasks = [tasks]
         
         # Run using only tasks
@@ -414,7 +414,7 @@ class Estimator(BasePrimitive):
 
 ## Alternative Approaches <a name="alternative-approaches"></a>
 
-An alternative is to consider letting the `run()` method accept, effectively, only a single `ObservablesTask`:
+An alternative is to consider letting the `run()` method accept, effectively, only a single `EstimatorTask`:
 
 ```python
 Estimator.run(cirucuit, parameter_values_array, observables_array)
