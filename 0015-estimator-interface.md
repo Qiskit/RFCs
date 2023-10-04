@@ -288,7 +288,7 @@ In the first phase:
 * If necessary, coerce the old-API arguments (now all keyword arguments) into `ObservableTask`s, **raise deprecation warning**.
 * Always eventually run with `Estimator._run(tasks: Sequence[ObservablesTask], **run_options)`.
 
-Here is a mock implementation:
+Here is a mock implementation, with missing type annotations as above:
 ```python
 class Estimator(BasePrimitive):
 
@@ -299,9 +299,11 @@ class Estimator(BasePrimitive):
         observables = None, 
         parameter_values = None, 
         **run_options
-        ):
+    ):
         # Coerce into standard form to later allow for `tasks` to be the only non-kwarg.
         if isinstance(tasks, QuantumCircuit) or all(isinstance(task, QuantumCircuit) for task in tasks):
+            if circuits is not None:
+                raise ValueError("Cannot mix old and new APIs")
             circuits = tasks
             tasks = None
 
@@ -337,7 +339,7 @@ class Estimator(BasePrimitive):
 
 ### Deprecation Phase 2
 
-After the deprecation period, everything except the `Estimator._run` call and some minor coercion (unrelated to this RFC) are necessary.
+After the deprecation period, remove extraneous arguments and checks:
 
 ```python
 class Estimator(BasePrimitive):
@@ -346,7 +348,7 @@ class Estimator(BasePrimitive):
         self, 
         tasks: Sequence[ObservablesTask] | ObservablesTask, 
         **run_options
-        ):
+    ):
         # Coerce into sequence form
         if isinstance(tasks, ObservablesTasks):
             tasks = [tasks]
