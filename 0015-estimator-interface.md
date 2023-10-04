@@ -187,13 +187,13 @@ We propose a new `ObservablesArray` object, where each element corresponds to a 
 We propose that the internal data model of this object have an element format
 
 ```python
-Dict[Tuple[Tuple[int,...], str], float]
+List[Tuple[str, List[int], float]]
 ```
 
 where, for example, the observable `0.5 * IIZY + 0.2 * XIII` would be stored as
 
 ```python
-{((2, 3), "ZY"): 0.5, ((0,), "X"): 0.2}
+[("ZY", [2, 3], 0.5), ("X", [0], 0.2)]
 ```
 
 This is proposed instead of `{"IIZY": 0.5, "XIII": 0.2}` anticipating the overhead of storing and working with so many `"I"`'s for large devices.
