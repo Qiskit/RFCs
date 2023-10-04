@@ -78,6 +78,8 @@ job.result()
 >> [ResultBundle<{evs: ndarray<4, 32>, stds: ndarray<4, 32>}>, metadata]
 ```
 
+## Detailed Design <a name="detailed-design"></a>
+
 ### Tasks <a name="tasks"></a>
 
 In this proposal, we introduce the concept of a Task, which we define as a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
@@ -238,14 +240,6 @@ The reason we are proposing a generic container for the return type instead of, 
 1. Provides a certain certain amount of flexibility for what can be returned without modifying the container object. Here are some examples:
   1. Suppose that we want to give users the option of additionally returning the covariances between estimates that arise because of the circuit multiplexing, then we could update with the field `{"cov": <20,30,20,30>}`.
   1. Suppose we want to return some indication of which estimates came from the same physical circuit.
-
-## Detailed Design <a name="detailed-design"></a>
-Technical reference level design. Elaborate on details such as:
-- Implementation procedure
-  - If spans multiple projects cover these parts individually
-- Interaction with other features
-- Dissecting corner cases
-- Reference definition, e.g., formal definitions.
 
 ## Migration Path <a name="migration-path"></a>
 
