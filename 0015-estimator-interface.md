@@ -90,8 +90,8 @@ job.result()
 
 # get a bundle of results for every task
 >> EstimatorResult(
->>     ResultBundle<{evs: ndarray<4, 32>, stds: ndarray<4, 32>}, local_metadata>, 
->>     ResultBundle<{evs: ndarray<18>, stds: ndarray<18>}, local_metadata>, 
+>>     TaskResult<{evs: ndarray<4, 32>, stds: ndarray<4, 32>}, local_metadata>, 
+>>     TaskResult<{evs: ndarray<18>, stds: ndarray<18>}, local_metadata>, 
 >>     global_metadata
 >> )
 ```
@@ -290,7 +290,7 @@ In particular, we propose this kind of Coercion for the types:
 * `BindingsArray`
 * `ObservablesArray`
 
-### ResultBundles <a name="resultbundles"></a>
+### TaskResults <a name="TaskResults"></a>
 
 The results from each `ObservablesTask` will be array valued, and each `ObservablesTask` in the same job may have a different shape.
 Consider an `ObservablesTask` with shape `<20, 30>`, where the shape has come from the broadcasting rules discussed elsewhere. 
@@ -299,7 +299,7 @@ Moreover, we will want to return an array of standard deviations of the same sha
 This would result in a bundle of broadcastable arrays:
 
 ```python
-ResultBundle({“evs”: <20, 30>, “stds”: <20, 30>}, metadata)
+TaskResult({“evs”: <20, 30>, “stds”: <20, 30>}, metadata)
 ```
 
 The reason we are proposing a generic container for the return type instead of, e.g., an `Estimator`-specific container, is because it
@@ -442,7 +442,7 @@ A consequence of switching to the concept of Tasks (mentioned in [Tasks](#tasks)
 ```python
 class BasePrimitive(ABC, Generic[T]):
     ...
-    def run(self, T | Iterable[T], **options) -> List[ResultBundle]:
+    def run(self, T | Iterable[T], **options) -> List[TaskResult]:
         ...
 ```
 
