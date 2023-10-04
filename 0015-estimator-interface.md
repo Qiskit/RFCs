@@ -4,6 +4,7 @@
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0015                                         |
 | **Authors**       | Ian Hincks (ian.hincks@ibm.com)              |
+|                   | Samantha Barron (samantha.v.barron@ibm.com)  |
 | **Deprecates**    | RFC that this RFC deprecates                 |
 | **Submitted**     | 2023-10-03                                   |
 | **Updated**       | YYYY-MM-DD                                   |
