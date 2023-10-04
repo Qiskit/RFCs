@@ -127,12 +127,12 @@ class EstimatorBase(ABC, Generic[T]):
 
 We propose the concept of a _task_, which we define as _a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question_. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
 
-For example, a circuit with unbound parameters (or in OpenQASM3 terms, a circuit with `input`s) alone could never qualify as a Task for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an circuit with no `input`s) alone could form a task for a hypothetical primitive that just runs circuits and returns counts. This suggests (using an ad-hoc annotation convention) a natural base for all tasks:
+For example, a circuit with unbound parameters (or in OpenQASM3 terms, a circuit with `input`s) alone could never qualify as a task for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an circuit with no `input`s) alone could form a task for a hypothetical primitive that just runs circuits and returns counts. This suggests a natural base for all tasks:
 
 ```python
 @dataclass
 class BaseTask:
-  circuit: QuantumCircuit
+    circuit: QuantumCircuit
 ```
 
 For the `Estimator` primitive, in order to satisfy the definition as stated above, we propose the task structure
@@ -206,7 +206,7 @@ An `nd-array` is an object whose elements are indexed by a tuple of integers, wh
 The tuple of dimensions, one for each axis, is called the shape of the `nd-array`. 
 For example, 1D list of 10 objects (typically numbers) is a vector and has shape `(10,)`; a matrix with 5 rows and 2 columns is 2D and has shape `(5, 2)`; a single number is 0D and has an empty shape tuple `()`; an `nd-array` with shape (20, 10, 5) can be interpreted as a length-20 list of 10×5 matrices.
 
-We propose the constraint that a `BindingsArray` instance and an `ObservablesArray` instance that live in the same task must have shapes that are broadcastable, and in such case an `Estimator` promises to return one expectation value estimate for each element of the broadcasted shape.
+We propose the constraint that a `BindingsArray` instance and an `ObservablesArray` instance that live in the same task must have shapes that are broadcastable, in which case, the `Estimator` promises to return one expectation value estimate for each element of the broadcasted shape.
 
 Here are some examples of common patterns expressed in terms of array broadcasting, and their accompanying visual representation in the figure that follows:
 
@@ -442,7 +442,7 @@ class BasePrimitive(ABC, Generic[T]):
 
 `BindingsArray` is somewhat constrained by how `Parameters` currently work in Qiskit, namely, there is no support for array-valued inputs in the same way that there is in OpenQASM 3; `BindingsArray` assumes that every parameter represents a single number like a `float` or an `int`.
 One solution could be to extend the class to allow different sub-arrays to have extra dimensions.
-For example, for an input angle-array `input angle[15] foo;`, and for a bindings array with shape `(30, 20)`, the corresponding array could have shape `(30, 20, 1, 15)`.
+For example, for an input angle-array `input array[angle, 15] foo;`, and for a bindings array with shape `(30, 20)`, the corresponding array could have shape `(30, 20, 1, 15)`, where the singleton dimension exists to express that it is targetting a single `input`.
 
 Another generalization is to allow broadcastable shapes inside of a single `BindingsArray`.
 For example, one could have one array with shape `(1, 4, 5)` for five parameters, and another with shape `(3, 1, 2)` for two parameters, resulting in a bindings array with shape `(3, 4)`.
