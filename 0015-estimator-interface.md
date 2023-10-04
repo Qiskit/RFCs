@@ -71,7 +71,7 @@ circuit2 = QuantumCircuit(2)
 ...
 
 # specify 128 different parameter value sets for circuit1, in a 4x32 shape
-parameter_values1 = np.random.uniform((4, 32, 2039))
+parameter_values1 = np.random.uniform(size=(4, 32, 2039))
 # specify 4 observables to measure for circuit 1
 observables1 = ["ZZIIIIIII", "IZXIIIIII", "IIIIIIYZI", "IZXIIYIII"]
 
