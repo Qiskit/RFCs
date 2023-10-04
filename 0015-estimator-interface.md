@@ -201,6 +201,9 @@ where, for example, the observable `0.5 * IIZY + 0.2 * XIII` would be stored as
 
 This is proposed instead of `{"IIZY": 0.5, "XIII": 0.2}` anticipating the overhead of storing and working with so many `"I"`'s for large devices.
 
+Note that the above is simply the data model; the `ObservablesArray` object, either in the constructor or special static coercion method, will accept the `quantum_info` objects such as `Pauli` and `SparsePauliOp` that they are used to.
+Further, through [type coersion](#type-coercion-strategy) in `Estimator.run()` itself, a user won't need to manually construct an `ObservablesArray`, as shown in the example in the [Design Proposal](#design-proposal) section.
+
 It is up to each `Estimator` implementation to, if it sees fit, to solve a graph coloring problem that decides how to produce a sufficient set of physical circuits that are capable of producing data to make each of these estimates.
 
 ### Arrays and Broadcasting <a name="arrays-and-broadcasting"></a>
@@ -280,7 +283,6 @@ def coerce(bindings_array: BindingsArrayLike) -> BindingsArray:
 ```
 
 In particular, we propose this kind of Coercion for the types:
-* `ArrayTask`
 * `ObservablesTask`
 * `BindingsArray`
 * `ObservablesArray`
