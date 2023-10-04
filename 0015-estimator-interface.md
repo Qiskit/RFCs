@@ -138,12 +138,13 @@ class BaseTask:
     circuit: QuantumCircuit
 ```
 
-For the `Estimator` primitive, in order to satisfy the definition as stated above, we propose the task structure
+This base class can be added to qiskit if and when needed as a non-breaking change, and has been included here mainly to make the concepts clear, rather than to indicate that we need such a base class immediately.
+Most relevant, for the `Estimator` primitive, in order to satisfy the definition as stated above, we propose the task structure
 
 ```python
 class ObservablesTask(BaseTask):
-    parameter_values: BindingsArray = None, 
     observables: ObservablesArray = None
+    parameter_values: BindingsArray = None, 
 ```
 
 We expect the formal primitive API and primitive implementations to have a strong sense of tasks, but we will not demand that users construct them manually in Python as they are little more than simple data containers (incidentically implemented as dataclasses above), and we do not wish to overburden them with types. This is discussed further in [Type Coercion Strategy](#type-coercion-strategy).
