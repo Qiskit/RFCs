@@ -3,11 +3,13 @@
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0015                                         |
-| **Authors**       | Ian Hincks (ian.hincks@ibm.com)              |
-|                   | Chris Wood (cjwood@us.ibm.com)               |
+| **Authors**       | Samantha Barron (samantha.v.barron@ibm.com)  |
+|                   | Lev Bishop (lsbishop@us.ibm.com)             |
 |                   | Ikko Hamamura (ikko.hamamura1@ibm.com)       |
-|                   | Samantha Barron (samantha.v.barron@ibm.com)  |
+|                   | Ian Hincks (ian.hincks@ibm.com)              |
 |                   | Takashi Imamichi (imamichi@jp.ibm.com)       |
+|                   | Blake Johnson (blake.johnson@ibm.com)        |
+|                   | Chris Wood (cjwood@us.ibm.com)               |
 | **Deprecates**    | RFC that this RFC deprecates                 |
 | **Submitted**     | 2023-10-03                                   |
 | **Updated**       | YYYY-MM-DD                                   |
