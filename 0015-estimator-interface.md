@@ -5,7 +5,7 @@
 | **RFC #**         | 0015                                         |
 | **Authors**       | Ian Hincks (ian.hincks@ibm.com)              |
 | **Deprecates**    | RFC that this RFC deprecates                 |
-| **Submitted**     | YYYY-MM-DD                                   |
+| **Submitted**     | 2023-10-03                                   |
 | **Updated**       | YYYY-MM-DD                                   |
 
 
