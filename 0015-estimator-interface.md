@@ -82,32 +82,34 @@ job.result()
 
 ### Tasks <a name="tasks"></a>
 
-In this proposal, we introduce the concept of a Task, which we define as a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
+We propose the concept of a _task_, which we define as _a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question_. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
 
-For example, a circuit with unbound parameters (or in OQ3 terms, a circuit with inputs) alone could never qualify as a Task for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an OQ3 circuit with no inputs) alone could form a Task for a hypothetical primitive that just runs circuits and returns counts. This suggests (using an ad-hoc annotation convention) a natural base for all Tasks:
+For example, a circuit with unbound parameters (or in OpenQASM3 terms, a circuit with `input`s) alone could never qualify as a Task for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an circuit with no `input`s) alone could form a task for a hypothetical primitive that just runs circuits and returns counts. This suggests (using an ad-hoc annotation convention) a natural base for all tasks:
 
 ```python
-BaseTask = NamedTuple[circuit: QuantumCircuit]
+@dataclass
+class BaseTask:
+  circuit: QuantumCircuit
 ```
 
 For the `Estimator` primitive, in order to satisfy the definition as stated above, we propose the task structure
 
 ```python
-class ObservablesTask(NamedTuple):
-    circuit: QuantumCircuit, 
-    parameter_values: BindingsArray, 
-    observables: ObservablesArray
+class ObservablesTask(BaseTask):
+    parameter_values: BindingsArray = None, 
+    observables: ObservablesArray = None
 ```
 
-We expect the formal primitive API and primitive implementations to have a strong sense of Tasks, but we will not demand that users construct them manually in Python as they are little more than named tuples, and we do not wish to overburden them with types. This is discussed further in [Type Coersion Strategy](#type-coercion-strategy).
+We expect the formal primitive API and primitive implementations to have a strong sense of tasks, but we will not demand that users construct them manually in Python as they are little more than simple data containers (incidentically implemented as dataclasses above), and we do not wish to overburden them with types. This is discussed further in [Type Coercion Strategy](#type-coercion-strategy).
 
 ### BindingsArray <a name="bindingsarray"></a>
 
-It is common for a user to want to do a sweep over parameter values, that is, to execute the same parametric circuit with many different parameter binding sets. `BindingsArray` is an object that specifies multiple sets of parameters that can be bound to a circuit. For example, if a circuit has 200 parameters, and a user wishes to execute the circuit for 50 different sets of values, then a single instance of `BindingsArray` could represent 50 sets of 200 parameter values. Moreover, it is array-like (see [ObservablesArray](#observablesarray)), so in this example the `BindingsArray` instance would be one-dimensional and have shape equal `(50,)`. 
+It is common for a user to want to do a sweep over parameter values, that is, to execute the same parametric circuit with many different parameter binding sets. 
+We propose a new class `BindingsArray` that stores multiple sets of parameters, which can be bound to a circuit. 
+For example, if a circuit has 200 parameters, and a user wishes to execute the circuit for 50 different sets of values, then a single instance of `BindingsArray` could represent 50 sets of 200 parameter values. 
+Moreover, we propose that it be array-like, so that, in this example, the `BindingsArray` instance would be one-dimensional and have shape equal `(50,)`. 
 
-We expect the formal primitive API and primitive implementations to have a strong sense of `BindingsArray`, but we will not demand that users construct them manually because we do not wish to overburden them with types, and we need to remain backwards compatible. This is discussed further in the [Type Coercion Strategy](#type-coercion-strategy) and [Migration Path](#migration-path) sections.
-
-The "BindingsArray" object will support, at a minimum, the following constructor examples for a circuit with three input parameters `a`, `b`, and `c`, where we will use `<>` to denote some `array_like` of the specified shape:
+The proposed `BindingsArray` object would support, at a minimum, the following constructor examples for a circuit with three input parameters `a`, `b`, and `c`, where we will use `<>` to denote some `array_like` of the specified shape:
 
 ```python
 # a single value for each a, b, and c; 0-dimensional, and compatible with current interface
@@ -130,24 +132,46 @@ BindingsArray(kwargs={(a, c): <50, 2>, b: <50>})
 BindingsArray(<50, 2>, {c: <50>}) 
 ```
 
+We expect the formal primitive API and primitive implementations to have a strong sense of `BindingsArray`, but we will not demand that users construct them manually because we do not wish to overburden them with types, and we need to remain backwards compatible. This is discussed further in the [Type Coercion Strategy](#type-coercion-strategy) and [Migration Path](#migration-path) sections.
 
 ### ObservablesArray <a name="observablesarray"></a>
 
-With the `Estimator`, it is common for a user to want to estimate many observables of a single circuit. For example, all weight-1 and weight-2 Paulis that are adjacent on the connectivity graph. For a one-hundred qubit device, this corresponds to hundreds of unique estimates to be made for a single circuit, noting that for this particular example, on the heavy-hex graph, in the absence of mitigation, only 9 circuits need to be physically run.
+With the `Estimator`, it is common for a user to want to estimate many observables of a single circuit. 
+For example, all weight-1 and weight-2 Paulis that are adjacent on the connectivity graph. 
+For a one-hundred qubit device, this corresponds to hundreds of unique estimates to be made for a single circuit, noting that for this particular example, on the heavy-hex graph, in the absence of mitigation, only 9 circuits need to be physically run.
 
-The `ObservablesArray` object will be an object array, where each element corresponds to a observable the user wants an estimated expectation value of. It is up to an `Estimator` implementation to solve a graph coloring problem to decide how to produce a sufficient set of physical circuits that are capable of producing data to make each of these estimates.
+We propose a new `ObservablesArray` object, where each element corresponds to a observable the user wants an estimated expectation value of.
+We propose that the internal data model of this object have an element format
+
+```python
+Dict[Tuple[Tuple[int,...], str], float]
+```
+
+where, for example, the observable `0.5 * IIZY + 0.2 * XIII` would be stored as
+
+```python
+{((2, 3), "ZY"): 0.5, ((0,), "X"): 0.2}
+```
+
+This is proposed instead of `{"IIZY": 0.5, "XIII": 0.2}` anticipating the overhead of storing and working with so many `"I"`'s for large devices.
+
+It is up to each `Estimator` implementation to, if it sees fit, to solve a graph coloring problem that decides how to produce a sufficient set of physical circuits that are capable of producing data to make each of these estimates.
 
 ### Arrays and Broadcasting <a name="arrays-and-broadcasting"></a>
 
-An `nd-array` is an object whose elements are indexed by a tuple of integers, where each integer must be bounded by the dimension of that axis. The tuple of dimensions, one for each axis, is called the shape of the `nd-array`. For example, 1D list of 10 objects (typically numbers) is a vector and has shape `(10,)`; a matrix with 5 rows and 2 columns is 2D and has shape `(5, 2)`; a single number is 0D and has an empty shape tuple `()`; an `nd-array` with shape (20, 10, 5) can be interpreted as a length-20 list of 10×5 matrices.
+An `nd-array` is an object whose elements are indexed by a tuple of integers, where each integer must be bounded by the dimension of that axis. 
+The tuple of dimensions, one for each axis, is called the shape of the `nd-array`. 
+For example, 1D list of 10 objects (typically numbers) is a vector and has shape `(10,)`; a matrix with 5 rows and 2 columns is 2D and has shape `(5, 2)`; a single number is 0D and has an empty shape tuple `()`; an `nd-array` with shape (20, 10, 5) can be interpreted as a length-20 list of 10×5 matrices.
 
-Here are some examples of common patterns expressed in terms of array broadcasting, and their accompanying visual representation in the figure below:
+We propose the constraint that a `BindingsArray` instance and an `ObservablesArray` instance that live in the same task must have shapes that are broadcastable, and in such case an `Estimator` promises to return one expectation value estimate for each element of the broadcasted shape.
+
+Here are some examples of common patterns expressed in terms of array broadcasting, and their accompanying visual representation in the figure that follows:
 
 ```python
 # Broadcast single observable
 parameter_values = np.array(1.0)
 parameter_values.shape == ()
-observables = ObservablesArray([Pauli("III"), Pauli("XXX"), Pauli("YYY"), Pauli("ZZZ"), Pauli("XYZ")])
+observables = ObservablesArray(["III", "XXX", Pauli("YYY"), "ZZZ", Pauli("XYZ")])
 observables.shape == (5,)
 >> result_bundle.shape == (5,)
 
@@ -179,16 +203,6 @@ observables.shape == (3,1,2)
 ```
 
 <img src="./0015-estimator-interface/broadcasting.svg">
-
-FAQ1: Why make `BindingArrays` `nd`, and not just `list`-like? 
-
-* A1: The primitives are meant to be a convenient execution framework, and allowing multiple axes relieves certain book-keeping burdens from the caller. `nd-arrays` are a standard construct in data manipulation. Different axes can be assigned different operational meanings, for example axis 0 could be a sweep over basis transformations, and axis 1 could be a sweep over Pauli randomizations.
-
-* A2: There are different places in the runtime stack that binding can occur. in the runtime container, as a fast parametric. Having multiple axes gives us the freedom to offer this as an explicit feature in the future (?).
-
-* A3: It lets us specify certain common scenarios for `ObservablesTask` more efficiently. For example, suppose we want one axis to represent twirling variates, and the other axis to represent observable bases. Then, via broadcasting, described below, the information that needs to be transferred over the wire appears 1D  for both the twirling variate phase information and the list of observables. Without `nd-array` support, broadcasting would have to be done client-side.
-
-We propose that any subtype of `ArrayTask` use broadcasting rules on auxillary data.
 
 ### Type Coercion Strategy <a name="type-coercion-strategy"></a>
 
