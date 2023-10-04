@@ -55,27 +55,69 @@ Moreover, the interface changes in this proposal will enable specific primitive 
 
 ## Design Proposal <a name="design-proposal"></a>
 
-We use the (non-standard) notation `Type<attrs>` to denote an instance of the given type with a constraint on attributes such as shape or format.
+We will lead the design proposal with an example:
 
 ```python
-Estimator.run(Union[Iterable[ObservablesTask<shape_i>], ObservablesTask], **options) → List[ResultBundle<{evs: ndarray<shape_i>, stds: ndarray<shape_i>}>]
-```
+# construct two circuits, the first with 2039 Parameters, the second with no Parameters
+circuit1 = QuantumCircuit(9)
+...
+circuit2 = QuantumCircuit(2)
+...
 
-### Example 1
+# specify 128 different parameter value sets for circuit1, in a 4x32 shape
+parameter_values1 = np.random.uniform((4, 32, 2039))
+# specify 4 observables to measure for circuit 1
+observables1 = ["ZZIIIIIII", "IZXIIIIII", "IIIIIIYZI", "IZXIIYIII"]
 
-```python
-circuit = QuantumCircuit() 
-... # populate with 2039 parameters
+# specify 18 observables to measure for circuit2
+observables2 = [Pauili("XYZIIII"), ..., SparsePauliOp({"YYIIIII": 0.2})]
 
-parameter_values = np.random((4, 32, 2039))
-observables = ["ZZIIIIIII", "IZXIIIIII", "IIIIIIYZI", "IZXIIYIII"]
-
+# invoke an estimator
 estimator = Estimator()
-job = estimator.run((circuit, parameter_values, observables))
+job = estimator.run([
+  (circuit1, observables1, parameter_values1),
+  (circuit2, observables2)
+])
 
+# wait for the result
 job.result()
 
->> [ResultBundle<{evs: ndarray<4, 32>, stds: ndarray<4, 32>}>, metadata]
+# get a bundle of results for every task
+>> EstimatorResult(
+>>     ResultBundle<{evs: ndarray<4, 32>, stds: ndarray<4, 32>}, local_metadata>, 
+>>     ResultBundle<{evs: ndarray<18>, stds: ndarray<18>}, local_metadata>, 
+>>     global_metadata
+>> )
+```
+
+The above example shows various features of the design, including combining large numbers of observables with large numbers of parameter value sets for a single circuit.
+
+The detailed targetted signature, following the [deprecation period](#migration-path),
+is as follows:
+
+```python
+T = TypeVar("T", bound=Job)
+
+BindingsArrayLike = Union[
+    BindingsArray, 
+    NDArray, 
+    Dict[Parameter | Tuple[Parameter], NDArray]
+]
+
+ObservablesArrayLike = Union[
+    ObservablesArray,
+    Iterable[str | Pauli | SparsePauliOp]
+]
+
+ObservableTaskLike = Union[
+    ObservablesTask,
+    Tuple[QuantumCircuit, ObservablesArrayLike, BindingsArrayLike]
+]
+
+class EstimatorBase(ABC, Generic[T]):
+    ...
+    def run(self, tasks: ObservableTaskLike | Iterable[ObservableTaskLike], **options) -> T:
+        pass
 ```
 
 ## Detailed Design <a name="detailed-design"></a>
@@ -217,7 +259,7 @@ that is invoked inside of the `run()` method.
 For example,
 
 ```python
-BindingsArrayLike=Union[BindingsArray, ArrayLike, Iterable[float], Mapping[Parameter, float]]
+BindingsArrayLike = Union[BindingsArray, ArrayLike, Mapping[Parameter, float]]
 ```
 
 and
@@ -228,7 +270,7 @@ def coerce(bindings_array: BindingsArrayLike) -> BindingsArray:
     if isinstance(bindings_array, (list, ArrayLike)):
         bindings_array = BindingsArray(bindings_array)
     elif isinstance(bindings_array, Mapping):
-        bindings_array = BindingsArray([], bindings_array)
+        bindings_array = BindingsArray(kwargs=bindings_array)
 
     return bindings_array
 ```
@@ -241,19 +283,23 @@ In particular, we propose this kind of Coercion for the types:
 
 ### ResultBundles <a name="resultbundles"></a>
 
-The results from each `Task` will be array valued. However, we may require several arrays, possibly of different types. Consider an `ObservablesTask` with shape `<20, 30>`, where the shape has come from some combination of multiplexing an observables sweep with a parameter values sweep. This will result in a 20×30 array of real estimates. Moreover, we will want to return an array of standard deviations of the same shape. This would result in a bundle of broadcastable arrays:
+The results from each `ObservablesTask` will be array valued, and each `ObservablesTask` in the same job may have a different shape.
+Consider an `ObservablesTask` with shape `<20, 30>`, where the shape has come from the broadcasting rules discussed elsewhere. 
+This will result in a 20×30 array of real estimates.
+Moreover, we will want to return an array of standard deviations of the same shape.
+This would result in a bundle of broadcastable arrays:
 
 ```python
 ResultBundle({“evs”: <20, 30>, “stds”: <20, 30>}, metadata)
 ```
 
-The reason we are proposing a generic container for the return type instead of, e.g., an `Estimator`-specific container, is because
+The reason we are proposing a generic container for the return type instead of, e.g., an `Estimator`-specific container, is because it
 
 1. Provides unified experience across primitives for users. 
-1. code-reuse
-1. Provides a certain certain amount of flexibility for what can be returned without modifying the container object. Here are some examples:
+2. code-reuse
+3. Provides a certain certain amount of flexibility for what can be returned without modifying the container object. Here are some examples:
   1. Suppose that we want to give users the option of additionally returning the covariances between estimates that arise because of the circuit multiplexing, then we could update with the field `{"cov": <20,30,20,30>}`.
-  1. Suppose we want to return some indication of which estimates came from the same physical circuit.
+  2. Suppose we want to return some indication of which estimates came from the same physical circuit.
 
 ## Migration Path <a name="migration-path"></a>
 
