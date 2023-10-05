@@ -375,8 +375,8 @@ class Estimator(BasePrimitive):
             # Coerce into old form
             if parameter_values is None:
                 parameter_values = itertools.repeat(None)
-            if isinstance(circuit, QuantumCircuit):
-                circuit = [circuit]
+            if isinstance(circuits, QuantumCircuit):
+                circuits = [circuits]
             if isinstance(observables, (BaseOperator, str)):
                 observables = [observables]
 
