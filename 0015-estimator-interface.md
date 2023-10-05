@@ -140,7 +140,7 @@ class BaseTask:
     circuit: QuantumCircuit
 ```
 
-This base class can be added to qiskit if and when needed as a non-breaking change, and has been included here mainly to make the concepts clear, rather than to indicate that we need such a base class immediately.
+This base class can be added to Qiskit if and when needed as a non-breaking change, and has been included here mainly to make the concepts clear, rather than to indicate that we need such a base class immediately.
 Most relevant, for the `Estimator` primitive, in order to satisfy the definition as stated above, we propose the task structure
 
 ```python
