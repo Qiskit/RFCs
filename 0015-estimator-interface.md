@@ -377,7 +377,7 @@ class Estimator(BasePrimitive):
                 parameter_values = itertools.repeat(None)
             if isinstance(circuit, QuantumCircuit):
                 circuit = [circuit]
-            if isinstance(observables, (BaseOperator, PauliSumOp, str)):
+            if isinstance(observables, (BaseOperator, str)):
                 observables = [observables]
 
             # Coerce old form into `EstimatorTask`s
