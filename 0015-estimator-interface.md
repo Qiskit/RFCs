@@ -189,7 +189,7 @@ With the `Estimator`, it is common for a user to want to estimate many observabl
 For example, all weight-1 and weight-2 Paulis that are adjacent on the connectivity graph. 
 For a one-hundred qubit device, this corresponds to hundreds of unique estimates to be made for a single circuit, noting that for this particular example, on the heavy-hex graph, in the absence of mitigation, only 9 circuits need to be physically run.
 
-We propose a new `ObservablesArray` object, where each element corresponds to a observable the user wants an estimated expectation value of.
+We propose a new `ObservablesArray` object, where each element corresponds to an observable the user wants an estimated expectation value of.
 We propose that the internal data model of this object have an element format
 
 ```python
