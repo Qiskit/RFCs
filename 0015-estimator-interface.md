@@ -76,7 +76,7 @@ parameter_values1 = np.random.uniform(size=(4, 32, 2039))
 observables1 = ["ZZIIIIIII", "IZXIIIIII", "IIIIIIYZI", "IZXIIYIII"]
 
 # specify 18 observables to measure for circuit2
-observables2 = [Pauili("XYZIIII"), ..., SparsePauliOp({"YYIIIII": 0.2})]
+observables2 = [Pauli("XYZIIII"), ..., SparsePauliOp({"YYIIIII": 0.2})]
 
 # invoke an estimator
 estimator = Estimator()
