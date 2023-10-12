@@ -126,6 +126,51 @@ class EstimatorBase(ABC, Generic[T]):
         pass
 ```
 
+### Migration Examples <a name="migration-examples"></a>
+
+Technical details of migration are discussed in the [Migration Path](#migration-path) section, but it is perhaps worthwhile to show some examples that demonstrate that, despite the new array and broadcasting abilities, the interface is not overly complicated for simple examples.
+
+One circuit, many observables:
+
+```python
+    # old API
+    estimator.run([circuit] * 4, observables=["ZIII", "IZII", "IIZI", "IIIZ"]).result()
+    >> EstimatorResult(np.array([0.1, 0.2, 0.3, 0.4]), metadata={...})
+
+    # new API (we can use a single task)
+    estimator.run((circuit, ["ZIII", "IZII", "IIZI", "IIIZ"])).result()
+    >> [ResultTask({"evs": np.array([0.1, 0.2, 0.3, 0.4]), "stds": <...>}, metadata={...})]
+```
+
+One circuit, one observable, many parameter value sets:
+
+```python
+    # old API
+    estimator.run([circuit] * 3, observables=["XYZI"] * 3, parameter_values=[[1,2,3], [3,4,5], [8,7,6]]).result()
+    >> EstimatorResult(np.array([0.1, 0.2, 0.3]), metadata={...})
+
+    # new API (we can use a single task)
+    estimator.run((circuit, ["XYZI"], [[1,2,3], [3,4,5], [8,7,6]])).result()
+    >> [ResultTask({"evs": np.array([0.1, 0.2, 0.3]), "stds": <...>}, metadata={...})]
+```
+
+Three different circuits, three different observables:
+
+```python
+    # old API
+    estimator.run([circuit1, circuit2, circuit3], observables=["ZIII", "IZII", "IIZI"]).result()
+    >> EstimatorResult(np.array([0.1, 0.2, 0.3]), metadata={...})
+
+    # new API (unique circuits always need their own tasks)
+    estimator.run([(circuit1, "ZIII"), (circuit2, "IZII"), (circuit3, "IIZI")]).result()
+    >> [
+    >>     ResultTask({"evs": np.array(0.1), "stds": <...>}, metadata={...}), 
+    >>     ResultTask({"evs": np.array(0.2), "stds": <...>}, metadata={...}), 
+    >>     ResultTask({"evs": np.array(0.3), "stds": <...>}, metadata={...})
+    >> ]
+```
+
+
 ## Detailed Design <a name="detailed-design"></a>
 
 ### Tasks <a name="tasks"></a>
