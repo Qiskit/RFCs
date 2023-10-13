@@ -462,7 +462,7 @@ class Estimator(BasePrimitive):
 An alternative is to consider letting the `run()` method accept, effectively, only a single `EstimatorTask`:
 
 ```python
-Estimator.run(cirucuit, parameter_values_array, observables_array)
+Estimator.run(circuit, parameter_values_array, observables_array)
 ```
 
 This has the advantage of a simpler interface, where multiple tasks could be run 
