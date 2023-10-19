@@ -272,7 +272,7 @@ observables = ObservablesArray(["III", "XXX", Pauli("YYY"), "ZZZ", Pauli("XYZ")]
 observables.shape == (5,)
 >> task_result.shape == (5,)
 
-# Inner/Zip
+# Zip
 parameter_values = BindingsArray(np.random.uniform(size=(5,)))
 parameter_values.shape == (5,)
 observables = ObservablesArray([Pauli("III"), Pauli("XXX"), Pauli("YYY"), Pauli("ZZZ"), Pauli("XYZ")])
