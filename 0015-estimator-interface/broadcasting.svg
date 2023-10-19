@@ -25,12 +25,12 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.0431548"
-     inkscape:cx="304.84449"
-     inkscape:cy="294.29955"
+     inkscape:cx="304.8445"
+     inkscape:cy="294.29956"
      inkscape:window-width="2245"
      inkscape:window-height="1376"
-     inkscape:window-x="323"
-     inkscape:window-y="106"
+     inkscape:window-x="1850"
+     inkscape:window-y="25"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1" />
   <defs
@@ -1456,7 +1456,7 @@
          id="tspan13109"
          style="stroke-width:0.529167"
          x="20.804472"
-         y="90.212502"></tspan></text>
+         y="90.212502" /></text>
     <text
        xml:space="preserve"
        style="font-size:4.34485px;font-family:'Arial Unicode MS';-inkscape-font-specification:'Arial Unicode MS';text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.362071;stroke-linejoin:bevel"
@@ -1471,25 +1471,25 @@
     <text
        xml:space="preserve"
        style="font-size:4.34485px;font-family:'Arial Unicode MS';-inkscape-font-specification:'Arial Unicode MS';text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.362071;stroke-linejoin:bevel"
-       x="12.552302"
+       x="10.964804"
        y="149.74498"
        id="text12846-07-7-7-3"><tspan
          sodipodi:role="line"
          id="tspan12844-6-8-9-9"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Rockwell;-inkscape-font-specification:Rockwell;fill:#000000;stroke:none;stroke-width:0.362071"
-         x="12.552302"
+         x="10.964804"
          y="149.74498">(3,6)</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:4.34485px;font-family:'Arial Unicode MS';-inkscape-font-specification:'Arial Unicode MS';text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.362071;stroke-linejoin:bevel"
-       x="80.607201"
+       x="82.194702"
        y="149.74498"
        id="text12846-07-7-7-3-6"><tspan
          sodipodi:role="line"
          id="tspan12844-6-8-9-9-1"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Rockwell;-inkscape-font-specification:Rockwell;fill:#000000;stroke:none;stroke-width:0.362071"
-         x="80.607201"
-         y="149.74498">(3,1,2)</tspan></text>
+         x="82.194702"
+         y="149.74498">(2,3,1)</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:4.34485px;font-family:'Arial Unicode MS';-inkscape-font-specification:'Arial Unicode MS';text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.362071;stroke-linejoin:bevel"
@@ -1500,7 +1500,7 @@
          id="tspan12844-6-8-9-9-1-2"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Rockwell;-inkscape-font-specification:Rockwell;fill:#000000;stroke:none;stroke-width:0.362071"
          x="158.23315"
-         y="149.74498">(3,6,2)</tspan></text>
+         y="149.74498">(2,3,6)</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:Rockwell;-inkscape-font-specification:Rockwell;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linejoin:bevel"

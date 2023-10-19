@@ -10,7 +10,6 @@
 |                   | Takashi Imamichi (imamichi@jp.ibm.com)       |
 |                   | Blake Johnson (blake.johnson@ibm.com)        |
 |                   | Chris Wood (cjwood@us.ibm.com)               |
-| **Deprecates**    | RFC that this RFC deprecates                 |
 | **Submitted**     | 2023-10-03                                   |
 | **Updated**       | YYYY-MM-DD                                   |
 
@@ -70,8 +69,8 @@ circuit1 = QuantumCircuit(9)
 circuit2 = QuantumCircuit(2)
 ...
 
-# specify 128 different parameter value sets for circuit1, in a 4x32 shape
-parameter_values1 = np.random.uniform(size=(4, 32, 2039))
+# specify 128 different parameter value sets for circuit1, in a 32x4 shape
+parameter_values1 = np.random.uniform(size=(32, 4, 2039))
 # specify 4 observables to measure for circuit 1
 observables1 = ["ZZIIIIIII", "IZXIIIIII", "IIIIIIYZI", "IZXIIYIII"]
 
@@ -90,7 +89,7 @@ job.result()
 
 # get a bundle of results for every task
 >> EstimatorResult(
->>     TaskResult<{evs: ndarray<4, 32>, stds: ndarray<4, 32>}, local_metadata>, 
+>>     TaskResult<{evs: ndarray<32, 4>, stds: ndarray<32, 4>}, local_metadata>, 
 >>     TaskResult<{evs: ndarray<18>, stds: ndarray<18>}, local_metadata>, 
 >>     global_metadata
 >> )
@@ -291,12 +290,11 @@ observables.shape == (4, 1)
 parameter_values = BindingsArray(np.random.uniform(size=(3, 6)))
 parameter_values.shape == (3, 6)
 observables = ObservablesArray([
-    [[Pauli(...), Pauli(...)]],
-    [[Pauli(...), Pauli(...)]],
-    [[Pauli(...), Pauli(...)]]
+    [[Pauli(...)], [Pauli(...)], [Pauli(...)]]],
+    [[Pauli(...)], [Pauli(...)], [Pauli(...)]]],
 ])
-observables.shape == (3, 1, 2)
->> task_result.shape == (3, 2, 6)
+observables.shape == (2, 3, 1)
+>> task_result.shape == (3, 6, 2)
 ```
 
 <img src="./0015-estimator-interface/broadcasting.svg">
