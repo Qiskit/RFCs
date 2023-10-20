@@ -16,13 +16,13 @@ This RFC proposes using Python and `pydantic` dataclasses as the object type of 
 
 `BasePrimitive` currently accept an `options` parameter of type `dict` to its constructor. The underlying expectation is that all options would be stored in this dictionary. However, due to the large number of options, both Qiskit Runtime and Qiskit Aer primitive implementations use a more structured approach. Transpiler options, for example, is specified via `transpile_options` in Aer and `options.transpilation.x` in Qiskit Runtime.
 
-Further more, while `BasePrimitive` takes a dictionary `options` as an input, its `options` property actually returns a `qiskit.providers.Options` instance, which is another inconsistency. There is little reason to use `qiskit.providers.Options`, which has a lot of complicated code designed to maintain backward compatibility with Qiskit Experiments. `qiskit.providers.Options` does allow setting of validators, but that feature is not used by any of known primitive implementations.
+While `BasePrimitive` takes a dictionary `options` as an input, its `options` property actually returns a `qiskit.providers.Options` instance, which is another inconsistency. There is little reason to use `qiskit.providers.Options`, which has a lot of complicated code designed to maintain backward compatibility with Qiskit Experiments. `qiskit.providers.Options` does allow setting of validators, but that feature is not used by any of known primitive implementations.
 
-In addition, there are additional features users requested around accessing options:
+In addition, there are features users requested around accessing options that this RFC wishes to address:
 - auto-complete, this can include nested auto-complete with `x.y`
 - an easy way to discover the different options for each primitive
 - validation on values
-- consistent way to specify the same options across different implementations
+- consistent way to specify the same options across different providers
 - the ability to specify experimental or undocumented options
 - the ability to make a copy of the options
 
@@ -34,24 +34,24 @@ It will also decouple `qiskit.providers.Options` from primitives, if Qiskit want
 
 ## Design Proposal
 
-1. Use Python dataclass as the input/output type for primitive options. Dataclass allows auto-complete and is self documenting.
+1. Use Python dataclass as the input/output type for primitive options. Dataclass allows auto-complete, and users can easily discover what fields are available.
 
 2. Make the `options` property callable, so a user can do `estimator.options.x`, to get/set the specific option, and `estimator.options()` to get all options. `options()` will return a copy of the options.
 
 2. `set_options` can continue to be used for bulk update.
 
-4. Providers that have more complex options, such as Qiskit Runtime, can use more advanced dataclass such as the one in `pydantic`. `pydantic` dataclasses are very similar to Python dataclasses but allow easier validation. It would also return `True` when using `dataclasses.is_dataclass` to check its type.
+4. Providers that have more complex options, such as Qiskit Runtime, can use more advanced dataclass type such as the one in `pydantic`. `pydantic` dataclasses are very similar to Python dataclasses but allow easier validation. It would also return `True` when using `dataclasses.is_dataclass` to check its type.
 
-    While it is still up to each provider to implement the options, this allows a standardized `x.y` approach instead of separate `nnn_options` dictionaries. We can document the common grouping of options in base primitives, such as `transpilation` and `execution`, to encourage provider to use the same terminologies.
+    While it is still up to each provider to implement the options, this allows a standardized `x.y` approach instead of separate `nnn_options` dictionaries. We can document the common grouping of options in base primitives, such as `transpilation` and `execution`, to encourage providers to use the same model.
 
-    Similarly, it is up to each provider on how they want to support undocumented options. Qiskit Runtime, for example, plans to support them under an `experimental` field that takes arbitrary kwargs.
+    Similarly, it is up to each provider on how they want to support undocumented/experimental options. Qiskit Runtime, for example, plans to support them under an `experimental` field that takes arbitrary kwargs.
 
 
-Backward compatibility depends on how we do migration for the primitive interface changes (see #51). If we decide to use a different version, then no backward compatibility is required. Otherwise, we'd need to use a different attribute, such as `settings`, and `options` would continue to return `qiskit.providers.Options`.
+Backward compatibility depends on how we do migration for the primitive interface changes (see #51). If we decide to use a different version, then no backward compatibility is required. Otherwise, we'd need to use a different attribute, such as `settings`, and `options` would be deprecated and continue to return `qiskit.providers.Options`.
 
 ## Detailed Design
 
-- `BasePrimitive` would accept either a dictionary or a dataclass as the input.
+- `BasePrimitive` would accept either a dictionary or a dataclass for `options`.
 - The `options` property becomes callable, which would allow both auto-complete and getting a copy of all options.
     - Alternatively, we can use `get_options` to return a copy of the options.
 - `set_options` can continue to be used for bulk update:
@@ -88,17 +88,10 @@ class BasePrimitive:
 
     @property
     def options(self) -> BasePrimitiveOptions:
-        """Return options values for the estimator.
-
-        Returns:
-            options
-        """
         return self._options
 
     def set_options(self, **fields):
-        options_dict = asdict(self._options)
-        options_dict.update(fields)
-        self._options = self._options_class(**options_dict)
+        self._options = replace(self._options, **fields)
 ```
 
 ```
@@ -157,9 +150,9 @@ EstimatorOptions(test_attr=1, resilience_level=1, transpilation=TranspilationOpt
 
 ## Alternative Approaches
 
-An alternative considered was using `pydantic.BaseModel`. This class offers all the features Python dataclasses and pydantic dataclasses have, plus many useful methods, such as determining whether a field was set or defaulted to.
+An alternative considered was using `pydantic.BaseModel`. This class offers all the features Python dataclasses and pydantic dataclasses have, plus many useful methods, such as determining whether a field was explicitly set or defaulted to.
 
-Unfortunately, these convenient methods would also show up when you attempt to do auto-complete and could cause confusion on which one are the options.
+Unfortunately, these useful methods would also show up when you attempt to do auto-complete and could cause confusion on which ones are the actual options.
 
 ## Questions
 
