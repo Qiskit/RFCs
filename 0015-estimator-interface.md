@@ -219,10 +219,10 @@ BindingsArray(<50, 3>)
 BindingsArray([<50>, <50>, <50>]) 
 
 # include parameter names with the arrays, where parameters can be grouped together in tuples, or supplied separately
-BindingsArray(kwargs={(a, c): <50, 2>, b: <50>}) 
+BindingsArray(kwargs={(Parameter("a"), Parameter("c")): <50, 2>, Parameter("b"): <50>}) 
 
 # “args” and “kwargs” can be mixed
-BindingsArray(<50, 2>, {c: <50>}) 
+BindingsArray(<50, 2>, {Parameter("c"): <50>}) 
 ```
 
 We expect the formal primitive API and primitive implementations to have a strong sense of `BindingsArray`, but we will not demand that users construct them manually because we do not wish to overburden them with types, and we need to remain backwards compatible. This is discussed further in the [Type Coercion Strategy](#type-coercion-strategy) and [Migration Path](#migration-path) sections.
