@@ -92,7 +92,7 @@ There will not be subclassing to the effect of `SamplerDataBundle < DataBundle`;
 
 A `TaskResult` is the result of running a single `Task` and does three things:
 
-  #. Stores a `DataBundle` instance bcontaining the data from execution.
+  #. Stores a `DataBundle` instance containing the data from execution.
   #. Stores the metadata that is possibly implementation-specific, and always specific to the executed task.
   #. (subclasses) Contains methods to help transform the data into standard formats, including migration helpers.
 
