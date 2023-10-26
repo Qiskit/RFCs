@@ -75,7 +75,7 @@ class Task:
     circuit: QuantumCircuit
 ```
 
-Different primitive types (such as `Estimator`) are intented to subclass this type
+Different primitive types (such as `Estimator`) are intended to subclass this type
 
 ### DataBundle
 
