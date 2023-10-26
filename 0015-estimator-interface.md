@@ -97,7 +97,7 @@ job.result()
 
 The above example shows various features of the design, including combining large numbers of observables with large numbers of parameter value sets for a single circuit.
 
-The detailed targetted signature, following the [deprecation period](#migration-path),
+The detailed targeted signature, following the [deprecation period](#migration-path),
 is as follows:
 
 ```python
