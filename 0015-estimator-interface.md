@@ -163,9 +163,9 @@ Three different circuits, three different observables:
     # new API (unique circuits always need their own tasks)
     estimator.run([(circuit1, "ZIII"), (circuit2, "IZII"), (circuit3, "IIZI")]).result()
     >> [
-    >>     ResultTask({"evs": np.array(0.1), "stds": <...>}, metadata={...}), 
-    >>     ResultTask({"evs": np.array(0.2), "stds": <...>}, metadata={...}), 
-    >>     ResultTask({"evs": np.array(0.3), "stds": <...>}, metadata={...})
+    >>     TaskResult({"evs": np.array(0.1), "stds": <...>}, metadata={...}), 
+    >>     TaskResult({"evs": np.array(0.2), "stds": <...>}, metadata={...}), 
+    >>     TaskResult({"evs": np.array(0.3), "stds": <...>}, metadata={...})
     >> ]
 ```
 
