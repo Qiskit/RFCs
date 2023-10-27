@@ -98,6 +98,13 @@ job.result()
 
 The above example shows various features of the design, including combining large numbers of observables with large numbers of parameter value sets for a single circuit.
 
+The result types in the example above are illustrative of what we propose, but do not necessarily correspond to-the-letter what will be introduced; we feel it is better to make certain detailed design choices through code review, and use this RFC to focus on concepts and structures.
+However, we do want to make three points about the result type clear:
+
+ 1. We propose that the errors appear in the data portion of the result, not the metadata, to be treated on equal footing to the estimates themselves.
+ 2. We propose that the error portion of the data should represent error bars on the expectation values, somehow. That is, standard error instead of standard deviation or variance, or possibly, a two-sided confidence interval.
+ 3. The previous bullet might make it seem like we are proposing to leave it up to an implemtation to choose which quantity to represent. We are not. We propose a homogenous choice for all implementations, documented in the base class. This can obviously not be enforced through typing, so it will have to be enforced through documentation, vigilence, and to some extent, testing.
+
 The detailed targeted signature is as follows:
 
 ```python
