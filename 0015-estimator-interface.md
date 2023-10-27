@@ -10,6 +10,7 @@
 |                   | Takashi Imamichi (imamichi@jp.ibm.com)       |
 |                   | Blake Johnson (blake.johnson@ibm.com)        |
 |                   | Chris Wood (cjwood@us.ibm.com)               |
+|                   | Jessie Yu (jessieyu@us.ibm.com)              |
 | **Submitted**     | 2023-10-03                                   |
 | **Updated**       | YYYY-MM-DD                                   |
 
@@ -97,8 +98,7 @@ job.result()
 
 The above example shows various features of the design, including combining large numbers of observables with large numbers of parameter value sets for a single circuit.
 
-The detailed targeted signature, following the [deprecation period](#migration-path),
-is as follows:
+The detailed targeted signature is as follows:
 
 ```python
 T = TypeVar("T", bound=Job)
@@ -357,103 +357,10 @@ The reason we are proposing a generic container for the return type instead of, 
 
 We need to remain backwards compatible with the existing interface to adhere to the [Qiskit Deprecation Policy](https://qiskit.org/documentation/deprecation_policy.html).
 
-In summary, we propose the following strategy: If the user has provided no `TaskLike`s, proceed with the old API, the old API output, and emit a deprecation warning, or an error if something mandatory like `observables` has been omitted. Otherwise, proceed with the new API, raising if they have tried to use the old arguments in addition to providing tasks.
+In summary, we propose the following strategy: explicitly version the `Estimator` interface (i.e. add a `BaseEstimatorV2` as described in this proposal) and document both the differences and the end user migration path for consumers of estimators. The user can determine which version of the estimator to use, and existing implementations can be left intact.
 
-We now describe the strategy in detail, beginning with a restatement of the current interface, where `Estimator.run` has `circuits` as the only positional argument and accepts `observables` and `parameter_values` as keyword arguments (in addition to the var keyword `**run_options` arguments which isn't affected):
-
-```python
-class Estimator(BasePrimitive):
-
-    # current signature
-    def run(
-            self,
-            circuits: Sequence[QuantumCircuit] | QuantumCircuit,
-            observables: Sequence[BaseOperator | PauliSumOp | str] | BaseOperator | PauliSumOp | str,
-            parameter_values: Sequence[Sequence[float]] | Sequence[float] | float | None = None,
-            **run_options,
-        ):
-        ...
-```
-
-We propose the migration to using tasks in two phases.
-
-### Deprecation Phase 1
-
-In the first phase:
-* Introduce `tasks: Sequence[EstimatorTask] | EstimatorTask` as the only positional argument, and make `circuits` a keyword argument.
-* Coerce the arguments to account for the fact that the only existing positional argument is `circuit: Sequence[QuantumCircuit] | QuantumCircuit`.
-* Check that the user does not attempt to mix the old/new APIs.
-* If necessary, coerce the old-API arguments (now all keyword arguments) into `EstimatorTask`s, **raise deprecation warning**.
-* Always eventually run with `Estimator._run(tasks: Sequence[EstimatorTask], **run_options)`.
-
-Here is a mock implementation, with missing type annotations as above:
-```python
-class Estimator(BasePrimitive):
-
-    def run(
-        self, 
-        tasks: Sequence[EstimatorTask] | EstimatorTask, 
-        circuits = None,
-        observables = None, 
-        parameter_values = None, 
-        **run_options
-    ):
-        # Coerce into standard form to later allow for `tasks` to be the only non-kwarg.
-        if isinstance(tasks, QuantumCircuit) or all(isinstance(task, QuantumCircuit) for task in tasks):
-            if circuits is not None:
-                raise ValueError("Cannot mix old and new APIs")
-            circuits = tasks
-            tasks = None
-
-        # Do not mix new/old API
-        if tasks and (circuits or observables or parameter_values):
-            raise ValueError("Cannot mix old and new APIs")
-
-        # Deprecated path
-        if tasks is None:
-            # Verify values in old API
-            if not (circuits and observables):
-                raise ValueError(f"Need both circuits and observables for old API, got circuits={circuits}, observables={observables}")
-            
-            # Coerce into old form
-            if parameter_values is None:
-                parameter_values = itertools.repeat(None)
-            if isinstance(circuits, QuantumCircuit):
-                circuits = [circuits]
-            if isinstance(observables, (BaseOperator, str)):
-                observables = [observables]
-
-            # Coerce old form into `EstimatorTask`s
-            tasks = [EstimatorTask.coerce(task) for task in zip(circuits, observables, parameter_values)]
-            warnings.warn("Deprecated API use")
-        
-        # Coerce into sequence form
-        if isinstance(tasks, EstimatorTasks):
-            tasks = [tasks]
-        
-        # Run using only tasks
-        return self._run(tasks, **run_options)
-```
-
-### Deprecation Phase 2
-
-After the deprecation period, remove extraneous arguments and checks:
-
-```python
-class Estimator(BasePrimitive):
-
-    def run(
-        self, 
-        tasks: Sequence[EstimatorTask] | EstimatorTask, 
-        **run_options
-    ):
-        # Coerce into sequence form
-        if isinstance(tasks, EstimatorTasks):
-            tasks = [tasks]
-        
-        # Run using only tasks
-        return self._run(tasks, **run_options)
-```
+Similar to `Backend`, we will have a `BaseEstimator`, `BaseEstimatorV1` equal to the existing `BaseEstimator`, and `BaseEstimatorV2`, as described in this proposal.
+We will maintain backward compatibility by defaulting the import of `Estimator` to `EstimatorV1` (i.e. existing) for the duration of the deprecation period.
 
 ## Alternative Approaches <a name="alternative-approaches"></a>
 
