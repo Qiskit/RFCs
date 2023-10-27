@@ -138,7 +138,7 @@ One circuit, many observables:
 
     # new API (we can use a single task)
     estimator.run((circuit, ["ZIII", "IZII", "IIZI", "IIIZ"])).result()
-    >> [ResultTask({"evs": np.array([0.1, 0.2, 0.3, 0.4]), "stds": <...>}, metadata={...})]
+    >> [TaskResult({"evs": np.array([0.1, 0.2, 0.3, 0.4]), "stds": <...>}, metadata={...})]
 ```
 
 One circuit, one observable, many parameter value sets:
