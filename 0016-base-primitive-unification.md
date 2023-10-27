@@ -25,7 +25,7 @@ This RFC proposes an abstraction for `BasePrimitive.run()` as well as structures
 ## Motivation
 
 The central motivation of this RFC is to more clearly emphasize that primitives are a well-defined execution framework on top of which applications can be built.
-We aim to force each category of primitive to clearly state what units of quantum work (tasks) it is able perform, and what outputs can be expected.
+We aim to force each category of primitive to clearly state what units of quantum work (tasks) it is able to perform, and what outputs can be expected.
 It is understood that having the proposed abstract base method alone will not necessarily improve the day-to-day life of a typical user of the primitives, and neither will it necessarily improve the ease of implementing new primitive types or implementations: this change is mainly about clarifying the shared nature of the primitives, and reflecting this view in abstractions.
 
 ## User Benefit
