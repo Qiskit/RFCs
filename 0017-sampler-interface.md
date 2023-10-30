@@ -32,7 +32,7 @@ We will propose a `Sampler` that
 
 Users will be able to transition from `backend.run` to `sampler.run` without any compromises in execution efficiency. They will be able to run dynamic circuits without having to specify special flags, or invoke a special program. They will get their outputs in a format where they don't need to manually separate bitstrings from different registers.
 
-As with the [(the paired Estimator inteface RFC)[https://github.com/Qiskit/RFCs/pull/51]](https://github.com/Qiskit/RFCs/pull/51), implementations will more easily be able to enable features like late stage parameter value binding.
+As with the [(paired Estimator inteface RFC)[https://github.com/Qiskit/RFCs/pull/51]](https://github.com/Qiskit/RFCs/pull/51), implementations will more easily be able to enable features like late stage parameter value binding.
 
 ## Design Proposal <a name="design-proposal"></a>
 
