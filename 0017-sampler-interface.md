@@ -61,7 +61,7 @@ circuit2 = QuantumCircuit(QuantumRegister(127), alpha, beta, gamma)
 ...
 
 # invoke a sampler
-estimator = Sampler(..., shots=1024)
+sampler = Sampler(..., shots=1024)
 job = sampler.run([
     (circuit1, parameter_values1),
     circuit2
@@ -135,7 +135,7 @@ SamplerTaskLike = Union[
 class SamplerBaseV2(PrimitiveBase[SamplerTask, SamplerTaskResult]):
     ...
     def run(
-        self, tasks: EstimatorTaskLike | Iterable[EstimatorTaskLike]
+        self, tasks: SamplerTaskLike | Iterable[SamplerTaskLike]
     ) -> Job[PrimitiveResult[SamplerTask, SamplerTaskResult]]:
         pass
 ```
