@@ -182,12 +182,12 @@ To store lots of bit-array outcomes, to enable fast iteration over bitstrings, a
 For this purpose, we choose to use a NumPy `uint8` array because, unlike `bytes` or `bytearray`, it has convenient methods for slicing and indexing multiple dimensions.
 Its buffer can be directly accessed for those not wishing to use NumPy, and, as seen both in the previous section and also below, we can include convenience methods for converting to, for example, a `Counts` object.
 We choose a convention where the second last axis is over samples (shots), and the last dimension has a big-endian byte order which describes a single value of the output bit-array.
-For example, ``np.array([[1, 1], [2, 0]], dtype=np.uint8)`` would describe 2 shots without outcomes 257 and 512 in decimal, respectively.
+For example, ``np.array([[1, 1], [2, 0]], dtype=np.uint8)`` would describe 2 shots with outcomes `257 = (1 << 8) + 1` and `512 = (2 << 8) + 0` in decimal, respectively.
 
 However, a `uint8` array alone is insufficient because, at the very least, it is incapabable of specifying whether it describes a bit-array register of size 14 or 16, for example, both of which require two bytes.
 For this reason, and to handle convenience methods, we introduce the `BitArray`.
 A bare bones sketch is below.
-Methods like `__or__` or static constructors from other formats are in-scope of the vision, but discluded for brevity.
+Methods like `__or__` or static constructors from other formats are in-scope of the vision, but excluded for brevity.
 
 ```python
 class BitArray(ShapedMixin):
@@ -229,7 +229,7 @@ class BitArray(ShapedMixin):
         """The number of samples."""
         return self._array.shape[-2]
 
-    def get_counts(self, loc: Tuple[int,...] | None = None, marginal_idxs: Tuple[int,...] | None = None) -> Mapping[str, int]:
+    def get_counts(self, loc: Tuple[int,...] | None = None, marginal_idxs: Tuple[int,...] | None = None) -> Counts:
             def get_counts(self, idx: Tuple[int, ...] | None = None) -> Counts:
         """Join all bit-array output registers together into a new counts structure.
         
