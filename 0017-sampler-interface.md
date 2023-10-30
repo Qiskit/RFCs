@@ -244,7 +244,3 @@ class BitArray(ShapedMixin):
 ## Migration Path <a name="migration-path"></a>
 
 An analagous path as [the paired Estimator RFC](https://github.com/Qiskit/RFCs/pull/51). Convenience methods can be placed on result containers to transform into familiar return types.
-
-## Questions <a name="questions"></a>
-
- * Should `num_samples` (i.e. `shots`) be an argument of the `Task`? Having ditched outcome weights, this seems natural.
