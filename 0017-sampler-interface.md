@@ -111,9 +111,11 @@ flips = BitArray(my_flips, num_bits=15)
 flipped_gamma = result.data.gamma ^ flips
 ```
 
-If a circuit had a non bit-array outcome, it would use a different type.
-We suggest just using `numpy.ndarrays` with `dtype=numpy.float64` for all non-int types like `angle[20]` for simplicity, at least initially, but we can cross that bridge when we get there.
+If a circuit had a non bit-array outcome, it would use a different type in place of `BitArray`.
+We suggest just using `numpy.ndarrays` with the closest appropriate `dtype` for non-bit-array outputs. 
 The shape of such an array would be `(*task_shape, num_samples, *output_register_shape)`.
+For particular types, like `angle`, if it is for some reason decided that no NumPy type is satisfactory,
+we can add more containers analagous to `BitArray`.
 
 The detailed signature is as follows:
 
