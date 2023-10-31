@@ -78,8 +78,8 @@ job.result()
 >>     ), 
 >>     SamplerTaskResult(
 >>         DataBundle(
->>             alpha=BitArray(<num_samples=1024, num_bits=127, shape=()>)
->>             beta=BitArray(<num_samples=1024, num_bits=10, shape=()>)
+>>             alpha=BitArray(<num_samples=1024, num_bits=127, shape=()>),
+>>             beta=BitArray(<num_samples=1024, num_bits=10, shape=()>),
 >>             gamma=BitArray(<num_samples=1024, num_bits=15, shape=()>)
 >>         ), 
 >>         <metadata>
@@ -145,7 +145,7 @@ class SamplerBaseV2(PrimitiveBase[SamplerTask, SamplerTaskResult]):
 
 ## Detailed Design <a name="detailed-design"></a>
 
-Most new types and conventions have been described in either [the paired Estimator RFC](https://github.com/Qiskit/RFCs/pull/51) or the [`BasePrimitive.run()` RFC](https://github.com/Qiskit/RFCs/pull/53).
+Most new types and conventions have been described in either [the paired Estimator RFC](https://github.com/Qiskit/RFCs/pull/51) or the (`BasePrimitive.run()` RFC)[https://github.com/Qiskit/RFCs/pull/53].
 
 ### Tasks and Task Results <a name="tasks"></a>
 
@@ -241,6 +241,42 @@ class BitArray(ShapedMixin):
         """
 ```
 
+### Measurement Levels
+
+`backend.run` has the notion of measurement levels which specify whether measurement instructions cause traces (not generallly implemented), complex phases, or discriminated bits to be returned.
+Eventually, measurement levels should be specified inside of a circuit itself by measuring into complex valued registers, as described in the OpenQASM 3 specification.
+This would effectively enable a mix-and-match between different measurement levels, and also allow a circuit to determine its own output types.
+
+However, before this becomes available, in order to acheive feature parity with `backend.run`, we propose implementing this as a flag (similar to `backend.run`) whose value changes the type of all bit-array outputs from `BitArray`s to NumPy arrays with `dtype=np.complex128`.
+
+```python
+class MeasLevel(enum.Enum):
+    # TRACES = 0 unsupported
+    PHASES = 1
+    BITS = 2
+```
+
+Phases for each shot:
+
+```python
+sampler.run([(circuit1, parameter_values1), circuit2], meas_level=MeasLevel.PHASES).result()
+>> PrimitiveResult(
+>>     SamplerTaskResult(
+>>         DataBundle(meas=np.ndarray(<shape=(32, 4, 1024, 127), dtype=np.complex128>)), 
+>>         <metadata>
+>>     ), 
+>>     SamplerTaskResult(
+>>         DataBundle(
+>>             alpha=np.ndarray(<shape=(1024, 127), dtype=np.complex128>
+>>             beta=np.ndarray(<shape=(1024, 10), dtype=np.complex128>
+>>             gamma=np.ndarray(<shape=(1024, 15), dtype=np.complex128>
+>>         ), 
+>>         <metadata>
+>>     ), 
+>>     metadata=<global_metadata>
+>> )
+```
+
 ## Migration Path <a name="migration-path"></a>
 
-An analagous path as [the paired Estimator RFC](https://github.com/Qiskit/RFCs/pull/51). Convenience methods can be placed on result containers to transform into familiar return types.
+We propose the same path as [the paired Estimator RFC](https://github.com/Qiskit/RFCs/pull/51). Convenience methods can be placed on result containers to transform into familiar return types.
