@@ -145,7 +145,7 @@ class SamplerBaseV2(PrimitiveBase[SamplerTask, SamplerTaskResult]):
 
 ## Detailed Design <a name="detailed-design"></a>
 
-Most new types and conventions have been described in either [the paired Estimator RFC](https://github.com/Qiskit/RFCs/pull/51) or the (`BasePrimitive.run()` RFC)[https://github.com/Qiskit/RFCs/pull/53].
+Most new types and conventions have been described in either [the paired Estimator RFC](https://github.com/Qiskit/RFCs/pull/51) or the [`BasePrimitive.run()` RFC](https://github.com/Qiskit/RFCs/pull/53).
 
 ### Tasks and Task Results <a name="tasks"></a>
 
