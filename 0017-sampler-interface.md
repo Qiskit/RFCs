@@ -14,7 +14,7 @@
 ## Summary <a name="summary"></a>
 
 This RFC proposes an interface for the next version of the `Sampler`.
-The changes proposed here mirror those accepted in [(the paired Estimator inteface RFC)[https://github.com/Qiskit/RFCs/pull/51]](https://github.com/Qiskit/RFCs/pull/51), where the arguments of the `Estimator.run()` signature were transposed to accept, instead of three iterable arguments, an iterable of "tasks", with each task comprising a circuit and auxiliary execution information.
+The changes proposed here mirror those accepted in [the paired Estimator interface RFC](https://github.com/Qiskit/RFCs/pull/51), where the arguments of the `Estimator.run()` signature were transposed to accept, instead of three iterable arguments, an iterable of "tasks", with each task comprising a circuit and auxiliary execution information.
 In the case of the `Sampler`, a task consists only of a circuit and an array of parameter value sets if it is a parametric circuit.
 We aim to move the `Sampler` to be a viable replacement for `backend.run`, and eliminate the notion of sample weights (i.e. quasi-probabilities).
 
