@@ -23,7 +23,7 @@ This RFC proposes the structure and format of various container types that can b
 
 The central motivation of this RFC is to more clearly emphasize that primitives are an execution framework on top of which applications (not just algorithms) can be built. 
 We aim to help each type of primitive to clearly state what units of quantum work it is able to perform.
-We do this by proposing a set of containers that various `run()` can use (possibly subclassed) as input and output types.
+We do this by proposing a set of containers that various `run()` methods can use (possibly subclassed) as input and output types.
 In doing so, we are also proposing a set of names that can help us standardize the way we talk about execution in documentation, and throughout the stack.
 
 ## User Benefit
