@@ -20,6 +20,7 @@ facilitate that and collect feedback prior to implementation.
 
 | RFC | Status | References/Discussion |
 | --- | ------ | --------------------- |
+| `0016` [SamplerV2](0016-sampler-interface.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/56/) \| Implementation |
 | `0015` [Extended Estimator Interface](0015-estimator-interface.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/51) \| Implementation |
 | `0014` [Overhaul Qiskit Experiments](0014-overhaul-qiskit-experiments.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/47) \| [Implementation](https://github.com/Qiskit-Extensions/qiskit-experiments/issues/1268) |
 | `0013` [Plan to move `Qiskit/qiskit-terra/algorithms` module to `qiskit-community/qiskit-algorithms` independent repo](0013-algorithms-migration.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/44/) \| [Implementation](https://github.com/Qiskit/RFCs/issues/48)|
