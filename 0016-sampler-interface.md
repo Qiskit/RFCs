@@ -1,14 +1,13 @@
 # SamplerV2
 
-| **Status**        | **Proposed/Accepted/Deprecated** |
+| **Status**        | **Accepted** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | 0017                                         |
+| **RFC #**         | 0016                                         |
 | **Authors**       | Lev Bishop (lsbishop@us.ibm.com)             |
 |                   | Ian Hincks (ian.hincks@ibm.com)              |
 |                   | Blake Johnson (blake.johnson@ibm.com)        |
 |                   | Chris Wood (cjwood@us.ibm.com)               |
 | **Submitted**     | 2023-10-03                                   |
-| **Updated**       | YYYY-MM-DD                                   |
 
 
 ## Summary <a name="summary"></a>
