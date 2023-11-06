@@ -6,7 +6,7 @@
 | **Authors**       | Jessie Yu (jessieyu@us.ibm.com)    |
 | **Deprecates**    | RFC that this RFC deprecates                 |
 | **Submitted**     | 2023-10-20                                   |
-| **Updated**       | YYYY-MM-DD                                   |
+| **Updated**       | 2023-11-06                                   |
 
 ## Summary
 
@@ -36,25 +36,24 @@ It will also decouple `qiskit.providers.Options` from primitives, if Qiskit want
 
 1. Use Python dataclass as the input/output type for primitive options. Dataclass allows auto-complete, and users can easily discover what fields are available.
 
-2. Make the `options` property callable, so a user can do `estimator.options.x`, to get/set the specific option, and `estimator.options()` to get all options. `options()` will return a copy of the options.
+2. The `options` property would return the dataclass, and a user can do `estimator.options.x`, to get/set the specific option. The users can also use the builtin `asdict` method to convert the dataclass to a dictionary if they wish.
 
-2. `set_options` can continue to be used for bulk update.
+2. Instead of a `set_options()` method attached to the primitive, the dataclass will have an `update()` method for bulk updates.
 
-4. Providers that have more complex options, such as Qiskit Runtime, can use more advanced dataclass type such as the one in `pydantic`. `pydantic` dataclasses are very similar to Python dataclasses but allow easier validation. It would also return `True` when using `dataclasses.is_dataclass` to check its type.
+4. Providers that have more complex options, such as Qiskit Runtime, can use more advanced dataclass type such as the one in `pydantic`.
 
-    While it is still up to each provider to implement the options, this allows a standardized `x.y` approach instead of separate `nnn_options` dictionaries. We can document the common grouping of options in base primitives, such as `transpilation` and `execution`, to encourage providers to use the same model.
-
-    Similarly, it is up to each provider on how they want to support undocumented/experimental options. Qiskit Runtime, for example, plans to support them under an `experimental` field that takes arbitrary kwargs.
+5. It is still up to each provider on how they want to support undocumented/experimental options.
 
 
-Backward compatibility depends on how we do migration for the primitive interface changes (see #51). If we decide to use a different version, then no backward compatibility is required. Otherwise, we'd need to use a different attribute, such as `settings`, and `options` would be deprecated and continue to return `qiskit.providers.Options`.
+Per #51, we will start versioning the primitives. Therefore, no backward compatibility is needed, and the changes will only apply to v2 primitives.
 
 ## Detailed Design
 
 - `BasePrimitive` would accept either a dictionary or a dataclass for `options`.
-- The `options` property becomes callable, which would allow both auto-complete and getting a copy of all options.
-    - Alternatively, we can use `get_options` to return a copy of the options.
-- `set_options` can continue to be used for bulk update:
+- A new `BasePrimitiveOptions` dataclass will serve as the base class, since there is no type hint for dataclasses.
+- `_options_class` class attribute is used to identify the dataclass the subclass wishes to use.
+- The `options` property wll return the dataclass.
+- The options dataclass will have a `update()` method for bulk update
 
 ```python
 from dataclasses import dataclass, replace
@@ -64,88 +63,34 @@ class BasePrimitiveOptions:
 
     test_attr: int = 1
 
-    # Some recommended fields:
-    # transpilation: TranspilationOptions  # For transpiler options
-    # execution: ExecutionOptions  # For run options
-    # simualtor: SimulatorOptions  # For simulator options
-
-    def __call__(self):
-        return replace(self)
+    def update(self, **kwargs):
+        for key, val in kwargs.items():
+            setattr(self, key, val)
 
 
-class BasePrimitive:
+class BasePrimitiveV2:
     """Primitive abstract base class."""
 
     _options_class = BasePrimitiveOptions
 
     def __init__(self, options: dict | BasePrimitiveOptions | None = None):
         if isinstance(options, dict):
-          self._options = self._options_class(**options)
+          self.options = self._options_class(**options)
         elif options is None:
-          self._options = self._options_class()
+          self.options = self._options_class()
         else:
-          self._options = options
-
-    @property
-    def options(self) -> BasePrimitiveOptions:
-        return self._options
-
-    def set_options(self, **fields):
-        self._options = replace(self._options, **fields)
+          self.options = options
 ```
 
 ```
 >>> base = BasePrimitive()
 >>> base.options.test_attr
 1
->>> base.options()
+>>> base.options
 BasePrimitiveOptions(test_attr=1)
-```
-
-`qiskit-ibm-runtime` and `qiskit-aer` can use `pydantic` to construct more complex options:
-
-```python
-from pydantic.dataclasses import dataclass as pydantic_dataclass
-from pydantic import Field, ConfigDict, model_validator
-
-@pydantic_dataclass
-class TranspilationOptions:
-    skip_transpilation: bool = False
-
-
-@pydantic_dataclass(config=ConfigDict(validate_assignment=True))
-class EstimatorOptions(BasePrimitiveOptions):
-
-    resilience_level: int = Field(1, ge=0, le=3)
-    transpilation: TranspilationOptions = Field(default_factory=TranspilationOptions)
-
-    @model_validator(mode='after')
-    def _validate_model(self):
-        if self.transpilation.skip_transpilation and self.resilience_level > 0:
-            raise ValueError("You cannot skip transpilation when doing error mitigation.")
-        return self
-
-
-class Estimator(BasePrimitive):
-  _options_class = EstimatorOptions
-
-```
-
-```
->>> estimator = Estimator()
->>> print(estimator.options())
-EstimatorOptions(test_attr=1, resilience_level=1, transpilation=TranspilationOptions(skip_transpilation=False))
-
->>> estimator.options.transpilation.skip_transpilation = True
->>> print(estimator.options.transpilation.skip_transpilation)
-True
-
->>> estimator.options.resilience_level = 5
-ValidationError: 1 validation error for EstimatorOptions ...
-
->>> estimator.set_options(transpilation={"skip_transpilation": False})
->>> print(estimator.options)
-EstimatorOptions(test_attr=1, resilience_level=1, transpilation=TranspilationOptions(skip_transpilation=False))
+>>> base.options.update(test_attr=2)
+>>> base.options.test_attr
+2
 ```
 
 ## Alternative Approaches
