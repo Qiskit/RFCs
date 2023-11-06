@@ -53,7 +53,7 @@ Any primitive following the above pattern
 # instantiate the primitive
 foo = Foo()
 
-# runt he primitive with three tasks
+# run the primitive with three tasks
 job = foo.run([task0, task1, task2])
 
 # block for results
