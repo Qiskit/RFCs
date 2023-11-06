@@ -243,7 +243,7 @@ class BitArray(ShapedMixin):
 
 ### Measurement Levels
 
-`backend.run` has the notion of measurement levels which specify whether measurement instructions cause traces (not generallly implemented), complex phases, or discriminated bits to be returned.
+[IBM's implementation](https://github.com/Qiskit/qiskit-ibm-provider/) of the `backend.run` interface has the notion of measurement levels which specify whether measurement instructions cause traces, complex phases, or discriminated bits to be returned. While this notion of measurement levels is not required by the existing `backend.run` interface, we wish to describe how to support this use case within this revised `Sampler`.
 Eventually, measurement levels should be specified inside of a circuit itself by measuring into complex valued registers, as described in the OpenQASM 3 specification.
 This would effectively enable a mix-and-match between different measurement levels, and also allow a circuit to determine its own output types.
 
