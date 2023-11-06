@@ -1,6 +1,6 @@
 # Extended Estimator Interface
 
-| **Status**        | **Proposed/Accepted/Deprecated** |
+| **Status**        | **Accepted** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0015                                         |
 | **Authors**       | Samantha Barron (samantha.v.barron@ibm.com)  |
@@ -12,7 +12,6 @@
 |                   | Chris Wood (cjwood@us.ibm.com)               |
 |                   | Jessie Yu (jessieyu@us.ibm.com)              |
 | **Submitted**     | 2023-10-03                                   |
-| **Updated**       | YYYY-MM-DD                                   |
 
 
 ## Summary <a name="summary"></a>
