@@ -181,7 +181,7 @@ class SamplerTaskResult(TaskResult):
 To store lots of bit-array outcomes, to enable fast iteration over bitstrings, and to enable bitwise operations, we propose a container that has a contiguous memory model over the entire shot-loop, where 8-bits are packed to the byte.
 For this purpose, we choose to use a NumPy `uint8` array because, unlike `bytes` or `bytearray`, it has convenient methods for slicing and indexing multiple dimensions.
 Its buffer can be directly accessed for those not wishing to use NumPy, and, as seen both in the previous section and also below, we can include convenience methods for converting to, for example, a `Counts` object.
-We choose a convention where the second last axis is over samples (shots), and the last dimension has a big-endian byte order which describes a single value of the output bit-array.
+We choose a convention where the second to last axis is over samples (shots), and the last dimension has a big-endian byte order which describes a single value of the output bit-array.
 For example, ``np.array([[1, 1], [2, 0]], dtype=np.uint8)`` would describe 2 shots with outcomes `257 = (1 << 8) + 1` and `512 = (2 << 8) + 0` in decimal, respectively.
 
 However, a `uint8` array alone is insufficient because, at the very least, it is incapabable of specifying whether it describes a bit-array register of size 14 or 16, for example, both of which require two bytes.
