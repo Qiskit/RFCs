@@ -47,7 +47,7 @@ where `FooTask` is equal to or derives from `Task`, `FooTaskLike` is a union typ
 The base containers `PrimitiveResult,`, `Task`, and `TaskResult` are described in the next sections.
 `Job[T]` is any `qiskit.provider.JobV1` whose result method returns type `T`.
 
-Any primitive following the above pattern 
+Any primitive following the above pattern could be used as follows:
 
 ```python
 # instantiate the primitive
