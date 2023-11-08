@@ -20,9 +20,10 @@ facilitate that and collect feedback prior to implementation.
 
 | RFC | Status | References/Discussion |
 | --- | ------ | --------------------- |
+| `0017` [Base Primitive and Units of Primitive Work](0017-base-primitive-unification.md) | To be implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/53/) \| Implementation |
 | `0016` [SamplerV2](0016-sampler-interface.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/56/) \| Implementation |
-| `0015` [Extended Estimator Interface](0015-estimator-interface.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/51) \| Implementation |
-| `0014` [Overhaul Qiskit Experiments](0014-overhaul-qiskit-experiments.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/47) \| [Implementation](https://github.com/Qiskit-Extensions/qiskit-experiments/issues/1268) |
+| `0015` [Extended Estimator Interface](0015-estimator-interface.md) | To be implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/51) \| Implementation |
+| `0014` [Overhaul Qiskit Experiments](0014-overhaul-qiskit-experiments.md) | To be implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/47) \| [Implementation](https://github.com/Qiskit-Extensions/qiskit-experiments/issues/1268) |
 | `0013` [Plan to move `Qiskit/qiskit-terra/algorithms` module to `qiskit-community/qiskit-algorithms` independent repo](0013-algorithms-migration.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/44/) \| [Implementation](https://github.com/Qiskit/RFCs/issues/48)|
 | `0012` [Pulse Compiler & IR](0012-Pulse-Compiler-and-IR.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/45) \| [Implementation](https://github.com/Qiskit/qiskit/issues/10759)|
 | `0011` [Plan to rename `Qiskit/qiskit-terra` repo to `Qiskit/qiskit`](0011-repo-rename.md) | Implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/31) \| [Implementation](https://github.com/Qiskit/RFCs/issues/41) |
