@@ -1,14 +1,13 @@
 # Base Primitive and Units of Primitive Work
 
-| **Status**        | **Proposed/Accepted/Deprecated**             |
+| **Status**        | **Accepted**             |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | 0016                                         |
+| **RFC #**         | 0017                                         |
 | **Authors**       | Lev Bishop (lsbishop@us.ibm.com)             |
 |                   | Ian Hincks (ian.hincks@ibm.com)              |
 |                   | Blake Johnson (blake.johnson@ibm.com)        |
 |                   | Chris Wood (cjwood@us.ibm.com)               |
 | **Submitted**     | 2023-10-26                                   |
-| **Updated**       | YYYY-MM-DD     
 
 ## Summary
 
