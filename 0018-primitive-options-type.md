@@ -1,12 +1,10 @@
 # Primitive options type change
 
-| **Status**        | **Proposed/Accepted/Deprecated** |
+| **Status**        | **Accepted** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | 0016                                         |
-| **Authors**       | Jessie Yu (jessieyu@us.ibm.com)    |
-| **Deprecates**    | RFC that this RFC deprecates                 |
+| **RFC #**         | 0018                                         |
+| **Authors**       | Jessie Yu (jessieyu@us.ibm.com)              |
 | **Submitted**     | 2023-10-20                                   |
-| **Updated**       | 2023-11-06                                   |
 
 ## Summary
 

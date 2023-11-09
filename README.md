@@ -20,6 +20,7 @@ facilitate that and collect feedback prior to implementation.
 
 | RFC | Status | References/Discussion |
 | --- | ------ | --------------------- |
+| `0018` [Primitive options type change](0018-primitive-options-type.md) | To be implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/52/) \| Implementation |
 | `0017` [Base Primitive and Units of Primitive Work](0017-base-primitive-unification.md) | To be implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/53/) \| Implementation |
 | `0016` [SamplerV2](0016-sampler-interface.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/56/) \| Implementation |
 | `0015` [Extended Estimator Interface](0015-estimator-interface.md) | To be implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/51) \| Implementation |
