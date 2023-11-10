@@ -341,7 +341,6 @@ It has the benefit of:
 
 However, in the end, I have many reasons that I think this would not the correct decision:
 
-- When 
 - There's 5 pointers of storage space required per Python-space `Clbit` that's just wrapped by a `Var`, not to mention the additional costs of tracking the bit within `QuantumCircuit`.
   For a `double`, that's over 2kB of extra tracking, even if we do nothing with it.
 - It implies that we need to track each of these `Clbit` wires separately in the DAG, even though the data-flow is bundled - again, lots of unnecessary memory use.
@@ -374,7 +373,7 @@ In the current system, it is not valid to have a circuit that has both closure v
 Instead of having separate `add_input()` and `add_capture()` methods, one could imagine that inner scopes could `add_var` variables to be either of type "input" or a new type "closure".
 The reason to choose to have a separate method for these semantics is that the signature of the `add_var` method would become quite unpleasant if it needed to do all these things; it already has multiple signatures because it needs to take either `(var,)` or `(name, type)`.
 
-It is not possible to close over a variable with just its name and type, because we'd also need the information about which root allocation it refers to to build up the `DAGCircuit` data-flow graph, and we don't gain that information until the circuit is embedded within another.
+It is not possible to close over a variable with just its name and type, because we'd also need the information about which root allocation it refers to build up the `DAGCircuit` data-flow graph, and we don't gain that information until the circuit is embedded within another.
 This means that `add_var` would need to have two forms:
 - one that looks like `add_var(name, type, "input")`
 - one that looks like `add_var(var, "input")` or `add_var(var, "closure")`
@@ -401,7 +400,7 @@ The problem with `Parameter`'s inequality to its name is not typically a desire 
 
 This RFC currently has a distinction between `Measure` which still uses the old `cargs` form and consequently writes into a `Clbit` instance, and `Store` that contains the memory locations inherently, and thus must be extracted by things like `DAGCircuit.apply_operation_back` (and would be easy to miss).
 The main reason not to expand `Measure` directly in this RFC is the complexity; `Measure` is an _exceptionally_ common operation (perhaps the only one that is almost guaranteed to be in a complete quantum program), and it's not yet clear what the full expansion path here should be.
-Allowing a direct measurement into an `Expr` would involve updating every consumer of `CircuitInstruction.clbits` to know that the values may not always be `Clbit` instances any more, which would be too breaking a change.
+Allowing a direct measurement into an `Expr` would involve updating every consumer of `CircuitInstruction.clbits` to know that the values may not always be `Clbit` instances anymore, which would be too breaking a change.
 For more discussion of potential ways in which `Measure` and `Store` may begin to look different in the future, see the "Give `Store` first-class support" heading.
 
 With the behaviour described in this RFC, the way to store a measurement result to an arbitrary `Expr` will be
@@ -431,6 +430,8 @@ It's not clear to me whether it should be possible for a circuit to involve vari
 
 If there are no conflicts in the variable names, it seems expected to me that the lists of input variables would catenate, and so on.
 Similarly, two declared `Var` instances that conflict (either by having incompatible initialisers, or one being an input, one not, etc) cannot be allowed to coexist, but does this mean that the composition should be rejected, or should we implement a renaming?
+
+For now, we will impose "error on conflict", and revisit if a compelling and safe use-case to do otherwise appears.
 
 
 ### Is it necessary to add an `expr.Index` immediately?
