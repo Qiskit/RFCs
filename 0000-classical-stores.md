@@ -34,9 +34,9 @@ from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.classical import expr
 
 qc = QuantumCircuit(2)
-with qc.if_test(expr.value(TWIRL_BITS_0)):
+with qc.if_test(expr.lift(TWIRL_BITS_0)):
     qc.x(0)
-with qc.if_test(expr.value(TWIRL_BITS_1)):
+with qc.if_test(expr.lift(TWIRL_BITS_1)):
     qc.x(1)
 ```
 where `TWIRL_BITS_*` are some values defined by the particular set of twirls to be done, and are known before the circuit begins execution, but not _necessarily_ at the time of the definition of the circuit, or the circuit should be run with many different values for them.
@@ -172,7 +172,9 @@ from qiskit.circuit.classical import expr, types
 qr = QuantumRegister(3)
 cr = ClassicalRegister(3)
 qc = QuantumCircuit(qr, cr)
-mask = qc.add_var("mask", types.Uint(3), expr.value(5))
+# The explicit `type` is the same as what would be inferred here so not
+# technically necessary, but illustrative of the capability.
+mask = qc.add_var("mask", expr.lift(5, type=types.Uint(3)))
 qc.h(0)
 qc.cx(0, 1)
 qc.cx(0, 2)
@@ -181,9 +183,9 @@ qc.measure(1, 1)
 qc.measure(2, 2)
 
 # 'with_mask' is defined now with a value that's only known after the measures.
-with_mask = qc.add_var("with_mask", types.Uint(3), expr.bit_and(mask, cr))
+with_mask = qc.add_var("with_mask", expr.bit_and(mask, cr))
 with qc.if_test(expr.equals(with_mask, mask)):
-    scoped = qc.add_var("scoped", types.Bool(), expr.logic_not(cr[1]))
+    scoped = qc.add_var("scoped", expr.logic_not(cr[1]))
     with qc.while_loop(scoped):
         qc.measure(1, 1)
         # The control-flow builder automatically captures `scoped` into the while-loop body.
@@ -231,17 +233,17 @@ from qiskit.circuit.classical import expr, types
 qr = QuantumRegister(3)
 cr = ClassicalRegister(3)
 qc = QuantumCircuit(qr, cr)
-mask = qc.add_var("mask", types.Uint(3), expr.value(5))
+mask = qc.add_var("mask", expr.lift(5, type=types.Uint(3)))
 qc.h(0)
 qc.cx(0, 1)
 qc.cx(0, 2)
 qc.measure(0, 0)
 qc.measure(1, 1)
 qc.measure(2, 2)
-with_mask = qc.add_var("with_mask", types.Uint(3), expr.bit_and(mask, cr))
+with_mask = qc.add_var("with_mask", expr.bit_and(mask, cr))
 
 true_body = QuantumCircuit([qr[1]], [cr[1]], captures=[mask, with_mask])
-scoped = true_body.add_var("scoped", types.Bool(), expr.logic_not(cr[1]))
+scoped = true_body.add_var("scoped", expr.logic_not(cr[1]))
 
 while_body = QuantumCircuit([qr[1]], [cr[1]], captures=[scoped])
 while_body.measure(qr[1], cr[1])
