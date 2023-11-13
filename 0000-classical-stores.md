@@ -462,6 +462,26 @@ Currently this RFC does not propose this to avoid scope creep, but I don't know 
 
 ## Future Extensions
 
+### Removal of `Clbit` and `ClassicalRegister`
+
+The long-term goal of this work is to completely replace the classical-memory handling of Qiskit.
+This means the final removal of `Clbit` and `ClassicalRegister`, so that `Var` is the only representation of owned classical memory.
+
+A core problem with `ClassicalRegister` is that is _does not_ represent owned memory; registers are permitted to alias each other.
+This is not much of a problem for quantum registers, since those are purely a programmer convenience and have no semantics within Qiskit's compiler (they're completely erased during the lowering to hardware).
+However, for classical registers, the underlying classical data is directly writable, copyable, and may form part of the returned outputs, which makes the bit-level aliasing hugely difficult.
+This is more difficult even than for the handling of aliasing pointers in standard classical computing (though Qiskit has no pointer type, and is not intending to add one), because the aliasing is at the level of bits, which may not even be contiguous in memory; they are smaller than the smallest addressable unit in standard controller memory.
+
+The new typed classical data represented by the `Var` node with (e.g.) `Uint(8)` is intended to completely replace `ClassicalRegister` in the long term.
+This replacement is not being done in this RFC for a few reasons:
+
+- `ClassicalRegister` is heavily used in user code, and the transition will be difficult to orchestrate.
+- The "output" format from hardware backends still assumes `ClassicalRegister`; bitstrings are returned with spaces in them denoting the splits between classical registers (they assume no aliasing).
+- This RFC is trying to keep its scope manageable.
+
+The intent is to remove `ClassicalRegister` at a later date, but not for the Qiskit 1.0 release.
+Further work on making sure the `Expr` tree can represent all uses of `ClassicalRegister` must come first, as must work to ensure that a new, typed system of variable outputs from quantum programs is well defined, on the path to implementation by hardware, and supported by Qiskit (see next extension).
+
 ### Add support for circuit outputs
 
 OpenQASM 3 supports an `output` specifier on variables for rich returns from programs.
