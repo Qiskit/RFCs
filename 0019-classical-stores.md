@@ -1,8 +1,8 @@
 # Classical storage and load instructions
 
-| **Status**        | **Proposed/Accepted/Deprecated** |
+| **Status**        | **Accepted** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         | 0019                                         |
 | **Authors**       | Jake Lishman (jake.lishman@ibm.com)          |
 | **Submitted**     | 2023-09-07                                   |
 | **Updated**       | 2023-11-13                                   |
