@@ -205,23 +205,15 @@ The main difference with the 0.* schema is that breaking changes cannot be intro
 ### Definition of *public API*
 
 The Qiskit public API is considered
-any documented module, class, function, or method that is not marked as private (with a `_` prefix).
+any documented module, class, function, or method that is not marked as private (with a `_` prefix). **All the stability guarantees are on these *public APIs* and users are encourage to only use them.**
 
-Exceptions:
+**Exceptions**:
 
- - Experimental interfaces: If module, class, function, or method is documented as experimental that is not marked as private (with a `_` prefix).
-
-
-In such cases these APIs will be clearly documented
-as not being considered stable interfaces yet and a user visible warning will be
-actively emitted on any use of these unstable interfaces. Additionally, in some
-situations an interface marked as private will be considered part of the public
-API. Typically this only occurs in two cases, either an abstract interface
-definition where subclasses are intended to override/implement a private method
-as part of defining an implementation of the interface, or advanced-usage
-low-level methods that have stable interfaces but are not considered safe to use
+ - Experimental interfaces: If module, class, function, or method is documented as experimental that is not marked as private (with a `_` prefix). Experimental interfaces have to raise a user visible [Warning](https://docs.python.org/3/library/warnings.html) (exact Warning type to be define). 
+ - Abstract interface definitions: These APIs are created to define an interface to be implemented by a subclass. Methods and properties defined as private in these Abstract classes are part of the public API.
+ - Low-level methods for advanced usage: There are private methods that have stable interfaces but are not considered safe to use
 as the burden is on the user to uphold the class/safety invariants themselves
-(the canonical example of this is the `QuantumCircuit._append` method)
+(the canonical example of this is the `QuantumCircuit._append` method).
 
 
 ### Versioning Model
@@ -262,7 +254,9 @@ After the release of a major version (X.3.0), a 6-month bugfix support period is
 - The support of `X.Y.Z` finishes with the release of `X.Y.Z+1` (or `X.Y+1.0`) in most of the cases (exception might apply)
 - After the release of `X+1`, bugfixing is provided via `X.Y.Z+N` in undetermined regularity for 6 months. 
 
-#### 
+### Git branching model
+
+TODO
 
 ## Alternative Approaches
 > Discuss other approaches to solving this problem and why these were not
