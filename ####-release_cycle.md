@@ -24,9 +24,6 @@ However, there is a demand for a more transparent release cycle with longer peri
 
 The outcome of the RFC is an agreement for release cycle and a versioning schema that would provide users with the tools for planning and stability while reduce the impact in the development workflow.
 
-**out-of-scope**: 
-The starting date for the implementation of this RFC is, in principle, outside the scope of this document.
-
 ## User Benefit
 
 The RFC aims to benefit users and Qiskit ecosystem developers, because they will have guaranties that their software will run for a defined period of time and they could plan the transition period. 
@@ -143,30 +140,57 @@ gantt
 Notice that i.3 has an extra 6 month bug fixing support. There is no i.4, since it coincides with i+1.0, where new features (and possibly breaking changes) are released.
 
 ```mermaid
+%%{init: {'theme': 'default', 'gitGraph': {'mainBranchOrder': 1}} }%%
 gitGraph
     commit id:"feature/0"
     commit id: "ready_for_X" type:HIGHLIGHT
-    branch stable/X.0
+    branch "next/X+1" order: 0
+    
+    commit id:"breaking/0"
+    checkout main
+
+    branch stable/X.0 order: 2
     commit id: "tag_X.0.0" tag: "vX.0.0"
     checkout main
     commit id:"bugfix/1"
     checkout stable/X.0
     cherry-pick id:"bugfix/1"
+    
+    checkout "next/X+1"
+    commit id:"breaking/2"
+    commit id:"breaking/3"
+
     checkout main
     commit id:"feature/1"
     checkout stable/X.0
     commit id: "tag_X.0.1" tag: "vX.0.1"
+
     checkout main
     commit id: "ready_for_1" type:HIGHLIGHT
-    branch "stable/X.1"
+
+    checkout "next/X+1"
+    merge "main"
+    checkout main
+    
+    branch "stable/X.1" order: 2
     commit id: "tag_X.1" tag: "vX.1"
     checkout main
     commit id: "ready_for_2" type:HIGHLIGHT
-    branch "stable/X.2"
+
+    checkout "next/X+1"
+    merge "main"
+    checkout main
+
+    branch "stable/X.2" order: 2
     commit id: "tag_X.2" tag: "vX.2"
     checkout main
     commit id: "ready_for_3" type:HIGHLIGHT
-    branch "stable/X.3"
+    
+    checkout "next/X+1"
+    merge "main"
+    checkout main
+    
+    branch "stable/X.3" order: 2
     commit id: "tag_X.3.0" tag: "vX.3.0"
     checkout main
     commit id:"feature/2"
@@ -179,9 +203,15 @@ gitGraph
     checkout stable/X.3
     commit id: "tag_X.3.1" tag: "vX.3.1"
 
+    checkout "next/X+1"
+    commit id:"breaking/4"
+    commit id:"breaking/5"
+
     checkout main
-    commit id: "ready_for_plus_one" type:HIGHLIGHT
-    branch "stable/X+1.0"
+    merge "next/X+1"
+
+    commit id: "ready_for_X+1" type:HIGHLIGHT
+    branch "stable/X+1.0" order: 2
     commit id: "tag_X+1.0.0" tag: "vX+1.0.0"
 
     checkout main
@@ -258,6 +288,8 @@ After the release of a major version (X.3.0), a 6-month bugfix support period is
 
 TODO
 
+
+<!--
 ## Alternative Approaches
 > Discuss other approaches to solving this problem and why these were not
 > selected.
@@ -272,3 +304,4 @@ TODO
 > 
 > If you do not have any future extensions in mind, state that you cannot think
 > of anything. This section should not be left blank.
+-->
