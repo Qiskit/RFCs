@@ -286,10 +286,16 @@ After the release of a major version (X.3.0), a 6-month bugfix support period is
 
 ### Git branching model
 
-TODO
+Before the release of a major `X.0`, the last minor `X-1.Y` should be tagged in the `stable/X-1.Y`. Two weeks before the release `X.0` the branch `next/X` should be merged into `main` (probably not necessary the first time). Then `stable/X.0` is branched from `main`, as well as `next/X+1`. In `stable/X.0`, `X.0.0rc1` is tagged and release. Two week later, at stable release time, `X.0.0` is tagged on `stable/X.0` and released.
 
- * Removals/breaking changes can be PRed at any point against `next/X+1` branch.
- * Regularly, `main` should be merge into `next/X+1` to keep it up-to-date. The suggestion is for every minor release, at least.
+Similarly, two week before the release of `Y` minor, a `stable/X.Y` branch from `main` is created, from where `X.Y.0rc1` is tagged. When stable `X.Y.0` will be released (two weeks later), the label is on `stable/X.Y`.
+
+All changes, including bug fixes, with backward compatibility are PRed with `main` as base. Bugfix PRs that are possible to port to stable should be tagged as `stable-backport-potential` and a bot ports them to `stable/X.Y` (where `Y` is the last minor).
+At undefined time, a new patch release `X.Y.Z` is tagged on `stable/X.Y` and released.
+
+Non-backward compatible changes, including removal of deprecated code, can be PRed at any point against `next/X+1` branch.
+
+Regularly, `main` should be merge into `next/X+1` to keep it up-to-date. The suggestion is for every minor release, at least.
 
  
 ### Suggested upgrade path
