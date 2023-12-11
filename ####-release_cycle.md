@@ -3,7 +3,7 @@
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | ####                                         |
-| **Authors**       | [Luciano Bello](https://github.com/1ucian0/)   |
+| **Authors**       | [Luciano Bello](https://github.com/1ucian0/) |
 | **Submitted**     | 2023-11-21                                   |
 | **Updated**       | YYYY-MM-DD                                   |
 
@@ -288,6 +288,18 @@ After the release of a major version (X.3.0), a 6-month bugfix support period is
 
 TODO
 
+ * Removals/breaking changes can be PRed at any point against `next/X+1` branch.
+ * Regularly, `main` should be merge into `next/X+1` to keep it up-to-date. The suggestion is for every minor release, at least.
+
+ 
+### Suggested upgrade path
+
+Users should upgrade minors and patch versions as soon as the next stable release happens in every case, except when there is a new major release.
+Major releases allow for 6 months to transition from `X` to `X+1`.
+Users and downstreamers should depend on `<X+1` until the end of the transition time.
+The last minor on `X` is will contain all the `DeprecationWarning`s users should solve before moving on `X+1`.
+
+If there is a dependency on a feature introduced in `Y`, users should depend on `>=X.Y,<X+1` (or `~=X.Y`). `DeprecationWarning`s introduced on `X.Y` will have an alternative path in `X.Y` and can be migrated then, when possible.
 
 <!--
 ## Alternative Approaches
