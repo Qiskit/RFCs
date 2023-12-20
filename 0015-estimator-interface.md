@@ -43,7 +43,7 @@ Here is a summary of pain-points with the current `Estimator.run()` interface:
 Here is why the [Detailed Design](#detailed-design) section suggests "transposing" the signature and using array-based arguments with broadcasting:
 
  1. Transposing the signature will make it obvious what the primitive intends to do with each circuit.
- 2. Transposing the signature will let us introduce and reason about the notion  "primitive unit of work", for which this RFC proposes the name "Primitives Unified Block - PUB".
+ 2. Transposing the signature will let us introduce and reason about the notion  "primitive unit of work", for which this RFC proposes the name "Primitives Unified Bloc - PUB".
  3. Array-based arguments will let users assign operational meaning to each axis (this axis is for twirling, that axis is for basis changes, etc.).
  4. Broadcasting rules will let users choose how to combine parameter value sets with observables in different ways, such as
     1. use one observable for all of N parameter value sets
@@ -182,7 +182,7 @@ Three different circuits, three different observables:
 
 ### PUBs <a name="pubs"></a>
 
-We propose the concept of a _PUB (Primitive Unified Blocs.)_, which we define as _a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question_. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
+We propose the concept of a _PUB (Primitive Unified Blocs)_, which we define as _a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question_. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
 
 For example, a circuit with unbound parameters (or in OpenQASM3 terms, a circuit with `input`s) alone could never qualify as a PUB for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an circuit with no `input`s) alone could form a PUB for a hypothetical primitive that just runs circuits and returns counts. This suggests a natural base for all PUBs:
 
