@@ -24,7 +24,7 @@ It is common, if not typical, for a user to want to estimate many observables co
 Likewise, it is common, if not typical, for a user to want to supply multiple parameter value sets for the same circuit.
 This RFC proposes to fix these issues by changing the `Estimator.run()` signature in the following ways: 
 
- 1. Take the transpose of the current signature; rather than accepting `circuits`, `parameter_values`, and `observables` as three different (iterable) arguments which are to be zipped together, instead localize the distinct PUBs to be run via an iterable of triples `(circuit, parameter_values, observables)`.
+ 1. Take the transpose of the current signature; rather than accepting `circuits`, `parameter_values`, and `observables` as three different (iterable) arguments which are to be zipped together, instead localize them into an iterable of triples `(circuit, parameter_values, observables)`.
  2. In combination with 1, extend `parameter_values` and `observables` to be array-valued, that is, add the ability to explicity and conveniently specify multiple parameter value sets and observables for a single circuit.
 
 ## Motivation <a name="motivation"></a>
