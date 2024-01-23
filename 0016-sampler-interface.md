@@ -8,13 +8,14 @@
 |                   | Blake Johnson (blake.johnson@ibm.com)        |
 |                   | Chris Wood (cjwood@us.ibm.com)               |
 | **Submitted**     | 2023-10-03                                   |
+| **Updated**       | 2023-12-18                                   |
 
 
 ## Summary <a name="summary"></a>
 
 This RFC proposes an interface for the next version of the `Sampler`.
-The changes proposed here mirror those accepted in [the paired Estimator interface RFC](https://github.com/Qiskit/RFCs/pull/51), where the arguments of the `Estimator.run()` signature were transposed to accept, instead of three iterable arguments, an iterable of "tasks", with each task comprising a circuit and auxiliary execution information.
-In the case of the `Sampler`, a task consists only of a circuit and an array of parameter value sets if it is a parametric circuit.
+The changes proposed here mirror those accepted in [the paired Estimator interface RFC](https://github.com/Qiskit/RFCs/pull/51), where the arguments of the `Estimator.run()` signature were transposed to accept, instead of three iterable arguments, an iterable of "PUBs", with each PUB comprising a circuit and auxiliary execution information.
+In the case of the `Sampler`, a PUB consists only of a circuit and an array of parameter value sets if it is a parametric circuit.
 We aim to move the `Sampler` to be a viable replacement for `backend.run`, and eliminate the notion of sample weights (i.e. quasi-probabilities).
 
 ## Motivation <a name="motivation"></a>
@@ -69,13 +70,13 @@ job = sampler.run([
 # wait for the result
 job.result()
 
-# get a bundle of results for every task
+# get a bundle of results for every PUB
 >> PrimitiveResult(
->>     SamplerTaskResult(
+>>     SamplerPubResult(
 >>         DataBundle(meas=BitArray(<num_samples=1024, num_bits=127, shape=(32, 4)>)), 
 >>         <metadata>
 >>     ), 
->>     SamplerTaskResult(
+>>     SamplerPubResult(
 >>         DataBundle(
 >>             alpha=BitArray(<num_samples=1024, num_bits=127, shape=()>),
 >>             beta=BitArray(<num_samples=1024, num_bits=10, shape=()>),
@@ -88,13 +89,13 @@ job.result()
 ```
 
 The above example shows various features of the design.
-Notice the output results are placed in a `DataBundle`, a namespace container described [here](https://github.com/Qiskit/RFCs/pull/53), with one entry for each output of the corresponding task's circuits.
+Notice the output results are placed in a `DataBundle`, a namespace container described [here](https://github.com/Qiskit/RFCs/pull/53), with one entry for each output of the corresponding PUB's circuits.
 These circuits only have bit-array outcomes, as allowed by Qiskit, and therefore all results have type `BitArray`, described later.
 For now, consider the following usage examples.
 
 ```python
 
-# get result from the second task above
+# get result from the second PUB above
 result = job.result()[1]
 
 # get the entire quasi-probability distribution
@@ -112,7 +113,7 @@ flipped_gamma = result.data.gamma ^ flips
 
 If a circuit had a non bit-array outcome, it would use a different type in place of `BitArray`.
 We suggest just using `numpy.ndarrays` with the closest appropriate `dtype` for non-bit-array outputs. 
-The shape of such an array would be `(*task_shape, num_samples, *output_register_shape)`.
+The shape of such an array would be `(*pub_shape, num_samples, *output_register_shape)`.
 For particular types, like `angle`, if it is for some reason decided that no NumPy type is satisfactory,
 we can add more containers analagous to `BitArray`.
 
@@ -127,17 +128,17 @@ BindingsArrayLike = Union[
     Dict[Parameter | Tuple[Parameter], NDArray]
 ]
 
-SamplerTaskLike = Union[
-    SamplerTask,
+SamplerPubLike = Union[
+    SamplerPub,
     QuantumCircuit,
     Tuple[QuantumCircuit, BindingsArrayLike]
 ]
 
-class SamplerBaseV2(PrimitiveBase[SamplerTask, SamplerTaskResult]):
+class SamplerBaseV2(PrimitiveBase[SamplerPub, SamplerPubResult]):
     ...
     def run(
-        self, tasks: SamplerTaskLike | Iterable[SamplerTaskLike]
-    ) -> Job[PrimitiveResult[SamplerTask, SamplerTaskResult]]:
+        self, pubs: SamplerPubLike | Iterable[SamplerPubLike]
+    ) -> Job[PrimitiveResult[SamplerPub, SamplerPubResult]]:
         pass
 ```
 
@@ -146,32 +147,32 @@ class SamplerBaseV2(PrimitiveBase[SamplerTask, SamplerTaskResult]):
 
 Most new types and conventions have been described in either [the paired Estimator RFC](https://github.com/Qiskit/RFCs/pull/51) or the (`BasePrimitive.run()` RFC)[https://github.com/Qiskit/RFCs/pull/53].
 
-### Tasks and Task Results <a name="tasks"></a>
+### PUBs and PUB Results <a name="pubs"></a>
 
-A task consists of a `QuantumCircuit` and, if it has parameters, a `BindingArray` that specifies an array of parameter value sets each of which to bind it against during execution.
+A PUB consists of a `QuantumCircuit` and, if it has parameters, a `BindingArray` that specifies an array of parameter value sets each of which to bind it against during execution.
 
-A `SamplerTaskResult` is a subclass of `TaskResult` with the addition of methods for convenience, and to ease migration. For example,
+A `SamplerPubResult` is a subclass of `PubResult` with the addition of methods for convenience, and to ease migration. For example,
 
 ```python
-class SamplerTaskResult(TaskResult):
+class SamplerPubResult(PubResult):
     def get_quasiprobabilities(self, loc: Tuple[int, ...] | None = None) -> QuasiProbabilityDistribution:
         """Join all bit-array output registers together into a new quasi-probability distribution.
         
         Args:
-            loc: Which task coordinate to fetch.
+            loc: Which PUB coordinate to fetch.
 
         Raises:
-            ValueError: If no ``loc`` is given and this task result is more than 0-D.
+            ValueError: If no ``loc`` is given and this PUB result is more than 0-D.
         """
 
     def get_counts(self, loc: Tuple[int, ...] | None = None) -> Counts:
         """Join all bit-array output registers together into a new counts structure.
         
         Args:
-            loc: Which task coordinate to fetch.
+            loc: Which PUB coordinate to fetch.
 
         Raises:
-            ValueError: If no ``loc`` is given and this task result is more than 0-D.
+            ValueError: If no ``loc`` is given and this PUB result is more than 0-D.
         """
 ```
 
@@ -233,10 +234,10 @@ class BitArray(ShapedMixin):
         """Join all bit-array output registers together into a new counts structure.
         
         Args:
-            idx: Which task coordinate to fetch.
+            idx: Which PUB coordinate to fetch.
 
         Raises:
-            ValueError: If no ``idx`` is given and this task result is more than 0-D.
+            ValueError: If no ``idx`` is given and this PUB result is more than 0-D.
         """
 ```
 
@@ -260,11 +261,11 @@ Phases for each shot:
 ```python
 sampler.run([(circuit1, parameter_values1), circuit2], meas_level=MeasLevel.PHASES).result()
 >> PrimitiveResult(
->>     SamplerTaskResult(
+>>     SamplerPubResult(
 >>         DataBundle(meas=np.ndarray(<shape=(32, 4, 1024, 127), dtype=np.complex128>)), 
 >>         <metadata>
 >>     ), 
->>     SamplerTaskResult(
+>>     SamplerPubResult(
 >>         DataBundle(
 >>             alpha=np.ndarray(<shape=(1024, 127), dtype=np.complex128>
 >>             beta=np.ndarray(<shape=(1024, 10), dtype=np.complex128>

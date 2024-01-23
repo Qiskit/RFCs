@@ -12,6 +12,8 @@
 |                   | Chris Wood (cjwood@us.ibm.com)               |
 |                   | Jessie Yu (jessieyu@us.ibm.com)              |
 | **Submitted**     | 2023-10-03                                   |
+| **Updated**       | 2023-12-18                                   |
+
 
 
 ## Summary <a name="summary"></a>
@@ -22,7 +24,7 @@ It is common, if not typical, for a user to want to estimate many observables co
 Likewise, it is common, if not typical, for a user to want to supply multiple parameter value sets for the same circuit.
 This RFC proposes to fix these issues by changing the `Estimator.run()` signature in the following ways: 
 
- 1. Take the transpose of the current signature; rather than accepting `circuits`, `parameter_values`, and `observables` as three different (iterable) arguments which are to be zipped together, instead localize the distinct tasks to be run via an iterable of triples `(circuit, parameter_values, observables)`.
+ 1. Take the transpose of the current signature; rather than accepting `circuits`, `parameter_values`, and `observables` as three different (iterable) arguments which are to be zipped together, instead localize them into an iterable of triples `(circuit, parameter_values, observables)`.
  2. In combination with 1, extend `parameter_values` and `observables` to be array-valued, that is, add the ability to explicity and conveniently specify multiple parameter value sets and observables for a single circuit.
 
 ## Motivation <a name="motivation"></a>
@@ -41,7 +43,7 @@ Here is a summary of pain-points with the current `Estimator.run()` interface:
 Here is why the [Detailed Design](#detailed-design) section suggests "transposing" the signature and using array-based arguments with broadcasting:
 
  1. Transposing the signature will make it obvious what the primitive intends to do with each circuit.
- 2. Transposing the signature will let us introduce and reason about the notion  "primitive unit of work", for which this RFC proposes the name "task".
+ 2. Transposing the signature will let us introduce and reason about the notion  "primitive unit of work", for which this RFC proposes the name "Primitives Unified Bloc - PUB".
  3. Array-based arguments will let users assign operational meaning to each axis (this axis is for twirling, that axis is for basis changes, etc.).
  4. Broadcasting rules will let users choose how to combine parameter value sets with observables in different ways, such as
     1. use one observable for all of N parameter value sets
@@ -87,10 +89,10 @@ job = estimator.run([
 # wait for the result
 job.result()
 
-# get a bundle of results for every task
+# get a bundle of results for every PUB
 >> EstimatorResult(
->>     TaskResult<{evs: ndarray<32, 4>, stds: ndarray<32, 4>}, local_metadata>, 
->>     TaskResult<{evs: ndarray<18>, stds: ndarray<18>}, local_metadata>, 
+>>     PubResult<{evs: ndarray<32, 4>, stds: ndarray<32, 4>}, local_metadata>, 
+>>     PubResult<{evs: ndarray<18>, stds: ndarray<18>}, local_metadata>, 
 >>     global_metadata
 >> )
 ```
@@ -120,14 +122,14 @@ ObservablesArrayLike = Union[
     Iterable[str | Pauli | SparsePauliOp]
 ]
 
-EstimatorTaskLike = Union[
-    EstimatorTask,
+EstimatorPubLike = Union[
+    EstimatorPub,
     Tuple[QuantumCircuit, ObservablesArrayLike, BindingsArrayLike]
 ]
 
 class EstimatorBase(ABC, Generic[T]):
     ...
-    def run(self, tasks: EstimatorTaskLike | Iterable[EstimatorTaskLike], **options) -> T:
+    def run(self, pubs: EstimatorPubLike | Iterable[EstimatorPubLike], **options) -> T:
         pass
 ```
 
@@ -142,9 +144,9 @@ One circuit, many observables:
     estimator.run([circuit] * 4, observables=["ZIII", "IZII", "IIZI", "IIIZ"]).result()
     >> EstimatorResult(np.array([0.1, 0.2, 0.3, 0.4]), metadata={...})
 
-    # new API (we can use a single task)
+    # new API (we can use a single PUB)
     estimator.run((circuit, ["ZIII", "IZII", "IIZI", "IIIZ"])).result()
-    >> [TaskResult({"evs": np.array([0.1, 0.2, 0.3, 0.4]), "stds": <...>}, metadata={...})]
+    >> [PubResult({"evs": np.array([0.1, 0.2, 0.3, 0.4]), "stds": <...>}, metadata={...})]
 ```
 
 One circuit, one observable, many parameter value sets:
@@ -154,9 +156,9 @@ One circuit, one observable, many parameter value sets:
     estimator.run([circuit] * 3, observables=["XYZI"] * 3, parameter_values=[[1,2,3], [3,4,5], [8,7,6]]).result()
     >> EstimatorResult(np.array([0.1, 0.2, 0.3]), metadata={...})
 
-    # new API (we can use a single task)
+    # new API (we can use a single PUB)
     estimator.run((circuit, ["XYZI"], [[1,2,3], [3,4,5], [8,7,6]])).result()
-    >> [TaskResult({"evs": np.array([0.1, 0.2, 0.3]), "stds": <...>}, metadata={...})]
+    >> [PubResult({"evs": np.array([0.1, 0.2, 0.3]), "stds": <...>}, metadata={...})]
 ```
 
 Three different circuits, three different observables:
@@ -166,40 +168,40 @@ Three different circuits, three different observables:
     estimator.run([circuit1, circuit2, circuit3], observables=["ZIII", "IZII", "IIZI"]).result()
     >> EstimatorResult(np.array([0.1, 0.2, 0.3]), metadata={...})
 
-    # new API (unique circuits always need their own tasks)
+    # new API (unique circuits always need their own PUBs)
     estimator.run([(circuit1, "ZIII"), (circuit2, "IZII"), (circuit3, "IIZI")]).result()
     >> [
-    >>     TaskResult({"evs": np.array(0.1), "stds": <...>}, metadata={...}), 
-    >>     TaskResult({"evs": np.array(0.2), "stds": <...>}, metadata={...}), 
-    >>     TaskResult({"evs": np.array(0.3), "stds": <...>}, metadata={...})
+    >>     PubResult({"evs": np.array(0.1), "stds": <...>}, metadata={...}), 
+    >>     PubResult({"evs": np.array(0.2), "stds": <...>}, metadata={...}), 
+    >>     PubResult({"evs": np.array(0.3), "stds": <...>}, metadata={...})
     >> ]
 ```
 
 
 ## Detailed Design <a name="detailed-design"></a>
 
-### Tasks <a name="tasks"></a>
+### PUBs <a name="pubs"></a>
 
-We propose the concept of a _task_, which we define as _a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question_. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
+We propose the concept of a _PUB (Primitive Unified Blocs)_, which we define as _a single circuit along with auxiliary data required to execute the circuit relative to the primitive in question_. This concept is general enough that it can be used for all primitive types, current and future, where we stress that what the “auxiliary data” is can vary between primitive types. 
 
-For example, a circuit with unbound parameters (or in OpenQASM3 terms, a circuit with `input`s) alone could never qualify as a task for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an circuit with no `input`s) alone could form a task for a hypothetical primitive that just runs circuits and returns counts. This suggests a natural base for all tasks:
+For example, a circuit with unbound parameters (or in OpenQASM3 terms, a circuit with `input`s) alone could never qualify as a PUB for any primitive because there is not enough information to execute it, namely, numeric parameter binding values. On the other hand, conceptually, a circuit with no unbound parameters (i.e. an circuit with no `input`s) alone could form a PUB for a hypothetical primitive that just runs circuits and returns counts. This suggests a natural base for all PUBs:
 
 ```python
 @dataclass
-class BaseTask:
+class BasePub:
     circuit: QuantumCircuit
 ```
 
 This base class can be added to Qiskit if and when needed as a non-breaking change, and has been included here mainly to make the concepts clear, rather than to indicate that we need such a base class immediately.
-Most relevant, for the `Estimator` primitive, in order to satisfy the definition as stated above, we propose the task structure
+Most relevant, for the `Estimator` primitive, in order to satisfy the definition as stated above, we propose the PUB structure
 
 ```python
-class EstimatorTask(BaseTask):
+class EstimatorPub(BasePub):
     observables: ObservablesArray = None
     parameter_values: BindingsArray = None, 
 ```
 
-We expect the formal primitive API and primitive implementations to have a strong sense of tasks, but we will not demand that users construct them manually in Python as they are little more than simple data containers (incidentically implemented as dataclasses above), and we do not wish to overburden them with types. This is discussed further in [Type Coercion Strategy](#type-coercion-strategy).
+We expect the formal primitive API and primitive implementations to have a strong sense of PUBs, but we will not demand that users construct them manually in Python as they are little more than simple data containers (incidentally implemented as dataclasses above), and we do not wish to overburden them with types. This is discussed further in [Type Coercion Strategy](#type-coercion-strategy).
 
 ### BindingsArray <a name="bindingsarray"></a>
 
@@ -266,7 +268,7 @@ An `nd-array` is an object whose elements are indexed by a tuple of integers, wh
 The tuple of dimensions, one for each axis, is called the shape of the `nd-array`. 
 For example, 1D list of 10 objects (typically numbers) is a vector and has shape `(10,)`; a matrix with 5 rows and 2 columns is 2D and has shape `(5, 2)`; a single number is 0D and has an empty shape tuple `()`; an `nd-array` with shape (20, 10, 5) can be interpreted as a length-20 list of 10×5 matrices.
 
-We propose the constraint that a `BindingsArray` instance and an `ObservablesArray` instance that live in the same task must have shapes that are broadcastable, in which case, the `Estimator` promises to return one expectation value estimate for each element of the broadcasted shape.
+We propose the constraint that a `BindingsArray` instance and an `ObservablesArray` instance that live in the same PUBs must have shapes that are broadcastable, in which case, the `Estimator` promises to return one expectation value estimate for each element of the broadcasted shape.
 
 Here are some examples of common patterns expressed in terms of array broadcasting, and their accompanying visual representation in the figure that follows:
 
@@ -276,21 +278,21 @@ parameter_values = np.array(1.0)
 parameter_values.shape == ()
 observables = ObservablesArray(["III", "XXX", Pauli("YYY"), "ZZZ", Pauli("XYZ")])
 observables.shape == (5,)
->> task_result.shape == (5,)
+>> pub_result.shape == (5,)
 
 # Zip
 parameter_values = BindingsArray(np.random.uniform(size=(5,)))
 parameter_values.shape == (5,)
 observables = ObservablesArray([Pauli("III"), Pauli("XXX"), Pauli("YYY"), Pauli("ZZZ"), Pauli("XYZ")])
 observables.shape == (5,)
->> task_result.shape == (5,)
+>> pub_result.shape == (5,)
 
 # Outer/Product
 parameter_values = BindingsArray(np.random.uniform(size=(1, 6)))
 parameter_values.shape == (1, 6)
 observables = ObservablesArray([[Pauli("III")], [Pauli("XXX")], [Pauli("YYY")], [Pauli("ZZZ")]])
 observables.shape == (4, 1)
->> task_result.shape == (4,6)
+>> pub_result.shape == (4,6)
 
 # Standard nd generalization
 parameter_values = BindingsArray(np.random.uniform(size=(3, 6)))
@@ -300,7 +302,7 @@ observables = ObservablesArray([
     [[Pauli(...)], [Pauli(...)], [Pauli(...)]]],
 ])
 observables.shape == (2, 3, 1)
->> task_result.shape == (3, 6, 2)
+>> pub_result.shape == (3, 6, 2)
 ```
 
 <img src="./0015-estimator-interface/broadcasting.svg">
@@ -335,20 +337,20 @@ def coerce(bindings_array: BindingsArrayLike) -> BindingsArray:
 ```
 
 In particular, we propose this kind of Coercion for the types:
-* `EstimatorTask`
+* `EstimatorPub`
 * `BindingsArray`
 * `ObservablesArray`
 
-### TaskResults <a name="TaskResults"></a>
+### `PubResult`s <a name="PubResults"></a>
 
-The results from each `EstimatorTask` will be array valued, and each `EstimatorTask` in the same job may have a different shape.
-Consider an `EstimatorTask` with shape `<20, 30>`, where the shape has come from the broadcasting rules discussed elsewhere. 
+The results from each `EstimatorPub` will be array valued, and each `EstimatorPub` in the same job may have a different shape.
+Consider an `EstimatorPub` with shape `<20, 30>`, where the shape has come from the broadcasting rules discussed elsewhere. 
 This will result in a 20×30 array of real estimates.
 Moreover, we will want to return an array of standard deviations of the same shape.
 This would result in a bundle of broadcastable arrays:
 
 ```python
-TaskResult({“evs”: <20, 30>, “stds”: <20, 30>}, metadata)
+PubResult({“evs”: <20, 30>, “stds”: <20, 30>}, metadata)
 ```
 
 The reason we are proposing a generic container for the return type instead of, e.g., an `Estimator`-specific container, is because it
@@ -370,17 +372,17 @@ We will maintain backward compatibility by defaulting the import of `Estimator` 
 
 ## Alternative Approaches <a name="alternative-approaches"></a>
 
-An alternative is to consider letting the `run()` method accept, effectively, only a single `EstimatorTask`:
+An alternative is to consider letting the `run()` method accept, effectively, only a single `EstimatorPub`:
 
 ```python
 Estimator.run(circuit, parameter_values_array, observables_array)
 ```
 
-This has the advantage of a simpler interface, where multiple tasks could be run 
+This has the advantage of a simpler interface, where multiple PUBs could be run 
 by invoking the estimator multiple times. The disadvantages, which we feel are significant enough to forego this simplification, are that:
 
  1. For real backends, the user would lose the ability to cause multiple types of circuits to be loaded into the control hardware at one time. For example, if using an estimator to perform randomized benchmarking, each circuit depth would need to be a separate job.
- 2. It would be difficult for implementations that include mitigation to share resources between tasks. For example, if different tasks represent different trotter step counts, there would need to be a complicated mechanism to share learning resources---that are specific to the application circuits---between multiple jobs.
+ 2. It would be difficult for implementations that include mitigation to share resources between PUBs. For example, if different PUBs represent different trotter step counts, there would need to be a complicated mechanism to share learning resources---that are specific to the application circuits---between multiple jobs.
 
 ## Questions <a name="questions"></a>
 Open questions for discussion and an opening for feedback.
@@ -391,14 +393,14 @@ Open questions for discussion and an opening for feedback.
 
 In this proposal we have typed circuits as `QuantumCircuit`. It would be possible to extend this to a `CircuitLike` class which could be as simple as `Union[QuantumCircuit, str]` to explicitly allow OpenQASM3 circuits as first-class inputs.
 
-### Tasks in the base class (and other primitives)
+### PUBs in the base class (and other primitives)
 
-A consequence of switching to the concept of Tasks (mentioned in [Tasks](#tasks)) is that this will allow us to introduce the `.run()` method into `BasePrimitive`
+A consequence of switching to the concept of PUBs (mentioned in [PUBs](#pubs)) is that this will allow us to introduce the `.run()` method into `BasePrimitive`
 
 ```python
 class BasePrimitive(ABC, Generic[T]):
     ...
-    def run(self, T | Iterable[T], **options) -> List[TaskResult]:
+    def run(self, T | Iterable[T], **options) -> List[PubResult]:
         ...
 ```
 
