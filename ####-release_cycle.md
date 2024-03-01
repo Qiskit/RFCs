@@ -111,7 +111,7 @@ The new release cycle could include:
  * [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)
  * Critical bugfix support for a year or longer
  * 6-month transition period for updating to a new major while having support.
- * Non-breaking new features in a 3-month cycle (as currently)
+ * Non-breaking new features releases in a 3-month cycle (as currently)
 
 
 ```mermaid
