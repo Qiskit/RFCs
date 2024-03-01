@@ -14,7 +14,7 @@ Balancing stable backward compatibility with the rapid pace of technology is a c
 
 ## Motivation
 
-Qiskit is known for its dynamic nature and frequent deprecation of features. However, it [deprecation policy](https://qiskit.org/documentation/deprecation_policy.html) places a strong emphasis on stability and guarantees a relatively lengthy transition period (usually longer than six months from the first notification point on) when removing a feature. For the last years, Qiskit also introduced planned releases for mitigating the impact of coming changes, as well as pre-releases.
+Qiskit is known for its dynamic nature and frequent deprecation of features. However, the [deprecation policy](https://qiskit.org/documentation/deprecation_policy.html) places a strong emphasis on stability and guarantees a relatively lengthy transition period (usually longer than six months from the first notification point on) when removing a feature. For the past several years Qiskit has also had planned releases on a regular schedule for mitigating the impact of coming changes, as well as pre-releases to enable testing prior to a final release.
 
 However, there is a demand for a more transparent release cycle with longer periods of backwards compatibility support. In order to get ready for a "beyond Qiskit 0.x", a discussion on how that cycle would like is key to understand the trade-offs among:
 
