@@ -137,6 +137,7 @@ gantt
     X+2.2    :rX2Y2, after rX2Y1, 91d
     X+2.3    :rX2Y3s, after rX2Y2, 91d
     X+1.4,   :done, rX2Y4, after rX2Y3, 183d
+```
 
 ```mermaid
 %%{init: {'theme': 'default', 'gitGraph': {'mainBranchOrder': 1}} }%%
