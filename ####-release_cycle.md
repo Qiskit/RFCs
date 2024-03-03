@@ -3,9 +3,8 @@
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | ####                                         |
-| **Authors**       | [Luciano Bello](https://github.com/1ucian0/) |
+| **Authors**       | [Luciano Bello](https://github.com/1ucian0/) and the Qiskit development team |
 | **Submitted**     | 2023-11-21                                   |
-| **Updated**       | YYYY-MM-DD                                   |
 
 ## Summary
 
@@ -263,9 +262,14 @@ After the release of a major version (X.3.0), a 6-month bugfix support period is
 
 **Minor Version (Y):** Increases for backward-compatible features or enhancements a new `X.Y` release:
 
-- Users can expect new functionalities without breaking existing code (with the exception of Experimental APIs
-- Deprecation of previous functionality might be introduced (with a `Deprecation Warning` and documentation), pointing to the new prefer way or alternative, if there is one.
+- Minor releases are planned for every 3 months, on a best effort basis.
+- Users can expect new functionalities without breaking existing code (with the exception of Experimental APIs.
+- Significant refactorings of internals without changes in the public API are possible in minor releases.
+- Bugfixing without changes in the public API are possible in minor releases.
+- Deprecation of previous functionality might be introduced (with a `DeprecationWarning` and documentation), pointing to the new prefer way or alternative, if there is one.
 - The support of `X.Y` finishes with the release of `X.Y+1` in most of the cases (exception might apply)
+- The minor release before the next major (aka, *final minor release*) has support for 6 months after the next major. That is, if `X.Y` is the last feature release before `X+1.0`, then `X.Y+1` is the final minor release.
+- The final minor release `X.Y+1` should not have new features but might include `DeprecationWarning`s that will be removed in the next major, `X+1.0`. 
 
 **Patch Version (Z):** Bumps for backward-compatible bug fixes.
 
