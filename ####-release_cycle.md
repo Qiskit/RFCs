@@ -129,14 +129,14 @@ gantt
     X+1.0    :rX1Y0, 2025-01-31, 91d
     X+1.1    :rX1Y1, after rX1Y0, 91d
     X+1.2    :rX1Y2, after rX1Y1, 91d
-    X+1.3    : rX1Y3 after X1Y2, 91d
+    X+1.3    :rX1Y3, after rX1Y2, 91d
     X+1.4,   :done, rX1Y4, after rX1Y3, 183d
     section X+2.*
     X+2.0    :rX2Y0, 2026-01-31, 91d
     X+2.1    :rX2Y1, after rX2Y0, 91d
     X+2.2    :rX2Y2, after rX2Y1, 91d
     X+2.3    :rX2Y3s, after rX2Y2, 91d
-    X+1.4,   :done, rX2Y4, after rX2Y3, 183d
+    X+2.4,   :done, rX2Y4, after rX2Y3s, 183d
 ```
 
 ```mermaid
