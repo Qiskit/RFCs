@@ -19,7 +19,7 @@ However, there is a demand for a more transparent release cycle with longer peri
 
  * developer effort: Supporting several stable versions requires significant development resources. At the same time, rolling releases tend to create technical debt and fewer chances to enable re-architecting features or interfaces for better maintainability or changing needs.
  * user support: users tend to demand longer support periods to avoid regular updates in their code and software.
- * new feature support for coming technology: the quantum computing field and hardware is constantly changing and scaling up. This can require changes in Qiskit,which are not always compatible with previous approaches.
+ * new feature support for coming technology: the quantum computing field and hardware is constantly changing and scaling up. This can require changes in Qiskit, which are not always compatible with previous approaches.
 
 The outcome of the RFC is an agreement for release cycle and a versioning schema that would provide users with the tools for planning and stability while reduce the impact in the development workflow.
 
@@ -50,7 +50,7 @@ The RFC aims to benefit users and Qiskit ecosystem developers, because they will
 > - Compatibility
 -->
 
-The current *0.** release cycle increases the minor version in approximate periods of 3 months on a scheduled basis and, with the exception of the pre-release period (from one to two weeks) does not support more than one stable version at the time, i.e. the support of `0.X` finishes with the release of `0.X+1`. 
+The current `0.*`-release cycle increases the minor version in approximate periods of 3 months on a scheduled basis and, with the exception of the pre-release period (from one to two weeks) does not support more than one stable version at the time, i.e. the support of `0.X` finishes with the release of `0.X+1`. 
 
 ```mermaid
 gantt
@@ -72,7 +72,7 @@ gantt
     0.24    :milestone, 2023-05-04
 ```
 
-The `0.*` branch scheme is like this:
+The `0.*`-release branch scheme is like this:
 
 ```mermaid
 gitGraph
@@ -227,14 +227,15 @@ gitGraph
 
 Similarly to the current branching model, non-breaking features (`feature/*`) and bug fixes (`bugfix/*`) can be merged into `main` at any point. Non-breaking features (`feature/*`) are released in minor releases, when branched out of `main` for `tag_X.*`. Bug fixes are cherry-picked from main into the respective `stable/X.*` branch.
 
-The main difference with the 0.* schema is that breaking changes cannot be introduced at any point, but only between the release of X.3.0 and X+1.0.0 (between October and January).
+The main difference with the `0.*`-release schema is that breaking changes cannot be introduced at any point, but only between major releases (for example, from `X.Y.Z` to `X+1.0.0`.
 
 ## Detailed Design
 
+All the stability guarantees on this RFC are on *public APIs*. Users and developers are encourage to only use public API and do not hook on internal interfaces.
+
 ### Definition of *public API*
 
-The Qiskit public API is considered
-any documented module, class, function, or method that is not marked as private (with a `_` prefix). **All the stability guarantees are on these *public APIs* and users are encourage to only use them.**
+The Qiskit public API is considered any documented module, class, function, or method that is not marked as private (with a `_` prefix).
 
 **Exceptions**:
 
@@ -251,14 +252,14 @@ The proposed versioning model for Qiskit aligns with [Semantic Versioning 2.0.0]
 
 Semantic Versioning consists of three version components: *Major*, *Minor*, and *Patch* versions, represented as `X.Y.Z`. Each component has a specific meaning in the context of Qiskit:
 
-**Major Version (X):** Increments for backward-incompatible changes, indicating potential breaking changes that may require modifications in user code using the public API. When a new major version `X` is released:
+**Major Version (X):** Increments for backward-incompatible changes, indicating potential breaking changes that may require modifications in user code using the public API.
 
-- There is a 18 month period for critical bugfixes.
-- There might be non-breaking new features during that period.
-- After 12 months `X+1` is released and a 6 month period for moving from `X` starts.
-- After the release of `X+1`, `X` wont have new features and only critical bugfixes are provided.
-- The features deprecated during the period of support with `X` will be removed in `X+1` 
-After the release of a major version (X.3.0), a 6-month bugfix support period is provided to address critical issues, ensuring stability for users during the transition to the next major release (X+1.0.0).
+- A major version `X` release has a minimum of 18 month period for support with critical bug fixes.
+- New major release `X` can introduce breaking changes with respect to previous major release `X-1`.
+- During the `X` release series, there might include non-breaking new features during that period.
+- After the release of a major release `X`, `X+1` can be released after, at least, 12 months.
+- After the release of `X+1`, `X` wont have new features and only critical bugfixes are provided for, at least, 6 months.
+- The features deprecated during the period of support with `X` will be removed in `X+1`
 
 **Minor Version (Y):** Increases for backward-compatible features or enhancements a new `X.Y` release:
 
@@ -301,6 +302,9 @@ Non-backward compatible changes, including removal of deprecated code, can be PR
 
 Regularly, `main` should be merge into `next/X+1` to keep it up-to-date. The suggestion is for every minor release, at least.
 
+### QPY support
+
+A new major release `X` has support to dump on QPY in the same version than the final minor version `X-1`. This allows `X` to dump QPY that can be loaded with `X-1`. Minor releases can increase the version of QPY but should always support the QPY version in the final minor release of `X-1` until the end-of-life of `X-1`.
  
 ### Suggested upgrade path
 
