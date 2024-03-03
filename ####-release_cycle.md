@@ -306,6 +306,15 @@ Regularly, `main` should be merge into `next/X+1` to keep it up-to-date. The sug
 ### QPY support
 
 A new major release `X` has support to dump on QPY in the same version than the final minor version `X-1`. This allows `X` to dump QPY that can be loaded with `X-1`. Minor releases can increase the version of QPY but should always support the QPY version in the final minor release of `X-1` until the end-of-life of `X-1`.
+
+### Pre-releases
+
+The pre-release model from the `0.*`-release cycle will continue in the same way. Two weeks before the release of a minor `X.Y`, a release candidate `X.Yrc0` will be released as a pre-release. The final minor release might be except for that release candidate release, as it does not include new features.
+
+### Feature, deprecation, and removal proposal deadline
+
+Two weeks before the pre-release or a minor release, what ever is before, there will be a feature, deprecation, and removal proposal deadline. That means that any PR with addition, removal, or modification on the public API needs to be ready for review in the Qiskit repository before that date. Exceptions might apply at consideration of the Qiskit core team.
+
  
 ### Suggested upgrade path
 
