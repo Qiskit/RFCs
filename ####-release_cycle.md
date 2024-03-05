@@ -305,7 +305,17 @@ Regularly, `main` should be merge into `next/X+1` to keep it up-to-date. The sug
 
 ### QPY support
 
-A new major release `X` has support to dump on QPY in the same version than the final minor version `X-1`. This allows `X` to dump QPY that can be loaded with `X-1`. Minor releases can increase the version of QPY but should always support the QPY version in the final minor release of `X-1` until the end-of-life of `X-1`.
+The QPY serialization format is backwards compatible so that a new Qiskit can release can always load a QPY
+file generated with an earlier release of Qiskit. However, the format isn't forward compatible, so it's not possible
+to load QPY files generated with newer version of Qiskit using an older release. To support compatibility across major version releases, the `qiskit.qpy.dump()` function has an optional argument `version` that lets a user specify a back version of the QPY format emitted by the `dump()` function. There are two constants exposed by
+the `qpy` module, `qiskit.qpy.QPY_VERSION` which documents the default format version emitted by `dump()` and
+also the maximum version that `load()` supports, and `qiskit.qpy.QPY_COMPATIBILITY_VERSION` which documents the minimum version that `dump()` can emit (while `load()`  can load any version <= `QPY_VERSION`).
+
+To facilitate user migration across major version releases the `qiskit.qpy.dump()` function will always support at least one overlapping version between the `X.0.0` and the `X-1.Y.0` release (where Y is the last minor version of 
+that series). This will enable saving QPY format files that can be loaded by both major versions from the newer
+release. For example, in Qiskit 1.0.0 the `QPY_VERSION` was `11`, and in Qiskit 0.46.0 the `QPY_VERSION` constant was `10`. For qiskit 1.0.0 the minimum version supported by `dump()`'s `version` argument, and exposed by 
+`qiskit.qpy.QPY_COMPATIBILITY_VERSION` was 10. This enabled Qiskit 1.0.0 to generate qpy payloads that could
+be loaded by Qiskit 0.46.0.
 
 ### Pre-releases
 
