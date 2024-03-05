@@ -2,7 +2,7 @@
 
 | **Status**        | **Proposed/Accepted/Deprecated** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         | 0020                                         |
 | **Authors**       | [Luciano Bello](https://github.com/1ucian0/) and the Qiskit development team |
 | **Submitted**     | 2023-11-21                                   |
 
@@ -28,27 +28,6 @@ The outcome of the RFC is an agreement for release cycle and a versioning schema
 The RFC aims to benefit users and Qiskit ecosystem developers, because they will have guaranties that their software will run for a defined period of time and they could plan the transition period. 
 
 ## Design Proposal
-<!--
-> This is the focus of the document. Explain the proposal from the perspective of
-> educating another user on the proposed features.
-> 
-> This generally means:
-> 
-> - Introducing new concepts and nomenclature
-> - Using examples to introduce new features
-> - Implementation and Migration path with associated concerns
-> - Communication of features and changes to users
-> 
-> Focus on giving an overview of impact of the proposed changes to the target
-> audience.
-> 
-> Factors to consider:
-> 
-> - Performance
-> - Dependencies
-> - Maintenance
-> - Compatibility
--->
 
 The current `0.*`-release cycle increases the minor version in approximate periods of 3 months on a scheduled basis and, with the exception of the pre-release period (from one to two weeks) does not support more than one stable version at the time, i.e. the support of `0.X` finishes with the release of `0.X+1`. 
 
@@ -335,19 +314,3 @@ The last minor on `X` is will contain all the `DeprecationWarning`s users should
 
 If there is a dependency on a feature introduced in `Y`, users should depend on `>=X.Y,<X+1` (or `~=X.Y`). `DeprecationWarning`s introduced on `X.Y` will have an alternative path in `X.Y` and can be migrated then, when possible.
 
-<!--
-## Alternative Approaches
-> Discuss other approaches to solving this problem and why these were not
-> selected.
-
-## Questions
-> Open questions for discussion and an opening for feedback.
-
-## Future Extensions
-> Consider what extensions might spawn from this RFC. Discuss the roadmap of
-> related projects and how these might interact. This section is also an opening
-> for discussions and a great place to dump ideas.
-> 
-> If you do not have any future extensions in mind, state that you cannot think
-> of anything. This section should not be left blank.
--->
