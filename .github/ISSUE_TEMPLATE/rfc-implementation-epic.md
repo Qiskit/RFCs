@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Tasks to implement `RFC 0000`: <RFC title>
+Tasks to implement `RFC <0000>`: <RFC title>
 
   - [ ] Link to issue/PR
   - [ ] Link to issue/PR
