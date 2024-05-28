@@ -1,6 +1,6 @@
 # Pulse Compiler & IR
 
-| **Status**        | **Deprecated** |
+| **Status**        | **Not planned anymore** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0012                                         |
 | **Authors**       | Tsafrir Armon (tsafrir.armon@ibm.com),  Naoki Kanazawa (knzwnao@jp.ibm.com)    |

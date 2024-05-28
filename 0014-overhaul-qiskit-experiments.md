@@ -1,6 +1,6 @@
 # Overhaul Qiskit Experiments
 
-| **Status**        | **Deprecated**                             |
+| **Status**        | **Not planned anymore**                             |
 |:------------------|:-----------------------------------------|
 | **RFC #**         | 0014                                     |
 | **Authors**       | Naoki Kanazawa (nkanazawa1989@gmail.com) |
