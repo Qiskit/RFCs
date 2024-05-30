@@ -1,6 +1,6 @@
 # Overhaul Qiskit Experiments
 
-| **Status**        | **Not planned anymore**                             |
+| **Status**        | **[Not planned](https://github.com/Qiskit/RFCs/pull/73)** |
 |:------------------|:-----------------------------------------|
 | **RFC #**         | 0014                                     |
 | **Authors**       | Naoki Kanazawa (nkanazawa1989@gmail.com) |
