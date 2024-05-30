@@ -1,6 +1,6 @@
 # Pulse Compiler & IR
 
-| **Status**        | **Proposed** |
+| **Status**        | **[Not planned](https://github.com/Qiskit/RFCs/pull/73)** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0012                                         |
 | **Authors**       | Tsafrir Armon (tsafrir.armon@ibm.com),  Naoki Kanazawa (knzwnao@jp.ibm.com)    |
