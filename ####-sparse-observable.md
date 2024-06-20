@@ -225,7 +225,6 @@ This view form will be available to enable serialisation from Python space.
 
 A enumeration `SingleBitTerm` will be available in Python space that provides named access to the integer values for each item of `s_terms`.
 
-
 ### Choice of abstract-term extended alphabet
 
 `SingleBitTerm` is an `enum` of the extended alphabet, where each term has a well-defined integer representation.
@@ -365,29 +364,6 @@ Supporting things like this efficiently in the observable is also perhaps mislea
 
 
 ## Questions
-
-### Should `SparseObservable` be in-place growable?
-
-In more words: should it be possible to grow a `SparsePauliOp` in place, that is, adding more terms to the end of it without necessarily needing a new object (if the capacity of the allocations permits).
-
-Pros of being growable:
-
-* Construction-like mathematical operations such as `+=` can be done more efficiently.
-  This has the potential to be a big user-experience positive, since it simplifies the necessary APIs around efficient construction.
-
-  On the other hand, many mathematical methods such as `evolve` or `tensor` won't be able to use the growability without swap-space allocations during the operation, so the benefits aren't universal.
-
-Cons:
-
-* Construction of the array from the view-like form of Numpy arrays will always necessitate a copy; we'll have to copy the data into Rust-side growable buffers.
-  Consequently there could be no no-copy constructor that could be used for deserialisation from a binary stream directly into the object, unless the deserialisation were implemented directly in Qiskit's Rust space.
-  Similarly, we couldn't expose the CSR-like structure as a no-copy constructor form for advanced users (akin to the `(data, indices, indptr)` input to Scipy's `csr_matrix` constructor).
-
-  That said, the cost of cloning the arrays is effectively just a `memcpy` on each field, for memory that should not be excessively large.
-  Any object large enough to cause severe runtime costs from a one-off copy in this representation would likely cause far greater problems in all other algorithms we act on them with.
-
-Jake: my tendency is towards being in-place growable; making the object term-by-term growable makes it a lot easier to write efficient Python APIs for construction for most users, and advanced construction uses can potentially have special-case constructors.
-
 
 ### Should `SparseObservable` allow parametric observables?
 
