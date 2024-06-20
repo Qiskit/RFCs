@@ -238,6 +238,81 @@ The alphabet should be limited specifically so that an observable that can be _r
 Allowing items such as $\lvert 0\rangle\langle 1\rvert$ into the alphabet could result in an operator that needs linear space to be stored, but exponential numbers of executions to evaluate.
 
 
+### Construction of `SparseObservable`
+
+We can supply several constructors and converters into `SparseObservable`.
+
+#### High level, user facing
+
+At the high level for users, it is easy to supply a `from_sparse_pauli_op` method.
+`SparsePauliOp.from_list` and `SparsePauliOp.from_sparse_list` both have natural extensions to `SparseObservable`; simply extend the alphabet used in them.
+`from_sparse_list` is the most natural for `SparseObservable`.
+
+Most `quantum_info` objects heavily overload their default constructor to do significant type inference, and perform many types of move-semantics, copy-semantics and conversion constructors.
+To keep the "feel" of the module similar, it is likely best to continue with this.
+The default constructor will accept the following objects:
+
+* A single string, treated as a dense Pauli-and-projectors string and lifted to a single observable with 1.0 coefficient.
+* A `Pauli` or `SparsePauliOp` object, converted directly.
+* Another `SparseObservable`, which will evoke copy semantics.
+
+For example:
+
+```python
+from qiskit.quantum_info import SparseObservable, Pauli, SparsePauliOp
+
+pauli = Pauli("XYZ")
+spo = SparsePauliOp.from_list([("ZIIIX", 1.0), ("IIIIX", -1.0)])
+
+# Construct a `SparseObservable` from a single extended-alphabet string.
+SparseObservable("XIIZ0+")
+
+# Construct a `SparseObservable` from a `Pauli` using the default constructor,
+# which represents the same operator.  Also available as
+# `SparseObservable.from_pauli`.
+SparseObservable(pauli)
+
+# Construct a `SparseObservable` from a `SparsePauliOp` using the default
+# constructor, again.  This operator _could_ be more efficiently represented in
+# `SparseObservable` using the |1><1| projector, but finding the most efficient
+# factorisation is (in general) a very hard problem, so we don't attempt it.
+# Also available as `SparseObservable.from_sparse_pauli_op`.
+SparseObservable(spo)
+
+# Use the `SparsePauliOp`-like fully sparse list format to construct an
+# operator.  This also allows using the extended alphabet (here, the Z-basis
+# eigenstate projectors).  This is will likely be the fastest choice for
+# users of the high-level interface.
+SparseObservable.from_sparse_list([
+    ("000", (12, 11, 10), 1.0),
+    ("111", (100, 99, 98), 1.0),
+], num_qubits=200)
+```
+
+
+#### Low level, libraries and deserialisation
+
+To support low-level fast-path construction, intended for use by wrapper libraries, Qiskit itself, and the highest-performance code, `SparseObservable` will also have an `uninitialized` method to allocate the buffers from Rust space, then expose them as uninitialised Numpy arrays.
+There will also be a safer, copy-in constructor.
+These methods are not intended to have significant use by users, but are part of providing efficient serialisation/deserialisation and Python-space mathematical operations for libraries:
+
+```python
+import numpy as np
+from qiskit.quantum_info import SparseObservable
+
+# Using the copy-in constructor to make the Z_0 + Z_1 + Z_2 + ... operator
+# by manually providing the data buffers.
+num_bits = 100
+terms = np.full((num_bits,), SparseObservable.Term["Z"], dtype=np.uint8)
+indices = np.arange(num_bits, dtype=np.uint32)
+coeffs = np.ones((num_bits,), dtype=complex)
+boundaries = np.arange(num_bits, dtype=np.uintp)
+# This copies out of the buffers, because we need the base allocations to be
+# owned by Rust space.  For performance, this will not check the values of the
+# input arrays for validity.
+SparseObservable.from_raw_parts(num_bits, coeffs, terms, indices, boundaries)
+```
+
 ### Procedure for execution from an `EstimatorPub`
 
 > [!NOTE]
