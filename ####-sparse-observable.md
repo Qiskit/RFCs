@@ -9,9 +9,11 @@
 
 ## Summary
 
-Add a new Rust-backed type (`SparseObservable`) that will replace `SparsePauliOp` from a user perspective as the "natural" type of a single abstract observable to `Estimator`.
+Add a new Rust-backed observable `SparseObservable` to solve two scaling problems with `SparsePauliOp`.
 The new operator will have an extended alphabet of single-qubit terms, in order to avoid exponential explosion in representing projectors, and will be qubit-sparse in that it will not store explicit identities.
 
+This is expected to become part of the `Estimator` interface in the future, but the exact timing and plan for that is out of scope for this document.
+We still consider how `SparseObservable` could be used by `Estimator` as part of ensuring the interfaces are suitable.
 We separate the ideas of "representation of observables" from "representation of measurement bases", and use different objects to represent and manipulate these.
 The former of these is user-facing and will be part of interfaces (including across network boundaries), so needs to be API- and ideally ABI stable.
 The latter of these is an implementation detail of `Estimator`s or the circuit-knitting toolbox, so what is used can be changed later if needed for optimisation.
@@ -31,15 +33,19 @@ The latter of these is an implementation detail of `Estimator`s or the circuit-k
 - Primitives implementers will maintain a well-specified serialisable format for data transmission.
 - Primitives implementers will have access to high-performance classes for the operations they need.
 
+Note that these benefits can only be realised only once primitives _use_ this new type, which might require some `Estimator` interface evolution out-of-scope of this document.
+
 
 ## Design Proposal
 
-The new `SparseObservable` class is primarily designed to be the user-input format for observables in an `EstimatorV3` interface, but will also have mathematical operations defined for construction and manipulation.
-Since it will be used in the primitives interfaces, its data representation cannot change once in Qiskit.
-
+The new `SparseObservable` class is primarily designed to address scaling problems with `SparsePauliOp`.
+It will use an extended alphabet to avoid exponential memory explosions in `SparsePauliOp` when representing projection operators (like $`\lvert00\dotsm0\rangle\langle00\dotsm0\rvert`$), and will not store identities on qubits.
+Its storage format will be somewhat akin to a CSR/CSC matrix.
+Since it is intended to be used in stable interfaces, its internal data representation will be part of its public API, and cannot change once in Qiskit.
 
 In current Qiskit / primitives, the concept of "observable" (`SparsePauliOp`) is described in terms of the object that describes the necessary "measurement bases" (`PauliList`).
 With an extended observable alphabet, there can be a many-to-one mapping from observable terms to measurement bases ($Z$ and $\lvert 0\rangle\langle 0\rvert$ in observables both correspond to $Z$ in measurement), so there is a natural break between the two.
+The new operator will formalise this within its interfaces; it will have methods to produce the measurement bases needed to measure the terms.
 
 ### Definitions
 
@@ -90,7 +96,7 @@ The operations that must be efficient for use-case 3 are also quite different to
 > **Summary**: A new observable class in `quantum_info` will represent Paulis and eigenstate-projectors, and store only non-identity terms.
 > This will be for users' benefit, and will be the "natural" input format of `Estimator`.
 
-A new class, `qiskit.quantum_info.SparseObservable` will replace/supplement `SparsePauliOp` as the "abstract observable" input to `EstimatorV3`.
+A new class, `qiskit.quantum_info.SparseObservable`, will (in the future) replace/supplement `SparsePauliOp` as the "abstract observable" input to `Estimator`.
 This will for construction, representation and transmission of one set of mathematical operations.
 It will be first be optimised for minimal memory usage.
 Its secondary concern will be to provide efficient mathematical manipulations.
@@ -105,14 +111,12 @@ Its secondary concern will be to provide efficient mathematical manipulations.
 where the projectors are the associated eigenstates of the Pauli with eigenvalues +1 and -1 respectively.
 Each row of this bullet list is a group of compatible measurements; all can be derived from knowledge of one, and the alphabet is chosen to represent what can be efficiently measured by hardware.
 
-`SparseObservable` will be the "scalar" type of the observable in the `ObservablesArray` in an `EstimatorPub`.
-That is the new Estimator pub[^1] would be a three-item record type:
-
-[^1]: Assuming no other changes to the interface are made, and note this RFC isn't trying to define a full new `EstimatorV3` at all.
-      We're just trying to define a new observables format, which likely will be part of `EstimatorV3`.
+For illustrative purposes in the rest of this document, we'll assume that `SparseObservable` will be the "scalar" type of the observable in the `ObservablesArray` in an `EstimatorPub` at some point in the future.
+If it shares that role with `SparsePauliOp`, nothing substantial changes about this RFC.
+That is the hypothetical Estimator pub would be a three-item record type:
 
 ```python
-class EstimatorV3Pub:
+class EstimatorPub:
     circuit: QuantumCircuit
     observables: ND[SparseObservable]
     bindings: ND[Mapping[Parameter, Value]]
