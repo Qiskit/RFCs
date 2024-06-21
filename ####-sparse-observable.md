@@ -80,7 +80,7 @@ There are several use-cases for observables throughout the entire life cycle of 
 2. All observables for an estimator pub / batch of pubs must exist simultaneously in memory on the client side and be transmitted over the wire, so must not use excessive memory.
 
 3. An estimator primitive (or circuit-knitting toolbox, etc) must be able to efficiently extract all the terms that correspond to unique measurements that must be made, across the entire broadcast `EstimatorPub`.
-   This is not necessarily the same set of mathematical terms as appear in a single operator, and the available groupings are dictated not just be individual mathematical operators or the `ObservablesArray`, but also in how it broadcasts against the `BindingsArray`.
+   This is not necessarily the same set of mathematical terms as appear in a single operator, and the available groupings are dictated not just by individual mathematical operators or the `ObservablesArray`, but also in how it broadcasts against the `BindingsArray`.
 
 4. After the measurements are made in hardware execution, the values of the observable expectations must be recalculated after.
    This means that the abstract observable should be able to easily and efficiently map back to the measurement terms needed for each of the individual abstract terms.
@@ -97,8 +97,7 @@ The operations that must be efficient for use-case 3 are also quite different to
 > This will be for users' benefit, and will be the "natural" input format of `Estimator`.
 
 A new class, `qiskit.quantum_info.SparseObservable`, will (in the future) replace/supplement `SparsePauliOp` as the "abstract observable" input to `Estimator`.
-This will for construction, representation and transmission of one set of mathematical operations.
-It will be first be optimised for minimal memory usage.
+It will first be optimised for minimal memory usage.
 Its secondary concern will be to provide efficient mathematical manipulations.
 
 `SparseObservable` will _only_ store single-qubit terms that are not the identity (unlike `SparsePauliOp`).
@@ -367,9 +366,9 @@ For simplicity, I'm just talking about 64-bit systems here using 32-bit integers
 Let us assume that the number of non-identity single-qubit entries in any given term of an observable is, on average, a constant $k$ that depends on the `Estimator` problem.
 $k$ is non-strictly less than the number of qubits.
 
-`SparseObservable` uses 104 bytes on the stack, plus heap allocations of $\bigl((24 + 5k)\times\text{terms} + 8\bigr)$ bytes.  (The factor of $5k$ can be reduced to $4.5k$ with bit-packing of the alphabet terms.)
+`SparseObservable` uses 104 bytes inline, plus heap allocations of $\bigl((24 + 5k)\times\text{terms} + 8\bigr)$ bytes.  (The factor of $5k$ can be reduced to $4.5k$ with bit-packing of the alphabet terms.)
 
-A hypothetical Rust-space `SparsePauliOp` that uses maximal bit-packing of the symplectic arrays and merges the phases into the complex double-precision coefficients uses around 80 bytes of stack space, plus heap allocations of $\text{terms}\times(\text{qubits}/4 + 16)$ bytes.
+A hypothetical Rust-space `SparsePauliOp` that uses maximal bit-packing of the symplectic arrays and merges the phases into the complex double-precision coefficients uses around 80 bytes inline, plus heap allocations of $\text{terms}\times(\text{qubits}/4 + 16)$ bytes.
 
 The existing Python-space `SparsePauliOp` uses rather more constant-offset storage, plus heap allocations of $\text{terms}\times(2\times\text{qubits} + 17)$ bytes.
 
