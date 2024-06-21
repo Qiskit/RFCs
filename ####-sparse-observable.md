@@ -151,15 +151,16 @@ See the "Detailed Design" section for more discussion on exactly how this groupi
 From Python-space, then, we produce an iterable of "preparation programs" (pairs of `(circuit, bindings)`), and for element of that we have an iterable of `SparseObservable` with we want to map to a group of groups of measurement bases.
 The iterable of preparation programs is produced in Python-space by n-dimensional slicing/broadcasting tricks.
 
-Qiskit will provide a function, `SparseObservable.group_compatible_measurement_bases` that takes an iterable of `SparseObservable` and returns a group of groups "measurement bases".
-This is roughly equivalent to the existing `PauliList.group_qubit_wise_commuting`, except it will take an iterable of the greater observable inputs (rather than the base object already representing the iterable) and will return its measurement bases in a reduced alphabet compared to the one used for general operator descriptions.
-
+A core function of `Estimator` is to group terms that can be measured within the same execution.
+There are many ways to do this, and we do not want to tie the observable to one particular implementation.
+Qiskit will provide a function `SparseObservable.measurement_bases(*observables)` that takes an arbitrary number of `SparseObservable` instances and returns a set of the measurement bases needed to measure all terms.
 A measurement basis is a Pauli string.
 
 Since the number of measurement bases will be (non-strictly) smaller than the total number of terms across all observables, and because only 2 bits of information per qubit is necessary to define the basis, there is not expected to be immediate memory concerns with a representation of this.
 Qiskit already has `PauliList` that can serve this purpose; it _could_ be bit-packed to use 8x less memory, but this can be done as a follow-up optimisation if it becomes a bottleneck.
+From this point, we can continue to use `PauliList.group_qubitwise_commuting`, or any other future grouping function.
 
-If the output type of `group_compatible_measurement_bases` is desired to change in the future (such as to bit-pack the `PauliList`, or to use an output that doesn't store explicit qubit-wise identities), we can add an `output=` kwarg to it to select the format.
+If the output of `measurement_bases` might want to change in the future (such as to a class that implements bit-packing or to a class that does not store qubit identities), we can add an `output` kwarg later.
 
 
 ## Detailed Design
@@ -238,8 +239,9 @@ A `SparsePauliOp` would use $`\{I,X,Y,Z\}`$ here, which is a basis of the single
 Since this will be an input format to the primitives, the extended alphabet should be exactly fixed, so primitive implementers can rely on it.
 See the "Alternative Approaches" below for some exploration of what it would mean to have this chosen dynamically.
 
-The alphabet should be limited specifically so that an observable that can be _represented_ efficiently can also be _executed_ efficiently.
+The alphabet should be designed specifically so that an observable that can be _represented_ efficiently can also be _executed_ efficiently.
 Allowing items such as $\lvert 0\rangle\langle 1\rvert$ into the alphabet could result in an operator that needs linear space to be stored, but exponential numbers of executions to evaluate.
+As best as possible, all observables that can be executed efficiently should also be representable efficiently; `SparsePauliOp` fails on this front.
 
 
 ### Construction of `SparseObservable`
@@ -339,13 +341,22 @@ An `Estimator` evaluates the conditions of points (1) and (2) to find a groups o
 This is done by Python-space n-dimensional broadcasting of the `observables` array and then flattening the contained `SparseObservables` into only measurement terms.
 
 Next, we use points (3) and (4) to produce a set of groups of compatible measurements for each group of observables.
+We store a hash map of measurement bases to the execution index that was used for that basis.
 The outer groups are still n-dimensional, but the inner groups no longer need to be stored as such; each element of the inner group refers to one shot loop (up to twirling, etc) of distinct executions on the QPU, so the inner group is naturally serial.
 
 Each preparation program is then run with each of the measurement bases necessary (plus error-mitigation overhead, etc).
 The return is the estimation of the expectation value measurement-basis Pauli string, from which the associated eigenstate-projection operators can be constant-time derived.
-For each preparation program for each `SparseObservable` (respecting n-dimensional broadcasting), the observable can then be calculated by weighted-summing look-ups into a hash-map of results.
-This produces the n-dimensional `values` and `stds` fields of the `PubResult`.
+For each preparation program for each `SparseObservable` (respecting n-dimensional broadcasting), the observable can be evaluated:
 
+1. For each term of the `SparseObservable`, find the equivalent measurement term.
+2. Use the hash map of measurement bases to execution indices to look up the error-mitigated counts for that term.
+3. Use the original abstract term to compute the expectation value from the counts.
+4. Weighted-sum all the values for each abstract term with its coefficient.
+
+This procedure is repeated for each observable in the n-d broadcast.
+This then produces the n-dimensional `values` and `stds` fields of the `PubResult`.
+
+In general, `qiskit.primitives` can expose Rust-space helper functions from `qiskit._accelerate` if any of this evaluation is a performance bottleneck in practice.
 
 ### Memory comparisons
 
@@ -496,3 +507,10 @@ Currently, this object is primarily an internal implementation detail of how IBM
 If the dense-memory concerns begin to be more of a problem within actual usage of the measurement-term grouping, we can revisit making new objects to handle these calculations more efficiently.
 
 In the immediate term, the 100--500q scale should not cause excessive memory usage, even with the byte-aligned symplectic representation of `PauliList`.
+
+
+### Extended-alphabet version of a qubit-dense operator
+
+There are still cases where `SparsePauliOp` is significantly more efficient than `SparseObservable`, notably when the abstract terms are all non-sparse Pauli strings.
+If the case of non-sparse projection operators is also something that should be made efficient, we may need to later add another object.
+Such an object will not have asymptotic scaling better than `SparseObservable`, but its constant factors can be significantly better, and it would be faster to manipulate.
