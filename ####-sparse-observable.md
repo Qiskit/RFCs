@@ -223,9 +223,11 @@ class SparseObservableView:
     boundaries: Array[np.uintp]
 ```
 
-where `Array` is any Python object capable of being a memory view onto 1D contiguous C-stored data (not Python objects).
-This can be contiguous 1D Numpy arrays or simple `memoryview` wrappers round the Rust pointers, for example.
-Most likely, using Numpy arrays will be most convenient for users.
+where `Array` is a Python object capable of being a memory view onto 1D contiguous C-stored data (not Python objects).
+To allow `SparseObservable` to be growable in-place (which in turn allows the `+=` operator to be efficient), this will be a custom Rust-space view that implements the Numpy `__array__` protocol and allows direct reading and writing.[^1]
+
+[^1]: It has to be a custom type that can handle the case of a user holding onto a reference to the view object and then performing an operation that re-allocates the Rust-space buffers (like a grow-in-place that exceeds the available capacity).
+
 This view form will be available to enable serialisation from Python space.
 
 A enumeration `SingleBitTerm` will be available in Python space that provides named access to the integer values for each item of `s_terms`.
