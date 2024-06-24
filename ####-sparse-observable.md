@@ -54,7 +54,7 @@ For clarity, we will use these definitions throughout:
 
 * **abstract observable**:
   One mathematical operator that the user is requesting expectation values for.
-  This has the form $\sum_i c_i A_i\$ where $`\{c_i\}`$ are complex numbers and $`\{A_i\}`$ are some possibly over-complete spanning set of the operator space.
+  This has the form $\sum_i c_i A_i$ where $`\{c_i\}`$ are complex numbers and $`\{A_i\}`$ are some possibly over-complete spanning set of the operator space.
   Currently, we use `SparsePauliOp` for this, with the representable $`\{A_i\}`$ being the Pauli strings $`\{I,X,Y,Z\}^n`$, represented internally in the Pauli Boolean-symplectic convention.
 
 * **abstract term**:
