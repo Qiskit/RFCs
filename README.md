@@ -21,7 +21,7 @@ facilitate that and collect feedback prior to implementation.
 | RFC | Status | References/Discussion |
 | --- | ------ | --------------------- |
 | `0021` [Sparse observables with extended alphabets](0021-sparse-observable.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/74) \| [Implementation](https://github.com/Qiskit/RFCs/issues/75) |
-| `0020` [Qiskit release cycle and versioning](0020-release_cycle.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/34/) \| [Implementation](https://github.com/Qiskit/RFCs/issues/64) |
+| `0020` [Qiskit release cycle and versioning](0020-release_cycle.md) | Implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/34/) \| [Implementation](https://github.com/Qiskit/RFCs/issues/64) |
 | `0019` [Classical storage and load instructions](0019-classical-stores.md) | Implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/50/) \| [Implementation](https://github.com/Qiskit/qiskit/issues/10922) |
 | `0018` [Primitive options type change](0018-primitive-options-type.md) | Implementation in progress | [RFC PR](https://github.com/Qiskit/RFCs/pull/52/) \| [Implementation](https://github.com/Qiskit/RFCs/issues/72) |
 | `0017` [Base Primitive and Units of Primitive Work](0017-base-primitive-unification.md) | Implemented | [RFC PR](https://github.com/Qiskit/RFCs/pull/53/) \| [Implementation](https://github.com/Qiskit/qiskit/pull/11524) |
