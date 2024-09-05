@@ -7,14 +7,14 @@
 | **Submitted**     | YYYY-MM-DD                                   |
 
 ## Summary
-Introduce a new ``CircuitBlock`` class to enhance the user experience with Qiskit's built-in primitives, with the goal of providing more flexibility and full transparency with respect to twirling and mitigation.
+Objective: Introducing a new ``CircuitBlock`` class to enhance the user experience with Qiskit's built-in primitives, with the goal of providing more flexibility and full transparency with respect to twirling and mitigation.
 
-The concept of a "block" of gates—meaning a subset of gates isolated from the rest of the circuit—is fundamental to many quantum computing routines. However, Qiskit does not provide a dedicated object to represent a block. Traditionally, users have worked around this by defining blocks *indirectly* using barriers. While this approach has been adequate for tasks like scheduling and transpilation, barriers can be hard to parse when pre-processing circuits in preparation for twirling or mitigation. They can cause significant slowdowns in some mitigation experiments, and (since this post-processing is performed "behind the scenes" by the server) can lead to outcomes that can result unintuitive to the average user.
+The concept of a "block" of gates—meaning a subset of gates isolated from the rest of the circuit—is fundamental to many quantum computing routines. However, Qiskit does not provide a dedicated object to represent a block. Traditionally, users have worked around this by defining blocks *indirectly* using barriers. While this approach has been adequate for tasks like scheduling and transpilation, barriers can be hard to parse when pre-processing circuits in preparation for twirling or mitigation. Suboptimal handling of barriers in these post-processing steps can introduce significant slowdowns in some mitigation experiments and produce outcomes that may seem unintuitive to typical users.
 
-The overcome these issues, we propose to establish the concept of a block of gates through the introduction of a new ``CircuitBlock`` class. The manifest goal of this class is to represent an isolated block of ``CircuitInstruction``s that is treated as a single unit in the context of twirling and mitigation. We believe that ``CircuitBlock``s will provide full transparency with respect to the circuit pre-processing routines required by twirling and mitigation, more flexibility in choosing how a circuit should be twirled or mitigated, and improved runtimes for some mitigation experiments.
+The overcome these issues, we propose to establish the concept of a block of gates through the introduction of a new ``CircuitBlock`` class. The primary goal of this class is to encapsulate an isolated block of ``CircuitInstruction``s, treating it as a single unit for tasks like twirling and mitigation. We believe that ``CircuitBlock``s will offer greater transparency in pre-processing routines for twirling and mitigation, increased flexibility in how circuits are twirled or mitigated, and improved runtimes for certain mitigation experiments.
 
 ## Motivation
-To better illustrate the issue, consider applying learning-based mitigation (e.g., PEA) to a circuit that contains barriers, e.g.
+To better illustrate the issue at hand, consider applying learning-based mitigation (e.g., PEA) to a circuit that contains barriers, e.g.
 ```
       ░       ░       ░       ░       ░       ░       ░ 
 q_0: ─░───■───░───■───░───■───░───■───░───■───░───■───░─
@@ -23,11 +23,13 @@ q_1: ─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─┤ X ├─
       ░ └───┘ ░ └───┘ ░ └───┘ ░ └───┘ ░ └───┘ ░ └───┘ ░ 
 ```
 To perform the noise-learning part of the protocol, the mitigation algorithm needs to break this circuit into blocks, and in order to do so, it can choose to handle barriers in three different ways:
+
 1. Including the barriers into the blocks (as is currently done).
 2. Ignoring the barriers.
 3. Switching to a new blocks when a barrier is encountered.
 
 All these options are problematic for different reasons. In particular:
+
 1. Including barriers into the blocks may lead to blocks looking different when in reality, they only differ because of barriers. As an example, in the case of the circuit above this strategy leads to two blocks, namely
     ```
           ░       ░ 
@@ -44,7 +46,7 @@ All these options are problematic for different reasons. In particular:
     q_1: ─┤ X ├─░─
           └───┘ ░
     ```
-    The noise-learning algorithm is now prompted to learn the noise of two blocks instead of one. This is both confusing for the user who, ignoring the subtleties hereby discussed, believes that this circuit contains only one block, and highly inefficient, as it automatically doubles the time of noise learning—the most expensive step when running an estimation job !! 
+    The noise-learning algorithm is now prompted to learn the noise of two blocks instead of one. This can be confusing for the user who, ignoring the subtleties hereby discussed, believes that this circuit contains only one block. Moreover, it is highly inefficient, as it automatically doubles the time of noise learning—the most expensive step when running an estimation job !! 
 2. Ignoring the barriers is inherently a bad choice, as it messes with any alignment that the user may want to keep.
 3. Switching to a new block when a barrier is encountered results in deeper circuits, since the twirling gates of neighbouring blocks become separated by a barrier and can no longer be combined.
 
