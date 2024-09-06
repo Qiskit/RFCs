@@ -31,8 +31,8 @@ A `Block` represents an isolated block of `CircuitInstruction`s that is treated 
 We envision two main workflows that users will follow once `Block`s become available, one for regular users and another one for power users:
 1. The workflow for regular users:
     - Users initialize a `QuantumCircuit` without blocks, as they do today.
-    - They apply all of the desired transiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
-    - They use (a convenience method built around) a new transpiler pass that collects circuit's gates into blocks, with the ability of specifying different collection strategies.
+    - They apply all of the desired transpiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
+    - They use (a convenience method built around) a new transpiler pass that collects the circuit's gates into blocks, with the ability of specifying different collection strategies.
     - They submit their job.
 2. The workflow for power users:
     - Users initialize a `QuantumCircuit` adding blocks manually as they wish.
@@ -40,7 +40,7 @@ We envision two main workflows that users will follow once `Block`s become avail
 
 Setting up these two workflows presents notable advantages, such as:
 - All of the existing transpiler passes can be asked (at least initially) to simply ignore the blocks, since transpilation is meant to happen before the blocks are generated. This can save quite a lot of time that would otherwise be spent adding logic to every single transpiler pass -- and yet, we can choose to do this in the future.
-- Users of the primitives can inspect the blocks before submitting their jobs. This is a big improvement: today, the block generation happens in the server and can be unintuitive (see the example in the background section), and users have to wait for the job to be over before they can find out how the circuit was broken into blocks.
+- Users of the primitives can inspect the blocks before submitting their jobs. This is a big improvement: today, the block generation happens in the server and can be unintuitive.
 
 In addition to supporting the two workflow above, we believe that the following workflow should *not* be supported:
 
