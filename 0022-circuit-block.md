@@ -1,4 +1,4 @@
-# Introducing `CircuitBlock`s in qiskit
+# Introducing `Block`s in qiskit
 
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
@@ -7,61 +7,24 @@
 | **Submitted**     | YYYY-MM-DD                                   |
 
 ## Summary
-Objective: Introduce a new `CircuitBlock` instruction to enhance the user experience with Qiskit's Runtime primitives, with the goal of providing more flexibility and transparency with respect to twirling and mitigation.
+Objective: Introduce a new `Block` instruction to enhance the user experience with Qiskit's Runtime primitives, with the goal of providing more flexibility and transparency with respect to twirling and mitigation.
 
 The concept of a "block" of gates—meaning a subset of gates isolated from the rest of the circuit—is fundamental to many quantum computing routines. However, Qiskit does not provide a dedicated object to represent a block. Traditionally, users have worked around this by defining blocks *indirectly* using barriers. While this approach has been adequate for tasks like scheduling and transpilation, barriers can be hard to parse when pre-processing circuits in preparation for twirling or mitigation. Suboptimal handling of barriers in these post-processing steps can introduce significant slowdowns in some mitigation experiments and produce outcomes that may seem unintuitive to typical users.
 
-The overcome these issues, we propose to establish the concept of a block of gates through the introduction of a new `CircuitBlock` class. The primary goal of this class is to encapsulate an isolated block of `CircuitInstruction`s, treating it as a single unit for tasks like twirling and mitigation. We believe that `CircuitBlock`s will offer greater transparency in pre-processing routines for twirling and mitigation, increased flexibility in how circuits are twirled or mitigated, and improved runtimes for certain mitigation experiments.
+The overcome these issues, we propose to establish the concept of a block of gates through the introduction of a new `Block` class. The primary goal of this class is to encapsulate an isolated block of `CircuitInstruction`s, treating it as a single unit for tasks like twirling and mitigation. We believe that `Block`s will offer:
+* full transparency: users will be able to learn how their circuits will be broken into blocks, twirled, and mitigated *before* running a job. 
+* full flexibility: users will be able to draw blocks around every combination of instructions that they want to be grouped together.
+* ability to specify a twirling context (that is, a twirling group such as "Pauli" and a twirling strategy such as "active-accum") that can potentially be different for each block.
+* ability to assign a noise handle to each block that uniquely specifies its noise model.
 
-## Motivation
-To better illustrate the issue at hand, consider applying learning-based mitigation (e.g., PEA) to a circuit that contains barriers, e.g.
-```
-      ░       ░       ░       ░       ░       ░       ░ 
-q_0: ─░───■───░───■───░───■───░───■───░───■───░───■───░─
-      ░ ┌─┴─┐ ░ ┌─┴─┐ ░ ┌─┴─┐ ░ ┌─┴─┐ ░ ┌─┴─┐ ░ ┌─┴─┐ ░ 
-q_1: ─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─
-      ░ └───┘ ░ └───┘ ░ └───┘ ░ └───┘ ░ └───┘ ░ └───┘ ░ 
-```
-To perform the noise-learning part of the protocol, the mitigation algorithm needs to break this circuit into blocks, and in order to do so, it can choose to handle barriers in three different ways:
+## `Block`: Definition and use cases
 
-1. Including the barriers into the blocks (as is currently done).
-2. Ignoring the barriers.
-3. Switching to a new blocks when a barrier is encountered.
-
-All these options are problematic for different reasons. In particular:
-
-1. Including barriers into the blocks may lead to blocks looking different when in reality, they only differ because of barriers. As an example, in the case of the circuit above this strategy leads to two blocks, namely
-    ```
-          ░       ░ 
-    q_0: ─░───■───░─
-          ░ ┌─┴─┐ ░ 
-    q_1: ─░─┤ X ├─░─
-          ░ └───┘ ░ 
-    ```
-    and
-    ```
-                ░
-    q_0: ───■───░─
-          ┌─┴─┐ ░
-    q_1: ─┤ X ├─░─
-          └───┘ ░
-    ```
-    The noise-learning algorithm is now prompted to learn the noise of two blocks instead of one. This can be confusing for the user who, ignoring the subtleties hereby discussed, believes that this circuit contains only one block. Moreover, it is highly inefficient, as it automatically doubles the time of noise learning—the most expensive step when running an estimation job !! 
-2. Ignoring the barriers is inherently a bad choice, as it messes with any alignment that the user may want to keep.
-3. Switching to a new block when a barrier is encountered results in deeper circuits, since the twirling gates of neighbouring blocks become separated by a barrier and can no longer be combined.
-
-This signals the absence of a crucial, stand-alone concept of a block in qiskit that can help overcoming the isseus above. In response, we propose the introduction of a new `CircuitBlock` class.
-
-Here we analyse potential implementations of `CircuitBlock` and the implications that this would have on the surrounding qiskit functionality, e.g. transpilation, twirling, and simulation.
-
-## `CircuitBlock`: Definition and use cases
-
-A `CircuitBlock` represents an isolated block of `CircuitInstruction`s that is treated as a single unit in the context of twirling and mitigation. In more detail, when a circuit contains blocks:
+A `Block` represents an isolated block of `CircuitInstruction`s that is treated as a single unit in the context of twirling and mitigation. In more detail, when a circuit contains blocks:
 - Twirling targets the blocks and ignores all the circuit instructions that live outside of the blocks.
 - Noise learning targets the blocks and ignores all the circuit instructions that live outside of the blocks.
 - Gate mitigation (e.g. PEC and PEA) targets the blocks and ignores all the circuit instructions that live outside of the blocks.
 
-We envision two main workflows that users will follow once `CircuitBlock`s become available, one for regular users and another one for power users:
+We envision two main workflows that users will follow once `Block`s become available, one for regular users and another one for power users:
 1. The workflow for regular users:
     - Users initialize a `QuantumCircuit` without blocks, as they do today.
     - They apply all of the desired transiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
@@ -75,7 +38,7 @@ Setting up these two workflows presents notable advantages, such as:
 - All of the existing transpiler passes can be asked (at least initially) to simply ignore the blocks, since transpilation is meant to happen before the blocks are generated. This can save quite a lot of time that would otherwise be spent adding logic to every single transpiler pass -- and yet, we can choose to do this in the future.
 - Users of the primitives can inspect the blocks before submitting their jobs. This is a big improvement: today, the block generation happens in the server and can be unintuitive (see the example in the background section), and users have to wait for the job to be over before they can find out how the circuit was broken into blocks.
 
-In addition to supportin the two workflow above, we believe that the following workflow should not be supported:
+In addition to supporting the two workflow above, we believe that the following workflow should not be supported:
 3. The workflow for "lazy" users:
     - Users initialize a `QuantumCircuit` without blocks, as they do today.
     - They apply all of the desired transiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
@@ -86,22 +49,24 @@ This workflow essentially takes the same steps as are taken today and therefore 
 
 Having described motivation and use cases for circuit blocks, we can now provide details regarding their implementation.
 
-## `CircuitBlock` as an `Instruction`
-In this implementation, `CircuitBlock` are `Instruction` objects that can be initialized from a circuit.
+## `Block` as an `Instruction`
+In this implementation, `Block` are `Instruction` objects that can be initialized from a circuit.
 ```
-class CircuitBlock(Instruction):
+class Block(Instruction):
     """A container for an isolated block of operations in a larger circuit.
     
     Args:
         circuit: A quantum circuit containing all the operations in the block.
         twirling_strategy: Some specification of a twirling group (such as "pauli")
             and of a twirling mode (such as "active-accum") to apply to this block.
+        noise_handle: An mapping object that maps a unique identifier of this block to a noise model.
         label: A label.
     """
 
-    def __init__(self, circuit: QuantumCircuit, twirling_strategy, label: str = ""):
+    def __init__(self, circuit: QuantumCircuit, twirling_strategy, noise_handle, label: str = ""):
         self._circuit = circuit
         self._twirling_strategy = twirling_strategy
+        self._noise_handle = noise_handle
 
         super().__init__(
             "block",
@@ -124,7 +89,7 @@ class QuantumCircuit:
         qargs: Optional[list[QubitSpecifier]] = None,
         cargs: Sequence[ClbitSpecifier] | None = None,
     ) -> InstructionSet:
-        from .block import CircuitBlock
+        from .block import Block
 
         # These use a `dict` not a `set` to guarantee a deterministic order to the arguments.
         qargs = tuple(
@@ -134,7 +99,7 @@ class QuantumCircuit:
             {b: None for carg in cargs for b in self._clbit_argument_conversion(carg)}
         )
 
-        return self.append(CircuitBlock(circuit, twirling_strategy), qargs, cargs)
+        return self.append(Block(circuit, twirling_strategy), qargs, cargs)
 ```
 
 The logic in the `block` function above returns an `InstructionSet` containing a single `CircuitInstruction`, with the block as `operation` and the correct register's slices as `qubits` and `clbits`:
@@ -180,6 +145,6 @@ with circuit.block(context=my_context, name="foo") as block:
 ```
 
 ## Outstanding questions:
-1. In the existing implementation of blocks that exists in `pec-runtime`, blocks are hashable, so that they can be used as keys in dictionaries (specifically in the dictionary porduced by the `NoiseLearner` that maps blocks to noise models). This is clearly unsafe since circuits are mutable. Can we find a way around this? 
-2. Should `CircuitBlock` added to qiskit core, alongside the transpiler pass groups gates in blocks workflow 1? If so, should they be written in Rust or Python?
-3. What packages and subpackages need to be modify once `CircuitBlocks` are introduced? For example, should we add logic to qiskit-aer to be able to simulate circuits with blocks, or to Qiskit's optimizer, ..?
+1. In the existing implementation of blocks that exists in `pec-runtime`, blocks are hashable, so that they can be used as keys in dictionaries (specifically in the dictionary porduced by the `NoiseLearner` that maps blocks to noise models). This is clearly unsafe since circuits are mutable. How can we design the noise handle so that it is safer than that, but also more flexible (e.g., if users want to mutate the block but still assign the same noise to it during mitigation, they should be allowed to do so)?
+2. Should `Block` added to qiskit core, alongside the transpiler pass groups gates in blocks workflow 1? If so, should they be written in Rust or Python?
+3. What packages and subpackages need to be modify once `Block` are introduced? For example, should we add logic to qiskit-aer to be able to simulate circuits with blocks, or to Qiskit's optimizer, ..?
