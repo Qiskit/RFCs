@@ -24,9 +24,9 @@ q_1: ─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─┤ X ├─
 ```
 To perform the noise-learning part of the protocol, the mitigation algorithm needs to break this circuit into blocks, and in order to do so, it might choose to handle barriers in three different ways:
 
-1. Including the barriers into the blocks (as is currently done).
-2. Ignoring the barriers.
-3. Switching to a new blocks when a barrier is encountered.
+1. Include the barriers into the blocks (as is currently done).
+2. Ignore the barriers.
+3. Switch to a new block when a barrier is encountered.
 
 All these options are problematic for different reasons. In particular:
 
