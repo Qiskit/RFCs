@@ -7,7 +7,7 @@
 | **Submitted**     | YYYY-MM-DD                                   |
 
 ## Summary
-Objective: Introducing a new ``CircuitBlock`` class to enhance the user experience with Qiskit's built-in primitives, with the goal of providing more flexibility and full transparency with respect to twirling and mitigation.
+Objective: Introduce a new ``CircuitBlock`` instruction to enhance the user experience with Qiskit's Runtime primitives, with the goal of providing more flexibility and transparency with respect to twirling and mitigation.
 
 The concept of a "block" of gates—meaning a subset of gates isolated from the rest of the circuit—is fundamental to many quantum computing routines. However, Qiskit does not provide a dedicated object to represent a block. Traditionally, users have worked around this by defining blocks *indirectly* using barriers. While this approach has been adequate for tasks like scheduling and transpilation, barriers can be hard to parse when pre-processing circuits in preparation for twirling or mitigation. Suboptimal handling of barriers in these post-processing steps can introduce significant slowdowns in some mitigation experiments and produce outcomes that may seem unintuitive to typical users.
 
