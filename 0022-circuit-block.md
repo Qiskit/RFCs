@@ -183,3 +183,9 @@ with circuit.block(context=my_context, name="foo") as block:
 1. In the existing implementation of blocks that exists in `pec-runtime`, blocks are hashable, so that they can be used as keys in dictionaries (specifically in the dictionary porduced by the ``NoiseLearner`` that maps blocks to noise models). This is clearly unsafe since circuits are mutable. Can we find a way around this? 
 2. Should ``CircuitBlock`` added to qiskit core, alongside the transpiler pass groups gates in blocks workflow 1? If so, should they be written in Rust or Python?
 3. What packages and subpackages need to be modify once ``CircuitBlocks`` are introduced? For example, should we add logic to qiskit-aer to be able to simulate circuits with blocks, or to Qiskit's optimizer, ..?
+4. How can we (should we?) facilitate re-use of CircuitInstruction or Block instances? For example, suppose we want the same block in a circuit 100 times:
+```python
+for _ in range(100):
+    with circuit.block(context=my_context, name="foo") as block:
+        block.h(0) 
+        block.cx(0, 1) 
