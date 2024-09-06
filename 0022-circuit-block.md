@@ -3,7 +3,7 @@
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0022                                         |
-| **Authors**       | [Sam Ferracin](sam.ferracin@ibm.com), [Ian Hincks](ian.hincks@ibm.com), [Chris Wood](cjwood@ibm.com), [Jake Lishman](jake.lishman@ibm.com), [Joshua Skanes Norman](joshua.sn@ibm.com)    |
+| **Authors**       | [Sam Ferracin](sam.ferracin@ibm.com), [Ian Hincks](ian.hincks@ibm.com), [Chris Wood](cjwood@ibm.com), [Jake Lishman](jake.lishman@ibm.com), [Joshua Skanes-Norman](joshua.sn@ibm.com)    |
 | **Submitted**     | YYYY-MM-DD                                   |
 
 ## Summary
