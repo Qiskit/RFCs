@@ -3,15 +3,15 @@
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0022                                         |
-| **Authors**       | [Sam Ferracin](sam.ferracin@ibm.com), [Ian Hincks](ian.hincks@ibm.com), [Chris Wood](cjwood@ibm.com), [Jake Lishman](jake.lishman@ibm.com), [Joshua Skanes Norman](joshua.sn@ibm.com)    |
+| **Authors**       | [Sam Ferracin](sam.ferracin@ibm.com), [Ian Hincks](ian.hincks@ibm.com), [Chris Wood](cjwood@ibm.com), [Jake Lishman](jake.lishman@ibm.com), [Joshua Skanes-Norman](joshua.sn@ibm.com)    |
 | **Submitted**     | YYYY-MM-DD                                   |
 
 ## Summary
 Objective: Introduce a new `Block` instruction to enhance the user experience with Qiskit's Runtime primitives, with the goal of providing more flexibility and transparency with respect to twirling and mitigation.
 
-The concept of a block of gates is fundamental to many quantum computing routines. For example, a block is a natural concept when reasoning about quantum errors because the error profile often depends on factors such as which gates are applied simultaneously. However, Qiskit does not provide a dedicated object to represent a block. Traditionally, users have worked around this by defining blocks *indirectly* using barriers. While this approach has been adequate for tasks like scheduling and transpilation, barriers can be hard to parse when pre-processing circuits in preparation for twirling or mitigation. Suboptimal handling of barriers in these post-processing steps can introduce significant slowdowns in some mitigation experiments (for example, it can unnecessarily increase the time required by the noise-learning steps) and produce outcomes that may seem unintuitive to typical users.
+The concept of a block of gates is fundamental to many quantum computing routines. For example, a block is a natural concept when reasoning about quantum errors because the error profile often depends on factors such as which gates are applied simultaneously. However, Qiskit does not provide a dedicated object to represent a block. Traditionally, users have worked around this by defining blocks *indirectly* using barriers. While this approach has been adequate for tasks like scheduling and transpilation, barriers can be hard to parse when pre-processing circuits in preparation for twirling or mitigation. Suboptimal handling of barriers in these post-processing steps can introduce significant slowdowns in some mitigation experiments (for example, it can unnecessarily increase the time required by the noise learning steps) and produce outcomes that may seem unintuitive to typical users.
 
-The overcome these issues, we propose to establish the concept of a block of gates through the introduction of a new `Block` class. The primary goal of this class is to encapsulate an isolated block of `CircuitInstruction`s, treating it as a single unit for tasks like twirling and mitigation. We believe that `Block`s will offer:
+To overcome these issues, we propose to establish the concept of a block of gates through the introduction of a new `Block` class. The primary goal of this class is to encapsulate an isolated block of `CircuitInstruction`s, treating it as a single unit for tasks like twirling and mitigation. We believe that `Block`s will offer:
 * Full transparency: 
   * Users will be able to learn how their circuits are broken into blocks, twirled, and mitigated *before* running a job
   (today, they can only find this out once the job is done).
@@ -141,8 +141,8 @@ print(circuit.draw())
 
 ## Outstanding questions:
 1. In the existing implementation of blocks that exists in `pec-runtime`, blocks are hashable, so that they can be used as keys in dictionaries (specifically in the dictionary porduced by the `NoiseLearner` that maps blocks to noise models). This is clearly unsafe since circuits are mutable. How can we design the noise handle so that it is safer than that, but also more flexible (e.g., if users want to mutate the block but still assign the same noise to it during mitigation, they should be allowed to do so)?
-2. Should `Block` added to qiskit core, alongside the transpiler pass groups gates in blocks workflow 1? If so, should they be written in Rust or Python?
-3. What packages and subpackages need to be modify once `Block` are introduced? For example, should we add logic to qiskit-aer to be able to simulate circuits with blocks, or to Qiskit's optimizer, ..?
+2. Should `Block` be added to qiskit core, alongside the transpiler pass groups gates in blocks workflow 1? If so, should they be written in Rust or Python?
+3. What packages and subpackages need to be modified once `Block` is introduced? For example, should we add logic to qiskit-aer to be able to simulate circuits with blocks, or to Qiskit's optimizer, ..?
 4. How can we (should we?) facilitate re-use of CircuitInstruction or Block instances? For example, suppose we want the same block in a circuit 100 times:
 ```python
 for _ in range(100):
