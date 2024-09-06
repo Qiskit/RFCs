@@ -75,7 +75,7 @@ Setting up these two workflows presents notable advantages, such as:
 - All of the existing transpiler passes can be asked (at least initially) to simply ignore the blocks, since transpilation is meant to happen before the blocks are generated. This can save quite a lot of time that would otherwise be spent adding logic to every single transpiler pass -- and yet, we can choose to do this in the future.
 - Users of the primitives can inspect the blocks before submitting their jobs. This is a big improvement: today, the block generation happens in the server and can be unintuitive (see the example in the background section), and users have to wait for the job to be over before they can find out how the circuit was broken into blocks.
 
-In addition to supportin the two workflow above, we believe that the following workflow should not be supported:
+In addition to supportin the two workflow above, we believe that the following workflow should *not* be supported:
 3. The workflow for "lazy" users:
     - Users initialize a ``QuantumCircuit`` without blocks, as they do today.
     - They apply all of the desired transiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
