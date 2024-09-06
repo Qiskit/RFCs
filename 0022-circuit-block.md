@@ -22,7 +22,7 @@ q_0: ─░───■───░───■───░───■───
 q_1: ─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─┤ X ├─░─
       ░ └───┘ ░ └───┘ ░ └───┘ ░ └───┘ ░ └───┘ ░ └───┘ ░ 
 ```
-To perform the noise-learning part of the protocol, the mitigation algorithm needs to break this circuit into blocks, and in order to do so, it can choose to handle barriers in three different ways:
+To perform the noise-learning part of the protocol, the mitigation algorithm needs to break this circuit into blocks, and in order to do so, it might choose to handle barriers in three different ways:
 
 1. Including the barriers into the blocks (as is currently done).
 2. Ignoring the barriers.
