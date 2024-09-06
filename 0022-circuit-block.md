@@ -82,7 +82,7 @@ In addition to supportin the two workflow above, we believe that the following w
     - They submit their job.
     - The server creates blocks for the users "behind the scenes."
 
-This workflow essentially takes the same steps as are taken today and therefore presents the same disadvantages as we have today, thus we believe that is should be banned.
+This workflow essentially takes the same steps as are taken today and therefore presents the same disadvantages discussed above, and also violates the principle "don't do hidden transpilation server-side".
 
 Having described motivation and use cases for circuit blocks, we can now provide details regarding their implementation.
 
