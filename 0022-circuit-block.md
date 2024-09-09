@@ -12,14 +12,14 @@ Objective: Introduce a new `Block` instruction to enhance the user experience wi
 The concept of a block of gates is fundamental to many quantum computing routines. For example, a block is a natural concept when reasoning about quantum errors because the error profile often depends on factors such as which gates are applied simultaneously. However, Qiskit does not provide a dedicated object to represent a block. Traditionally, users have worked around this by defining blocks *indirectly* using barriers. While this approach has been adequate for tasks like scheduling and transpilation, barriers can be hard to parse when pre-processing circuits in preparation for twirling or mitigation. Suboptimal handling of barriers in these post-processing steps can introduce significant slowdowns in some mitigation experiments (for example, it can unnecessarily increase the time required by the noise learning steps) and produce outcomes that may seem unintuitive to typical users.
 
 To overcome these issues, we propose to establish the concept of a block of gates through the introduction of a new `Block` class. The primary goal of this class is to encapsulate an isolated block of `CircuitInstruction`s, treating it as a single unit for tasks like twirling and mitigation. We believe that `Block`s will offer:
-* Full transparency: 
+* Transparency: 
   * Users will be able to learn how their circuits are broken into blocks, twirled, and mitigated *before* running a job
   (today, they can only find this out once the job is done).
-* Full flexibility: 
-  * Users will be able to draw blocks around every combination of instructions that they want to be grouped together for the purpose of twirling or mitigation (today, all blocks are effectively layers, i.e., depth-one blocks).
-* Ability to specify a twirling context:
-  * Users will be able to define a twirling group such as "Pauli" and a twirling strategy such as "active-accum" that can potentially be different for each block (today, this can only be done at the circuit level).
-* Ability to assign a noise handle to each block that uniquely specifies its noise model (today, this requires hashing circuits and is inherently unreliable, since circuits are mutable objects).
+* Flexibility: 
+  * Users will be able to draw blocks around any combination of instructions that they want to be grouped together for the purpose of twirling or mitigation (today, all blocks are effectively layers, i.e., depth-one blocks).
+* Extensibility:
+  * A block instance can own a context that can, for example, allow users to specify a twirling group such as "Pauli" and a twirling strategy such as "active-accum" that can potentially be different for each block (today, this can only be done at the circuit level). We can introduce allowed features to the context as necessary, and have definitions for what features the runtime supports.
+* Ability to assign a handle to each unique block that enables user to target noise models against handles to be used in mitigation or simulation (today, there is no clean way of doing this, and usually involves an unsafe hash of a quantum circuit object, fragile indexing, or human introspection).
 
 ## `Block`: Definition and use cases
 
