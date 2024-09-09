@@ -143,7 +143,8 @@ print(circuit.draw())
 1. In the existing implementation of blocks that exists in `pec-runtime`, blocks are hashable, so that they can be used as keys in dictionaries (specifically in the dictionary porduced by the `NoiseLearner` that maps blocks to noise models). This is clearly unsafe since circuits are mutable. How can we design the noise handle so that it is safer than that, but also more flexible (e.g., if users want to mutate the block but still assign the same noise to it during mitigation, they should be allowed to do so)?
 2. Should `Block` be added to qiskit core, alongside the transpiler pass groups gates in blocks workflow 1? If so, should they be written in Rust or Python?
 3. What packages and subpackages need to be modified once `Block` is introduced? For example, should we add logic to qiskit-aer to be able to simulate circuits with blocks, or to Qiskit's optimizer, ..?
-4. How can we (should we?) facilitate re-use of CircuitInstruction or Block instances? For example, suppose we want the same block in a circuit 100 times:
+4. How and when do we communicate the "scope of a block context"? For example, suppose a block context is only sensibly defined for depth-1 blocks of entanglers. Do we let this thing be instantiated with anything and raise during execution, or do we raise immediately? Who is in charge of validation?
+5. How can we (should we?) facilitate re-use of CircuitInstruction or Block instances? For example, suppose we want the same block in a circuit 100 times:
 ```python
 for _ in range(100):
     with circuit.block(context=my_context, name="foo") as block:
