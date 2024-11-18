@@ -272,7 +272,7 @@ class BackendV3:
 This might naturally extend to such a `BackendV3` providing the additional information that is needed for Qiskit SDK to safely transpile entire sampler and estimator pubs; the compilation of a pub _also_ implies further processing will be done by a quantum computer, just like an annotation remaining in a single circuit.
 
 
-## Case study: noise learning in `pec-runtime`
+## Case study: twirling, noise learning, and mitigation with `qiskit-ibm-runtime`
 
 We envision two main workflows that users will follow once `Box`es become available, one for regular users and another one for power users:
 
