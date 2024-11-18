@@ -39,7 +39,7 @@ As in OpenQASM 3, a `Box` will be:
 
 * a group of non-overlapping (but potentially nested) circuit instructions,
 * which introduces a new scope for declared variables,
-* which can have internal scheduling within itself, but it scheduled atomically within the circuit (i.e. all wires touched within the box are delayed to match the critical path length),
+* which can have internal scheduling within itself, but is scheduled atomically within the circuit (i.e. all wires touched within the box are delayed to match the critical path length),
 * which forbids optimisations from crossing from outside to inside the box or vice-versa, but permits optimisations across the entire box,
 * and can have arbitrary backend- and SDK-agnostic annotations attached to it.
 
