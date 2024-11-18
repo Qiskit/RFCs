@@ -277,7 +277,7 @@ This might naturally extend to such a `BackendV3` providing the additional infor
 We envision two main workflows that users will follow once `Box`es become available, one for regular users and another one for power users:
 
 1. The workflow for regular users:
-    - Users initialize a `QuantumCircuit` without blocks, as they do today.
+    - Users initialize a `QuantumCircuit` without boxes, as they do today.
     - They apply all of the desired transpiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
     - They use (a convenience method built around) a new transpiler pass that collects the circuit's gates into boxes, with the ability of specifying different collection strategies.
     - They submit their job.
