@@ -50,7 +50,7 @@ Aside from variable scoping concerns and the resolution of delay lengths, the ex
 
 A `box` can be seen as the trivial case of a control-flow operation, equivalent to an `if (true)` block in a control-flow graph.
 Box, however, additionally has the semantics that is not a valid optimisation to simply remove the box.
-A `box` is a non-resuable grouping of instructions; it is not a function call that can be called multiple times (this is still a useful concept, it's just separate to `box` and not addressed here).
+A `box` is a non-reusable grouping of instructions; it is not a function call that can be called multiple times (this is still a useful concept, it's just separate to `box` and not addressed here).
 
 With this in mind, the most straightforward path to implementation in Qiskit SDK is to make `Box` a `ControlFlowOp`.
 Almost all of the desired semantics will automatically be inherited, and this fits in with existing objects, rather than requiring new special casing paths.
