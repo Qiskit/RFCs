@@ -282,19 +282,19 @@ We envision two main workflows that users will follow once `Box`es become availa
     - They use (a convenience method built around) a new transpiler pass that collects the circuit's gates into boxes, with the ability of specifying different collection strategies.
     - They submit their job.
 2. The workflow for power users:
-    - Users initialize a `QuantumCircuit` adding blocks manually as they wish.
+    - Users initialize a `QuantumCircuit` adding boxes manually as they wish.
     - They submit their job.
 
 Setting up these two workflows presents notable advantages, such as:
-- All of the existing transpiler passes can be asked (at least initially) to simply ignore the blocks, since transpilation is meant to happen before the blocks are generated. This can save quite a lot of time that would otherwise be spent adding logic to every single transpiler pass -- and yet, we can choose to do this in the future.
-- Users of the primitives can inspect the blocks before submitting their jobs. This is a big improvement: today, the block generation happens in the server and can be unintuitive.
+- All of the existing transpiler passes can be asked (at least initially) to simply ignore the boxes, since transpilation is meant to happen before the boxes are generated. This can save quite a lot of time that would otherwise be spent adding logic to every single transpiler pass -- and yet, we can choose to do this in the future.
+- Users of the primitives can inspect the boxes before submitting their jobs. This is a big improvement: today, the box generation happens in the server and can be unintuitive.
 
 In addition to supporting the two workflow above, we believe that the following workflow should *not* be supported:
 
 3. The workflow for "lazy" users:
-    - Users initialize a `QuantumCircuit` without blocks, as they do today.
+    - Users initialize a `QuantumCircuit` without boxes, as they do today.
     - They apply all of the desired transiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
     - They submit their job.
-    - The server creates blocks for the users "behind the scenes."
+    - The server creates boxes for the users "behind the scenes."
 
 This workflow essentially takes the same steps as are taken today and therefore presents the same disadvantages discussed above, and also violates the principle "don't do hidden transpilation server-side".
