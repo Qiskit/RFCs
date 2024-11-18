@@ -8,7 +8,7 @@
 
 ## Summary
 
-Introduce a way grouping of instructions to Qiskit SDK that can have downstream data attached, pass through transpilation, and up and down an execution stack.
+Introduce a way of grouping instructions in Qiskit SDK that can have downstream data attached, pass through transpilation, and up and down an execution stack.
 The case-study use of this is for Qiskit Runtime primitives to provide more flexibility and transparency in Pauli twirling and error mitigation.
 
 Qiskit does not currently have the concept of a "grouping" of instructions, other than as a user-defined custom gate.
