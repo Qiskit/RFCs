@@ -30,7 +30,7 @@ The nearest-term use cases for this are:
 
 * have a grouping construction to simplify stretch-based scheduling in Qiskit SDK
 * allow advanced users to specify the noise-learning and twirling blocks IBM Primitives error mitigation should use, and the per-block strategy
-* allow regular uses to see what blocks the IBM Primitives divided their circuit into for noise learning and twirling
+* allow regular users to see what blocks the IBM Primitives divided their circuit into for noise learning and twirling
 
 
 ## `Box`: a one-off grouping of instructions
