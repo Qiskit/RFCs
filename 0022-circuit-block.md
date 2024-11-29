@@ -298,3 +298,6 @@ In addition to supporting the two workflow above, we believe that the following 
     - The server creates boxes for the users "behind the scenes."
 
 This workflow essentially takes the same steps as are taken today and therefore presents the same disadvantages discussed above, and also violates the principle "don't do hidden transpilation server-side".
+
+## Case study: twirling with dynamical decoupling
+When combining twirling with dynamical decoupling the workflow is similar to the previous workflow without dynamical decoupling up to and including the generation of twirl-annotated boxes. At this point the circuit should be in ISA format and scheduled. The user may then apply a dynamical decoupling pass to the circuit. The pass adds sequences of decoupling gates to idle periods of the circuit. Boxes are treated as hard boundaries with regard to the evaluation of idle periods; that is idle periods are not additive across box boundaries nor can sequences be correlated outside the width of the box. The dynamical decoupling pass is applied recursively to nested boxes.
