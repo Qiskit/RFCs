@@ -44,7 +44,6 @@ As in OpenQASM 3, a `Box` will be:
 * which forbids optimisations from crossing from outside to inside the box or vice-versa, but permits optimisations across the entire box,
 * and can have arbitrary backend- and SDK-agnostic annotations attached to it.
 
-A `box` can contain any other Qiskit circuit instruction.
 Aside from variable scoping concerns and the resolution of delay lengths, the execution of a circuit containing a `box` should be the same as the execution of the same circuit with the boxed instructions inlined into the circuit.
 
 ### How to implement in Qiskit
