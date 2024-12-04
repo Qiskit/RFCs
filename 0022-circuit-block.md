@@ -20,7 +20,7 @@ However, the ability to group certain instructions to appear as a "block" in a l
 * a block of instructions might be assigned some duration as part of a larger circuit, and internally it is scheduled with stretchable durations to implement optimal dynamic decoupling spacing without increasing the complexity of the outer scheduling problem.
 
 Several downstream projects of Qiskit have made ad-hoc blocks by using labelled `Barrier` instructions, but this optimisation barrier has further effects than simple grouping, and the single-sided nature of it makes it very hard to work with as an actual "grouping" construct.
-`Barrier`s also are very hard for users to interpret when inspecting circuits after compilation.
+`Barrier`s also are hard for users to interpret when inspecting circuits after compilation.
 
 The RFC proposes to add a new `Box` instruction to Qiskit, whose semantics will be very similar to the `box` concept from OpenQASM 3.
 This `Box` should be able to pass through the Qiskit compiler (under certain limitations), be QPY serialisable, and be able to be transmitted up and down execution stacks.
