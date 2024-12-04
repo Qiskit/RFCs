@@ -16,7 +16,7 @@ However, the ability to group certain instructions to appear as a "block" in a l
 
 * a block of several gates might have a known unitary action, and can be treated as atomic for commutation purposes, even if a candidate gate doesn't commute with each block element individually.
 * noise-learning techniques might be applied to simultaneous logical blocks of operations, rather than individual 2q hardware gates.
-* a user might wish to Pauli twirl around a block of instructions, rather than a single one.
+* a user might wish to Pauli twirl around a block of instructions, including idling wires, rather than a single one.
 * a block of instructions might be assigned some duration as part of a larger circuit, and internally it is scheduled with stretchable durations to implement optimal dynamic decoupling spacing without increasing the complexity of the outer scheduling problem.
 
 Several downstream projects of Qiskit have made ad-hoc blocks by using labelled `Barrier` instructions, but this optimisation barrier has further effects than simple grouping, and the single-sided nature of it makes it very hard to work with as an actual "grouping" construct.
