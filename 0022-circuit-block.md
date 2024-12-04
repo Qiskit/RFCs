@@ -22,7 +22,8 @@ However, the ability to group certain instructions to appear as a "block" in a l
 Several downstream projects of Qiskit have made ad-hoc blocks by using labelled `Barrier` instructions, but this optimisation barrier has further effects than simple grouping, and the single-sided nature of it makes it very hard to work with as an actual "grouping" construct.
 `Barrier`s also are hard for users to interpret when inspecting circuits after compilation.
 
-The RFC proposes to add a new `Box` instruction to Qiskit, whose semantics will be very similar to the `box` concept from OpenQASM 3.
+The RFC proposes to add a new `Box` instruction to Qiskit, whose semantics will be very similar to the `box`
+[concept from OpenQASM 3](https://openqasm.com/language/scope.html#block-scope).
 This `Box` should be able to pass through the Qiskit compiler (under certain limitations), be QPY serialisable, and be able to be transmitted up and down execution stacks.
 We will examine how this `Box` might also permit downstream "annotations", outside of the control of the Qiskit SDK compiler, and how the compiler will still be able to reason about such annotations.
 
