@@ -127,7 +127,7 @@ with qc.box():
     qc.noop(*qc.qubits, *qc.clbits)
 ```
 
-The `noop` (or `use`) instruction will do the standard Qiskit circuit error checking to validate its inputs are valid resources for the circuit, but will not cause a new entry in the instruction list.
+The `noop` instruction will do the standard Qiskit circuit error checking to validate its inputs are valid resources for the circuit, but will not cause a new entry in the instruction list.
 The control-flow builders will still pick this up as a "used" resource.
 
 
