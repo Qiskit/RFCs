@@ -3,7 +3,7 @@
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0022                                         |
-| **Authors**       | [Sam Ferracin](sam.ferracin@ibm.com), [Ian Hincks](ian.hincks@ibm.com), [Jake Lishman](jake.lishman@ibm.com), [Joshua Skanes-Norman](joshua.sn@ibm.com)    |
+| **Authors**       | [Sam Ferracin](sam.ferracin@ibm.com), [Ian Hincks](ian.hincks@ibm.com), [Jake Lishman](jake.lishman@ibm.com), [Joshua Skanes-Norman](joshua.sn@ibm.com), [Erick Winston](ewinston@us.ibm.com)    |
 | **Submitted**     | YYYY-MM-DD                                   |
 
 ## Summary
@@ -272,21 +272,58 @@ class BackendV3:
 This might naturally extend to such a `BackendV3` providing the additional information that is needed for Qiskit SDK to safely transpile entire sampler and estimator pubs; the compilation of a pub _also_ implies further processing will be done by a quantum computer, just like an annotation remaining in a single circuit.
 
 
-## Case study: twirling, noise learning, and mitigation with `qiskit-ibm-runtime`
+## Case study: twirling, noise learning, and mitigation
 
-We envision two main workflows that users will follow once `Box`es become available, one for regular users and another one for power users:
+Twirling is the process of taking a single base circuit and randomly inserting gates from some distribution, composing them with existing gates, such that the unitary implemented by the circuit and its structure are unchanged. When data is averaged over the result of executing many such independent randomizations, this has the effect of modifiying the noise profile of the circuit into a more tractable one, such as removing the coherent parts of the noise model.
+
+There are many choices for how one might choose to perform these randomizations, where the random gates should be inserted, and with what existing gates they should be composed with.
+If this process is completely automated by the execution stack, the the user needs to be able to clearly specify how these choices should be made.
+This is especially important in the era of utility because as clients start running larger and larger circuits, it becomes apparent that some twirling choices are better than others.
+Moreover, when twirling is used in conjunction with mitigation techniques that rely on noise learning, there needs to be a transparent correspondance between how portions of an application circuit are twirled with how those portions are independently characterized by noise learning techniques.
+
+Therefore, one application of boxes and annotations is to let users declare how they would like to perform twirling, for example with respect to how the gates are randomly drawn, where they are inserted, and what they are composed with.
+Once a circuit has been decorated with these boxes and annotations, it is a self-contained description of how twirling should take place.
+
+> **_NOTE:_**  In what follows, we attempt to give a flavor of what twirling annotations might look like in `qiskit_ibm_runtime`. They will not be defined by the `qiskit` library itself. Take the particular syntax or conventions of the annotations as preliminary.
+
+```python
+from qiskit.circuit import Parameter, QuantumCircuit
+from qiskit_ibm_runtime.annotations import PauliTwirl
+
+circuit = QuantumCircuit(6)
+
+# define a twirled layer of CZs
+with circuit.box([PauliTwirl(<specifiers>)]):
+    # both of these single-qubit gates will be composed with the random 
+    # Pauli selections
+    circuit.sx(0)
+    circuit.rz(Parameter("p"), 0)
+    
+    circuit.cz(0, 1)
+    circuit.cz(2, 3)
+    circuit.noop(4, 5)
+
+# define a twirled layer of measurements
+with circuit.box([PauliTwirl(<specifiers>)]):
+    circuit.measure_all()
+```
+
+We envision two main workflows that users will follow once `box`es and annotations become available to specify twirling, one for regular users and another one for power users:
 
 1. The workflow for regular users:
     - Users initialize a `QuantumCircuit` without boxes, as they do today.
-    - They apply all of the desired transpiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
-    - They use (a convenience method built around) a new transpiler pass that collects the circuit's gates into boxes, with the ability of specifying different collection strategies.
-    - They submit their job.
+    - They construct a pass manager that contains a late-stage twirling-decorator pass.
+    - The early passes of the pass manager do steps like routing and layout as usual.
+    - The twirling-decorator pass can be configured according to various strategies to collect regions of the circuit and surround them by annotated twirling `box`es
+    - Any DD passes can be applied after twirling boxes have been added to ensure that they are compatible with the scheduling constraints implicated by the `box`es. The DD pass can recurse into the boxes, if directed and possible, to perform layer-level DD.
+    - They submit their job. 
 2. The workflow for power users:
     - Users initialize a `QuantumCircuit` adding boxes manually as they wish.
     - They submit their job.
+    - Validation routines can be tied to annotations for client-side checking of compatibility with box contents.
 
 Setting up these two workflows presents notable advantages, such as:
-- All of the existing transpiler passes can be asked (at least initially) to simply ignore the boxes, since transpilation is meant to happen before the boxes are generated. This can save quite a lot of time that would otherwise be spent adding logic to every single transpiler pass -- and yet, we can choose to do this in the future.
+- All of the existing transpiler passes can be asked (at least initially) to simply ignore the boxes, since transpilation is meant to happen before the boxes are generated. 
 - Users of the primitives can inspect the boxes before submitting their jobs. This is a big improvement: today, the box generation happens in the server and can be unintuitive.
 
 In addition to supporting the two workflow above, we believe that the following workflow should *not* be supported:
@@ -296,5 +333,5 @@ In addition to supporting the two workflow above, we believe that the following 
     - They apply all of the desired transiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
     - They submit their job.
     - The server creates boxes for the users "behind the scenes."
-
+  
 This workflow essentially takes the same steps as are taken today and therefore presents the same disadvantages discussed above, and also violates the principle "don't do hidden transpilation server-side".
