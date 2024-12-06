@@ -277,7 +277,7 @@ This might naturally extend to such a `BackendV3` providing the additional infor
 Twirling is the process of taking a single base circuit and randomly inserting gates from some distribution, composing them with existing gates, such that the unitary implemented by the circuit and its structure are unchanged. When data is averaged over the result of executing many such independent randomizations, this has the effect of modifiying the noise profile of the circuit into a more tractable one, such as removing the coherent parts of the noise model.
 
 There are many choices for how one might choose to perform these randomizations, where the random gates should be inserted, and with what existing gates they should be composed with.
-If this process is completely automated by the execution stack, the the user needs to be able to clearly specify how these choices should be made.
+If this process is completely automated by the execution stack, then the user needs to be able to clearly specify how these choices should be made.
 This is especially important in the era of utility because as clients start running larger and larger circuits, it becomes apparent that some twirling choices are better than others.
 Moreover, when twirling is used in conjunction with mitigation techniques that rely on noise learning, there needs to be a transparent correspondance between how portions of an application circuit are twirled with how those portions are independently characterized by noise learning techniques.
 
