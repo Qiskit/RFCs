@@ -284,7 +284,7 @@ Moreover, when twirling is used in conjunction with mitigation techniques that r
 Therefore, one application of boxes and annotations is to let users declare how they would like to perform twirling, for example with respect to how the gates are randomly drawn, where they are inserted, and what they are composed with.
 Once a circuit has been decorated with these boxes and annotations, it is a self-contained description of how twirling should take place.
 
-> **_NOTE:_**  In what follows, we attempt to give a flavor of what twirling annotations might look like in `qiskit_ibm_runtime`. They will not be defined by the `qiskit` library itself. Take the particular syntax or conventions of the annotations as preliminary.
+> **_NOTE:_**  In what follows, we attempt to give a flavor of what twirling annotations might look like in `qiskit_ibm_runtime`. They will not be defined by the `qiskit` library itself. The particular syntax and conventions used here are preliminary and do necessarily represent what will come.
 
 ```python
 from qiskit.circuit import Parameter, QuantumCircuit
