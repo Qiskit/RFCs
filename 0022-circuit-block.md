@@ -115,10 +115,6 @@ For example, IBM hardware has, in the past, treated the `id` instruction as a si
 We also do not currently have the concept of a no-op on classical data.
 To make the user intent clearer here, we propose adding a `QuantumCircuit.noop` to make the intent explicit:
 
-> [!NOTE]
-> *Bikeshedding potential*: do you prefer `QuantumCircuit.use` or `QuantumCircuit.noop` for this?
-> `use` is perhaps clearer for more users, but its name only makes sense in a control-flow builder context, whereas `noop` makes sense to appear in the root scope of a `QuantumCircuit`.
-
 ```python
 from qiskit.circuit import QuantumCircuit
 qc = QuantumCircuit(3, 3)
@@ -336,7 +332,7 @@ In addition to supporting the two workflow above, we believe that the following 
   
 This workflow essentially takes the same steps as are taken today and therefore presents the same disadvantages discussed above, and also violates the principle "don't do hidden transpilation server-side".
 
-Another application of boxes is to let users declare how they would like to perform noise learning and mitigation. To do so, they can assign a unique identifier to a box, and subsequently use those identifiers in the primitives' options.
+Another application of boxes is to let users declare how they would like to perform noise learning and mitigation. To do so, they can assign a unique identifier to a box via a separate UID annotation, and subsequently provide the primitives' options with a map from those identifiers to noise models they wish to attach to the identifier.
 
 ```python
 circuit = QuantumCircuit(6)
@@ -349,16 +345,15 @@ with circuit.box([PauliTwirl(<specifiers>), uuid0 := uuid.create()]):
 with circuit.box([PauliTwirl(<specifiers>), uuid1 := uuid.create()]):
     circuit.cz(1, 2)
     circuit.cz(3, 4)
-
-with circuit.box([PauliTwirl(<specifiers>), uuid2 := uuid.create()]):
-    circuit.cz(0, 1)
-    circuit.cz(2, 3)
     
 with circuit.box([PauliTwirl(<specifiers>)]):
     circuit.measure_all()
 
 estimator = Estimator(backend)
 
-# use the options to request noise learning on the first two boxes, but not on the third one
-estimator.options.resilience.layer_noise_learning.layers_to_learn = [uuid0, uuid1]
+# specify mapping between uuid and noise models that were previously learned
+estimator.options.resilience.layer_noise_model = {
+    uuid0: noise_model0,
+    uuid1: noise_model1,
+}
 ```
