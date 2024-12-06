@@ -308,7 +308,7 @@ with circuit.box([PauliTwirl(<specifiers>)]):
     circuit.measure_all()
 ```
 
-We envision two main workflows that users will follow once `box`es and annotations become available to specify twirling, one for regular users and another one for power users:
+We envision two main workflows that users will follow once `box`es and annotations become available to specify twirling, one for regular users and another for power users:
 
 1. The workflow for regular users:
     - Users initialize a `QuantumCircuit` without boxes, as they do today.
