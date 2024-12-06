@@ -301,7 +301,7 @@ with circuit.box([PauliTwirl(<specifiers>)]):
     
     circuit.cz(0, 1)
     circuit.cz(2, 3)
-    circuit.noop(4, 5)
+    circuit.noop(5)
 
 # define a twirled layer of measurements
 with circuit.box([PauliTwirl(<specifiers>)]):
@@ -335,3 +335,30 @@ In addition to supporting the two workflow above, we believe that the following 
     - The server creates boxes for the users "behind the scenes."
   
 This workflow essentially takes the same steps as are taken today and therefore presents the same disadvantages discussed above, and also violates the principle "don't do hidden transpilation server-side".
+
+Another application of boxes is to let users declare how they would like to perform noise learning and mitigation. To do so, they can assign a unique identifier to a box, and subsequently use those identifiers in the primitives' options.
+
+```python
+circuit = QuantumCircuit(6)
+
+with circuit.box([PauliTwirl(<specifiers>), uuid0 := uuid.create()]):
+    circuit.cz(0, 1)
+    circuit.cz(2, 3)
+    circuit.noop(4)
+
+with circuit.box([PauliTwirl(<specifiers>), uuid1 := uuid.create()]):
+    circuit.cz(1, 2)
+    circuit.cz(3, 4)
+
+with circuit.box([PauliTwirl(<specifiers>), uuid2 := uuid.create()]):
+    circuit.cz(0, 1)
+    circuit.cz(2, 3)
+    
+with circuit.box([PauliTwirl(<specifiers>)]):
+    circuit.measure_all()
+
+estimator = Estimator(backend)
+
+# use the options to request noise learning on the first two boxes, but not on the third one
+estimator.options.resilience.layer_noise_learning.layers_to_learn = [uuid0, uuid1]
+```
