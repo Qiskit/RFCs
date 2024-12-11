@@ -3,7 +3,7 @@
 | **Status**        | **Proposed** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0022                                         |
-| **Authors**       | [Sam Ferracin](sam.ferracin@ibm.com), [Ian Hincks](ian.hincks@ibm.com), [Jake Lishman](jake.lishman@ibm.com), [Joshua Skanes-Norman](joshua.sn@ibm.com)    |
+| **Authors**       | [Sam Ferracin](sam.ferracin@ibm.com), [Ian Hincks](ian.hincks@ibm.com), [Jake Lishman](jake.lishman@ibm.com), [Joshua Skanes-Norman](joshua.sn@ibm.com), [Erick Winston](ewinston@us.ibm.com)    |
 | **Submitted**     | YYYY-MM-DD                                   |
 
 ## Summary
@@ -16,13 +16,14 @@ However, the ability to group certain instructions to appear as a "block" in a l
 
 * a block of several gates might have a known unitary action, and can be treated as atomic for commutation purposes, even if a candidate gate doesn't commute with each block element individually.
 * noise-learning techniques might be applied to simultaneous logical blocks of operations, rather than individual 2q hardware gates.
-* a user might wish to Pauli twirl around a block of instructions, rather than a single one.
+* a user might wish to Pauli twirl around a block of instructions, including idling wires, rather than a single one.
 * a block of instructions might be assigned some duration as part of a larger circuit, and internally it is scheduled with stretchable durations to implement optimal dynamic decoupling spacing without increasing the complexity of the outer scheduling problem.
 
 Several downstream projects of Qiskit have made ad-hoc blocks by using labelled `Barrier` instructions, but this optimisation barrier has further effects than simple grouping, and the single-sided nature of it makes it very hard to work with as an actual "grouping" construct.
-`Barrier`s also are very hard for users to interpret when inspecting circuits after compilation.
+`Barrier`s also are hard for users to interpret when inspecting circuits after compilation.
 
-The RFC proposes to add a new `Box` instruction to Qiskit, whose semantics will be very similar to the `box` concept from OpenQASM 3.
+The RFC proposes to add a new `Box` instruction to Qiskit, whose semantics will be very similar to the `box`
+[concept from OpenQASM 3](https://openqasm.com/language/scope.html#block-scope).
 This `Box` should be able to pass through the Qiskit compiler (under certain limitations), be QPY serialisable, and be able to be transmitted up and down execution stacks.
 We will examine how this `Box` might also permit downstream "annotations", outside of the control of the Qiskit SDK compiler, and how the compiler will still be able to reason about such annotations.
 
@@ -43,7 +44,6 @@ As in OpenQASM 3, a `Box` will be:
 * which forbids optimisations from crossing from outside to inside the box or vice-versa, but permits optimisations across the entire box,
 * and can have arbitrary backend- and SDK-agnostic annotations attached to it.
 
-A `box` can contain any other Qiskit circuit instruction.
 Aside from variable scoping concerns and the resolution of delay lengths, the execution of a circuit containing a `box` should be the same as the execution of the same circuit with the boxed instructions inlined into the circuit.
 
 ### How to implement in Qiskit
@@ -115,10 +115,6 @@ For example, IBM hardware has, in the past, treated the `id` instruction as a si
 We also do not currently have the concept of a no-op on classical data.
 To make the user intent clearer here, we propose adding a `QuantumCircuit.noop` to make the intent explicit:
 
-> [!NOTE]
-> *Bikeshedding potential*: do you prefer `QuantumCircuit.use` or `QuantumCircuit.noop` for this?
-> `use` is perhaps clearer for more users, but its name only makes sense in a control-flow builder context, whereas `noop` makes sense to appear in the root scope of a `QuantumCircuit`.
-
 ```python
 from qiskit.circuit import QuantumCircuit
 qc = QuantumCircuit(3, 3)
@@ -127,7 +123,7 @@ with qc.box():
     qc.noop(*qc.qubits, *qc.clbits)
 ```
 
-The `noop` (or `use`) instruction will do the standard Qiskit circuit error checking to validate its inputs are valid resources for the circuit, but will not cause a new entry in the instruction list.
+The `noop` instruction will do the standard Qiskit circuit error checking to validate its inputs are valid resources for the circuit, but will not cause a new entry in the instruction list.
 The control-flow builders will still pick this up as a "used" resource.
 
 
@@ -272,21 +268,58 @@ class BackendV3:
 This might naturally extend to such a `BackendV3` providing the additional information that is needed for Qiskit SDK to safely transpile entire sampler and estimator pubs; the compilation of a pub _also_ implies further processing will be done by a quantum computer, just like an annotation remaining in a single circuit.
 
 
-## Case study: twirling, noise learning, and mitigation with `qiskit-ibm-runtime`
+## Case study: twirling, noise learning, and mitigation
 
-We envision two main workflows that users will follow once `Box`es become available, one for regular users and another one for power users:
+Twirling is the process of taking a single base circuit and randomly inserting gates from some distribution, composing them with existing gates, such that the unitary implemented by the circuit and its structure are unchanged. When data is averaged over the result of executing many such independent randomizations, this has the effect of modifiying the noise profile of the circuit into a more tractable one, such as removing the coherent parts of the noise model.
+
+There are many choices for how one might choose to perform these randomizations, where the random gates should be inserted, and with what existing gates they should be composed with.
+If this process is completely automated by the execution stack, then the user needs to be able to clearly specify how these choices should be made.
+This is especially important in the era of utility because as clients start running larger and larger circuits, it becomes apparent that some twirling choices are better than others.
+Moreover, when twirling is used in conjunction with mitigation techniques that rely on noise learning, there needs to be a transparent correspondance between how portions of an application circuit are twirled with how those portions are independently characterized by noise learning techniques.
+
+Therefore, one application of boxes and annotations is to let users declare how they would like to perform twirling, for example with respect to how the gates are randomly drawn, where they are inserted, and what they are composed with.
+Once a circuit has been decorated with these boxes and annotations, it is a self-contained description of how twirling should take place.
+
+> **_NOTE:_**  In what follows, we attempt to give a flavor of what twirling annotations might look like in `qiskit_ibm_runtime`. They will not be defined by the `qiskit` library itself. The particular syntax and conventions used here are preliminary and do necessarily represent what will come.
+
+```python
+from qiskit.circuit import Parameter, QuantumCircuit
+from qiskit_ibm_runtime.annotations import PauliTwirl
+
+circuit = QuantumCircuit(6)
+
+# define a twirled layer of CZs
+with circuit.box([PauliTwirl(<specifiers>)]):
+    # both of these single-qubit gates will be composed with the random 
+    # Pauli selections
+    circuit.sx(0)
+    circuit.rz(Parameter("p"), 0)
+    
+    circuit.cz(0, 1)
+    circuit.cz(2, 3)
+    circuit.noop(5)
+
+# define a twirled layer of measurements
+with circuit.box([PauliTwirl(<specifiers>)]):
+    circuit.measure_all()
+```
+
+We envision two main workflows that users will follow once `box`es and annotations become available to specify twirling, one for regular users and another for power users:
 
 1. The workflow for regular users:
     - Users initialize a `QuantumCircuit` without boxes, as they do today.
-    - They apply all of the desired transpiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
-    - They use (a convenience method built around) a new transpiler pass that collects the circuit's gates into boxes, with the ability of specifying different collection strategies.
-    - They submit their job.
+    - They construct a pass manager that contains a late-stage twirling-decorator pass.
+    - The early passes of the pass manager do steps like routing and layout as usual.
+    - The twirling-decorator pass can be configured according to various strategies to collect regions of the circuit and surround them by annotated twirling `box`es
+    - Any DD passes can be applied after twirling boxes have been added to ensure that they are compatible with the scheduling constraints implicated by the `box`es. Boxes are treated as hard boundaries with regard to the evaluation of idle periods; idle periods are are not additive across `box` boundaries nor can sequences be correlated outside the width of the box. The DD pass can recurse into the boxes, if directed and possible, to perform layer-level DD.
+    - They submit their job. 
 2. The workflow for power users:
     - Users initialize a `QuantumCircuit` adding boxes manually as they wish.
     - They submit their job.
+    - Validation routines can be tied to annotations for client-side checking of compatibility with box contents.
 
 Setting up these two workflows presents notable advantages, such as:
-- All of the existing transpiler passes can be asked (at least initially) to simply ignore the boxes, since transpilation is meant to happen before the boxes are generated. This can save quite a lot of time that would otherwise be spent adding logic to every single transpiler pass -- and yet, we can choose to do this in the future.
+- All of the existing transpiler passes can be asked (at least initially) to simply ignore the boxes, since transpilation is meant to happen before the boxes are generated. 
 - Users of the primitives can inspect the boxes before submitting their jobs. This is a big improvement: today, the box generation happens in the server and can be unintuitive.
 
 In addition to supporting the two workflow above, we believe that the following workflow should *not* be supported:
@@ -296,8 +329,30 @@ In addition to supporting the two workflow above, we believe that the following 
     - They apply all of the desired transiler passes, for example to map the circuit to an ISA circuit for the backend that they wish to use.
     - They submit their job.
     - The server creates boxes for the users "behind the scenes."
-
+  
 This workflow essentially takes the same steps as are taken today and therefore presents the same disadvantages discussed above, and also violates the principle "don't do hidden transpilation server-side".
 
-## Case study: twirling with dynamical decoupling
-When combining twirling with dynamical decoupling the workflow is similar to the previous workflow without dynamical decoupling up to and including the generation of twirl-annotated boxes. At this point the circuit should be in ISA format and scheduled. The user may then apply a dynamical decoupling pass to the circuit. The pass adds sequences of decoupling gates to idle periods of the circuit. Boxes are treated as hard boundaries with regard to the evaluation of idle periods; that is idle periods are not additive across box boundaries nor can sequences be correlated outside the width of the box. The dynamical decoupling pass is applied recursively to nested boxes.
+Another application of boxes is to let users declare how they would like to perform noise learning and mitigation. To do so, they can assign a unique identifier to a box via a separate UID annotation, and subsequently provide the primitives' options with a map from those identifiers to noise models they wish to attach to the identifier.
+
+```python
+circuit = QuantumCircuit(6)
+
+with circuit.box([PauliTwirl(<specifiers>), uuid0 := uuid.create()]):
+    circuit.cz(0, 1)
+    circuit.cz(2, 3)
+    circuit.noop(4)
+
+with circuit.box([PauliTwirl(<specifiers>), uuid1 := uuid.create()]):
+    circuit.cz(1, 2)
+    circuit.cz(3, 4)
+    
+with circuit.box([PauliTwirl(<specifiers>)]):
+    circuit.measure_all()
+
+estimator = Estimator(backend)
+
+# specify mapping between uuid and noise models that were previously learned
+estimator.options.resilience.layer_noise_model = {
+    uuid0: noise_model0,
+    uuid1: noise_model1,
+}
