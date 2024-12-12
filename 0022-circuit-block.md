@@ -311,7 +311,7 @@ We envision two main workflows that users will follow once `box`es and annotatio
     - They construct a pass manager that contains a late-stage twirling-decorator pass.
     - The early passes of the pass manager do steps like routing and layout as usual.
     - The twirling-decorator pass can be configured according to various strategies to collect regions of the circuit and surround them by annotated twirling `box`es
-    - Any DD passes can be applied after twirling boxes have been added to ensure that they are compatible with the scheduling constraints implicated by the `box`es. The DD pass can recurse into the boxes, if directed and possible, to perform layer-level DD.
+    - Any DD passes can be applied after twirling boxes have been added to ensure that they are compatible with the scheduling constraints implicated by the `box`es. Boxes are treated as hard boundaries with regard to the evaluation of idle periods; idle periods are are not additive across `box` boundaries nor can sequences be correlated outside the width of the box. The DD pass can recurse into the boxes, if directed and possible, to perform layer-level DD.
     - They submit their job. 
 2. The workflow for power users:
     - Users initialize a `QuantumCircuit` adding boxes manually as they wish.
@@ -356,4 +356,3 @@ estimator.options.resilience.layer_noise_model = {
     uuid0: noise_model0,
     uuid1: noise_model1,
 }
-```
