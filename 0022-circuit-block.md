@@ -259,7 +259,7 @@ This has some benefits:
 In parallel work, the execution functions were moved to `qiskit.primitives` objects.
 Together, these effects largely obviated the need for all the rest of `BackendV2` at all, from the user's perspective.
 
-We do no propose to re-add execution methods to a hypothetical `BackendV3`; this would be unacceptable API "whiplash" for users who have only just completed the necessary migration from `BackendV2.run` to `SamplerV2`-based workflows.
+We do not propose to re-add execution methods to a hypothetical `BackendV3`; this would be unacceptable API "whiplash" for users who have only just completed the necessary migration from `BackendV2.run` to `SamplerV2`-based workflows.
 Regardless, we make the associations "`Backend` is to quantum computer as `Target` is to QPU", and we recognise a Pub as an "executable program" for the `Sampler`/`Estimator` abstract machine in the same way that a `QuantumCircuit` is the "executable program" for the QPU abstract machine.
 To enable Pub-based transpilation, Qiskit needs a standardised target-description format of a quantum computer (where the "ISA" is now a lot more abstract than a QPU's ISA, including this RFC's boxes and annotations), which is what we should look to solve with a `BackendV3`.
 
