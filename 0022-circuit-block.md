@@ -192,6 +192,12 @@ This gets tricky from a backwards compatibility perspective, though - if we add 
 
 ### Serialisation and deserialisation of annotations
 
+> ![NOTE]
+>
+> This RFC doesn't propose a final interface for QPY, just describes the principles of how this will be done.
+> The rest of that design can be a follow-up discussion in Qiskit core.
+> There is a rough preference from the RFC authors to use a model based on the `kwargs` extensions.
+
 If we allow arbitrary annotations, we reasonably need some way of constructing / deconstructing these, without sending arbitrary code to be executed over the wire - that would be a huge security hole.
 This is the problem that QPY solves for circuits.
 The general principle is that we can rely on reconstruction on the far side of a network boundary, if the receiver only runs code that it chose to install ahead of time.
@@ -240,11 +246,7 @@ We need a way to communicate this information from backends to Qiskit SDK.
 For example, an advanced user might attempt to compile an `Estimator` pub with explicit IBM-specific markings of how the noise learning should be performed.
 The compilation of a pub represents partial compilation for a particular quantum computer, which will in turn perform further processing to turn this into the set of circuits that will actually be run on the QPU, and so Qiskit SDK's transpiler perhaps ought to have a similar specification of what constitutes "valid" output of such a compilation for quantum-computer processing, much like `Target` represents what constitues valid output for QPU processing.
 
-#### Very very rough sketch of how this might motivate a `BackendV3`
-
-> [!NOTE]
-> This is a _very vague_ sketch, I'm just trying to make sure we have a clear definition of what a `Target` is, and we don't start having it become so abstract that it is no longer a good model for a QPU.
-> This is absolutely not necessary to finalise for this RFC, but I feel like it's worth thinking about this as a joined-up story, since previously we have treated the output of `transpile` as "ready for QPU execution", but annotations stymie that.
+#### Future considerations for hypothetical `BackendV3`
 
 If we go this route, this might motivate a `BackendV3` definition which includes information on what annotations should be permitted to remain.
 This has some benefits:
@@ -252,23 +254,16 @@ This has some benefits:
 * the transpiler can reject the output from malformed pass-manager pipelines, or input circuits where the user put on a custom annotation that the backend does not know how to resolve.  This allows client-side validation of the circuits.
 * the QPY API could be extended to retrieve the serialisers/deserialisers from a `backend` object, rather than needing a user to construct it themselves.
 
-If we _truly_ associated the Qiskit object `Backend` with a "quantum computer" (as opposed to `Target`'s QPU), we might even consider an API where the primitives entry points are moved onto the `BackendV3` object, as in:
+`BackendV1`, and `BackendV2` (prior to IBM Runtime's withdrawal of `backend.run` support), mixed the concepts of "hardware description" with "execution methods".
+`BackendV2` centralised almost all the hardware description of the QPU into the `Target` class.
+In parallel work, the execution functions were moved to `qiskit.primitives` objects.
+Together, these effects largely obviated the need for all the rest of `BackendV2` at all, from the user's perspective.
 
-```python
-class BackendV3:
-    @property
-    @abstractmethod
-    def target(self) -> Target: ...
-    @abstractmethod
-    def allowed_annotations(self) -> AnnotationChecker: ...
-    @abstractmethod
-    def sample(self, sampler_pub_likes) -> SamplerJob: ...
-    @abstractmethod
-    def estimate(self, estimator_pub_likes) -> EstimatorJob: ...
-```
+We do no propose to re-add execution methods to a hypothetical `BackendV3`; this would be unacceptable API "whiplash" for users who have only just completed the necessary migration from `BackendV2.run` to `SamplerV2`-based workflows.
+Regardless, we make the associations "`Backend` is to quantum computer as `Target` is to QPU", and we recognise a Pub as an "executable program" for the `Sampler`/`Estimator` abstract machine in the same way that a `QuantumCircuit` is the "executable program" for the QPU abstract machine.
+To enable Pub-based transpilation, Qiskit needs a standardised target-description format of a quantum computer (where the "ISA" is now a lot more abstract than a QPU's ISA, including this RFC's boxes and annotations), which is what we should look to solve with a `BackendV3`.
 
-This might naturally extend to such a `BackendV3` providing the additional information that is needed for Qiskit SDK to safely transpile entire sampler and estimator pubs; the compilation of a pub _also_ implies further processing will be done by a quantum computer, just like an annotation remaining in a single circuit.
-
+Ideally, the migration path to using `BackendV3` should be very simple for the majority of users; as it is just a target-description object, they do not need to interact with it other than to receive one from a hardware vendor, and to pass the object into Qiskit's transpiler.
 
 ## Case study: twirling, noise learning, and mitigation
 
