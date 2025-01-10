@@ -38,13 +38,15 @@ The nearest-term use cases for this are:
 
 As in OpenQASM 3, a `Box` will be:
 
-* a group of non-overlapping (but potentially nested) circuit instructions,
+* a group of consecutive or parallel circuit instructions (i.e. no gaps or "half-contained" instructions),
 * which introduces a new scope for declared variables,
 * which can have internal scheduling within itself, but is scheduled atomically within the circuit (i.e. all wires touched within the box are delayed to match the critical path length),
 * which forbids optimisations from crossing from outside to inside the box or vice-versa, but permits optimisations across the entire box,
 * and can have arbitrary backend- and SDK-agnostic annotations attached to it.
 
-Aside from variable scoping concerns and the resolution of delay lengths, the execution of a circuit containing a `box` should be the same as the execution of the same circuit with the boxed instructions inlined into the circuit.
+A `Box` behaves like a scope, so can be nested inside another `Box`.
+Crossing into or out of a box has no logical effect on the quantum state.
+In a scheduled circuit, the walls of the box are time-synchronisation points for all contained qubits; the walls of the box logically happen in the same instant for all qubits, but the walls themselves have no associated duration.
 
 ### How to implement in Qiskit
 
