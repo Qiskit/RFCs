@@ -91,7 +91,7 @@ audience. -->
 
 ### BackendV2 - the existing backend model
 
-Internal communication guidelines establish the following definitions:
+IBM Quantum uses the following definitions:
 
 - **QPU:** “A QPU includes all of the hardware responsible for accepting an executable quantum instruction set, or a quantum circuit, and returning an accurate answer”
 
