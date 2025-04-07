@@ -105,7 +105,7 @@ BackendV2 = Target + .run + "extra functionality"
 
 Where `Target + .run` are **required** components, and `"extra functionality"` comprises both optional and custom functionality that can be used to extend the backend model and adapt it using provider-specific information. 
 
-The initial proposal in this RFC is to **maintain** the `BackendV2` design of the Target and extra functionality (up to small changes), and focus on improving the "run" component.
+The initial proposal in this RFC is to **maintain** the `BackendV2` design of the Target and extra functionality (up to small changes), and focus on improving the "run" component. The detailed design section expands on what each component involves.
 
 ### BackendV3 - the new backend model
 
@@ -178,9 +178,13 @@ The abstract interface definition of `BackendV2` requires that subclasses implem
 
 Instead of a required `backend.run()`, the proposal for `BackendV3` implementations is to offer **primitive factory methods**: `backend.sampler()` and `backend.estimator()`. 
 
-#### 3. Extra functionality (will not change in BackendV3)
+#### 3. Extra functionality (small changes in BackendV3)
 
 As mentioned initially, this category includes both optional and custom functionality that is currently present in `BackendV2` implementations. The difference between optional and custom is that Qiskit offers tools to reason about optional functionality, while custom functionality requires custom tools to handle it (similar philosophy to the `Target` class).
+
+**Optional Functionality** -> `QubitProperties`
+
+For historical reasons, `QubitProperties` remains an optional property on both the `Target` and `BackendV2` objects. This adds redundancy and ambiguity, as any functionality that uses `QubitProperties` must query both and establish rules on what takes precedence over what. This can be easily fixed in `BackendV3` by no longer storing `QubitProperties` in the backend, and keeping them exclusively as an optional `Target` property. Querying these properties would still be possible in `BackendV3` for backwards compatibility by aliasing the target query.
 
 **Optional Functionality** -> Transpiler hooks
 
