@@ -128,9 +128,31 @@ This sums up the change from having one mandatory implementation of the executio
 - `.estimator()`
 - `.run()`
 
-> A point that should be clarified is what we'd like the interface to require. With requiring `.run()` out of the question, should we make them all optional and not require backends to be executable? Should we require at least a `.sampler()` or a `.estimator()` method?
+Important design questions include:
 
-It seems like not requiring an execution step is the most flexible alternative, as the need for a container that includes the target and the extra functionality still justify the need for having a backend object in these cases.
+1. **Required vs optional**
+
+`BackendV2` only offered 1 required execution method `.run()`. With `BackendV3`, there are 3 paths for execution: should we make them all optional and not require backends to implement the "run" component? Should we require at least a `.sampler()` or a `.estimator()` method (which return a primitive and don't actually execute)?
+
+Making all 3 methods optional seem like the best choice because of its flexibility: it enables all three execution options as well as an "execution-less" backend object that only exposes a model for compilation (transpilation). This can be different from just using a `Target` because of the additional functionality backend implementations provide.
+
+2. **The role of .run, why is it valuable** 
+
+The role of `run()`, as defined in `BackendV2` often gets immediately translated to "return counts", which is more restrictive than what the interface dictates. `run()` is designed to be free form, the only requirements are that the input is  a `QuantumCircuit` and the output is a `Result`. `Result` is purposely unrestricted, there are no requirements on the data it contains and the implementation details are left up to the implementer/vendor. There is a bias/convention towards returning `Counts` per circuit input in the job for historical reasons, and there are some formatting expectations if using those count mechanisms. But the output of `.run()` doesn't have to be "counts". 
+
+`qiskit-aer` is a good example of vendor that uses the flexibility of `Result`, as it attaches other circuit output in the result object. This can be done with various custom `Save*` instructions like `SaveExpectationValue` or `SaveStatevector` that attach extra data fields for the result of these save instructions.
+
+This flexibility differs from the primitives, which are prescriptive in how the execution runs and the result formats, and is one of the reasons why we suggest **extending** the backend interface with primitive factories instead of, from an abstract interface/modelling perspective, **replacing .run** with them (important: making them all optional allows for implementers to **choose** whether to take advantage of the `.run` method or not). They serve different purposes, one is a generic execution method that can be implemented to fit a specific use case, the other is a "bridge" between execution models that connects backend with primitives.
+
+3. **Primitive versioning approaches** 
+
+The primitives interface is currently developed and versioned independently to the backend interface, and providers typically implement a single primitives version per release. The purpose of `BackendV3` is to bridge the gap between models, which requires a new versioning strategy, for which there are 3 options:
+
+  1. Prescriptive versioning ("primitives style"): tie a backend version to a primitive interface version, so for example `BackendV3.sampler() -> SamplerV2`.  If/when there is a `SamplerV3` we have to make a `BackendV4` to bump the return type to use `SamplerV3`. The pros of this alternative could be intuitiveness. But the cons are: increased maintenance effort, increased migration effort for downstream providers. This alternative seems to contradict the stability/adaptability principle that has allowed previous backend implementations to succeed.
+
+  2. Open ended versioning: say that the `BackendV3.sampler() -> Sampler` where it is any version and leave it up to the user to handle the version management.
+
+  3. Method versioning: being prescriptive in the method `backend.sampler_v2() -> SamplerV2`
 
 -----
 Factors to consider:
