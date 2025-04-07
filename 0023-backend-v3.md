@@ -11,7 +11,7 @@
 ## Summary
 Backends are the "de facto" abstractions for quantum devices in the Qiskit ecosystem, extending beyond a simple combination of their components. The current Qiskit backend model, however, clashes with the execution model of primitives. This is a proposal to add a new `BackendV3` class that fills the gap in the current Qiskit backend + execution model.
 
-> Instead of a required `backend.run()`, the proposal for `BackendV3` implementations is to offer **primitive factory methods**: `backend.sampler()` and `backend.estimator()` that return their respective instantiated primitive classes (details TBD), as well as an optional `backend.run()` for 3rd party and local simulation backends (for backwards compatibility and testing, up to discussion).
+> Instead of a required `backend.run()`, the proposal for `BackendV3` implementations is to offer **primitive factory methods**: `backend.sampler()` and `backend.estimator()` that return their respective instantiated primitive classes, as well as an optional `backend.run()` for 3rd party and local simulation backends (for backwards compatibility and testing, up to discussion).
 
 For example, for `qiskit-ibm-runtime`, we could have:
 
@@ -32,6 +32,8 @@ backend = service.backend("ibm_fez")
 estimator = Estimator(backend=backend, mode="batch", options={"shots":1024})
 ```
 
+This document lays out the different design options considered in details such as primitive version handling or migration tradeoffs. 
+
 ## Motivation
 
 ### Why are we doing this? (With a bit of History)
@@ -41,7 +43,9 @@ The Qiskit `Backend` object was originally introduced to provide an abstract mod
 1. **Transpilation** -> "we need to access hardware constraints to optimize circuits (to run on a QPU)"
 2. **Execution** -> "we need an interface for sending circuits to the QPU and receiving an output"
 
-The original `Backend` interface (`BackendV1`) was designed primarily for circuit execution, the most fundamental ("basic") interaction with quantum computers. However, the need for improved transpilation support led to the introduction of `BackendV2`, and incorporating an abstraction for the "QPU", the `Target`. 
+The original `Backend` interface was `BaseBackend` (i.e. `BackendV0`), designed primarily for execution, the most fundamental ("basic") interaction with quantum computers. `BaseBackend` took a legacy `qobj` object as an input on `.run()` and  was explicitly tied to the IQX API formats. The next iteration of the interface was `BackendV1`, which improved the interface by decoupling the Python code from IBM's REST API payload format to allow changes on either side (although no actual changes were made at the time, which facilitated the migration), and removing the use of `qobj` in `.run()` (opting for `QuantumCircuit` instead). The need for improved transpilation support led to the introduction of `BackendV2`, and incorporating an abstraction for the "QPU", the `Target`. 
+
+> A lesson learned from the `BaseBackend -> BackendV1` and `BackendV1 -> BackendV2` migrations is that the first one was substantially easier and cleaner to implement because of the reduced amount of changes.  Changing too much at once makes it exponentially harder to get dependencies to migrate. Keeping changes small and not breaking existing implementations so the migration is trivial is a better way to evolve the interface.
 
 <img src="./0023-backend-v3/overview-a.png" height="250">
 
