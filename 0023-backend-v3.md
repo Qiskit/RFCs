@@ -227,7 +227,7 @@ class IBMBackend(...):
     """Return the default translation stage plugin name for IBM backends."""
     if not self.options.use_fractional_gates:
       return "ibm_dynamic_circuits"
-        return "ibm_fractional"
+    return "ibm_fractional"
 ```
 
 **Custom Functionality** -> Custom attributes
