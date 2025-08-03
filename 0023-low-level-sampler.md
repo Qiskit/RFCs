@@ -9,33 +9,69 @@
 | **Updated**       | YYYY-MM-DD                                   |
 
 ## Summary
-
 In Qiskit, the quantum computer interface is built around primitives, which are
-the fundamental operations executable on a quantum circuit. Currently, Qiskit offers
-two such primitives: the Sampler and the Estimator. The Estimator leverages advanced
-error mitigation techniques to enhance the quality of results from noisy quantum
-computers. On a noiseless quantum computer, the Estimator could instead be constructed
-atop the Sampler, simplifying its role. However, given current noise levels, robust
-error mitigation is essential, requiring extensive profiling through thousands or even
-millions of circuit variations. Transmitting these variations across cloud environments
-is inefficient, but this can be optimized using a "samplex" a domain-specific language
-(DSL) program describing the way of producint these variations. The samplex enables
-efficient server-side generation of variations, with results transmitted back as samples
-accompanied by metadata, facilitating client-side implementation of error-mitigated
-estimations.
+the fundamental operations executable on a quantum circuit. Currently, Qiskit
+offers two such primitives: the Sampler and the Estimator. The Estimator
+leverages advanced error mitigation techniques to enhance the quality of
+results from noisy quantum computers. On a noiseless quantum computer, the
+Estimator could instead be constructed atop the Sampler, simplifying its role.
+However, given current noise levels, robust error mitigation is essential,
+requiring extensive profiling through thousands or even millions of circuit
+variations. Transmitting these variations across cloud environments is
+inefficient, but this can be optimized using a "samplex" — a domain-specific
+language (DSL) program describing the way of producing these variations. The
+samplex enables efficient server-side generation of variations, with results
+transmitted back as samples accompanied by metadata, facilitating client-side
+implementation of error-mitigated estimations.
 
 ## Motivation
-- Why are we doing this?
+The purpose of this development is addressing the growing demand within the
+quantum information science community for advanced error mitigation techniques.
+Users and researchers seek finer control over these techniques to improve the
+reliability of quantum computations, especially on noisy quantum hardware.
+Vendors like IBM have identified that users desire capabilities for precise
+noise learning, twirling, and expectation value calculations.
 
-We are pursuing this development to address the growing demand within the quantum information science community for advanced error mitigation techniques. Users and researchers seek finer control over these techniques to improve the reliability of quantum computations, especially on noisy quantum hardware. Vendors like IBM have identified that users desire capabilities for precise noise learning, twirling, and expectation value calculations. By optimizing the process with tools like the "samplex" DSL, we can enhance efficiency in generating circuit variations server-side, reduce data transmission overhead, and support robust client-side error-mitigated estimations. This approach ultimately aims to deliver higher-quality quantum computing results while meeting the sophisticated needs of the community.
 
 - What will this enable?
-- What will be the outcome?
-- Who will benefit?
+This proposal will enable Qiskit users to perform large-scale, backend-optimized
+error mitigation experiments without incurring the high network cost of
+transmitting thousands or millions of circuit variations. By shifting variation
+generation to the backend through a portable DSL, researchers can run advanced
+techniques such as randomized compiling, Pauli or Clifford twirling, and noise
+learning more efficiently. The approach preserves reproducibility via
+deterministic seeds and structured metadata, while also allowing backend-
+specific optimizations that remain compatible across vendors.
+
+Today, Qiskit users can already run large-scale error mitigation experiments,
+but the process is **implicit** — it is difficult to explain and difficult to
+compose, and users have no direct control over how circuit variations are
+generated or how mitigation is applied. This proposal introduces the **samplex**
+DSL, a portable description language that lets users explicitly define the
+variation strategies applied by the backend.
+
+With this, researchers can tailor error mitigation to their needs, choosing,
+for example, the specific forms of Pauli or Clifford twirling, or noise learning to
+apply. The approach preserves backend optimizations while giving users fine-grained
+control, reproducibility through deterministic seeds, and access to structured
+metadata for postprocessing.
 
 ## User Benefit
-- Who are the target users of this work?
-- How will users or contributors benefit from the work proposed?
+This proposal will primarily benefit researchers and practitioners working with
+noisy quantum hardware who require precise control over error mitigation
+strategies. By making the variation generation process explicit and
+user-definable, it empowers users to explore and tune novel error mitigation
+techniques.
+
+Backend and platform developers will also benefit, as the **samplex** DSL
+creates a standard interface for describing variation strategies that can be
+implemented consistently across vendors. This improves portability, reduces
+vendor lock-in, and enables backends to apply optimizations without sacrificing
+user intent.  
+
+Finally, the broader Qiskit community, including educators and tool developers,
+will gain a clearer and more composable model for error mitigation workflows,
+making it easier to experiment, reproduce results, and share techniques.
 
 ## Design Proposal
 This is the focus of the document. Explain the proposal from the perspective of
@@ -65,16 +101,49 @@ Technical reference level design. Elaborate on details such as:
 - Reference definition, eg., formal definitions.
 
 ## Alternative Approaches
-Discuss other approaches to solving this problem and why these were not
-selected.
+An alternative to introducing the **samplex** DSL is to generate all circuit
+variations entirely on the client side and transmit them to the backend for
+execution. This approach offers maximum flexibility and complete control over
+how variations are produced, since the backend would simply execute the
+provided circuits without influencing their structure. Users could implement
+any custom error mitigation workflow they wish, with no restrictions imposed by
+backend capabilities or vendor‑specific optimizations.
+
+However, this approach has significant drawbacks. Large‑scale error mitigation
+often requires thousands or even millions of circuit variations, making
+client‑side generation impractical for real‑world workloads. Transmitting such a
+large volume of circuits over the network introduces high latency, increases
+execution time, and places substantial demands on both client and backend
+infrastructure. It also complicates reproducibility across vendors, since each
+vendor may handle large‑batch execution differently.
+
+By contrast, the **samplex** DSL allows users to describe their variation
+generation strategies in a portable, serialized form that can be transmitted
+efficiently. The backend can then expand these strategies into actual circuit
+variations locally, reducing network load while preserving user control over
+error mitigation techniques.
 
 ## Questions
 Open questions for discussion and an opening for feedback.
+TBD
 
 ## Future Extensions
-Consider what extensions might spawn from this RFC. Discuss the roadmap of
-related projects and how these might interact. This section is also an opening
-for discussions and a great place to dump ideas.
 
-If you do not have any future extensions in mind, state that you cannot think
-of anything. This section should not be left blank.
+The introduction of a low‑level sampler is only the first step. The long‑term
+goal is to evolve Qiskit’s compute model toward accepting a single, unified
+operation—this primitive—potentially deprecating the current definition of
+primitives altogether. In this model, noise learning, error mitigation, and any
+other computation could be implemented directly on top of the unified primitive
+abstraction.
+
+Future RFCs may explore implementing advanced workflows such as noise learning
+natively within this computation model, as well as replacing Qiskit’s existing
+compute interface with the unified approach. This shift would simplify the
+execution pipeline, make workflows more composable, and provide a consistent
+foundation for new quantum algorithms and techniques.
+
+Additional future work could explore defining domain‑specific languages beyond
+**samplex**, including DSLs dedicated to calculating expectation values or
+other specialized tasks. These DSLs could be layered on top of the unified
+primitive to further extend Qiskit’s flexibility and expressiveness while
+retaining backend portability.
