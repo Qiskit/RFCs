@@ -74,31 +74,85 @@ will gain a clearer and more composable model for error mitigation workflows,
 making it easier to experiment, reproduce results, and share techniques.
 
 ## Design Proposal
-This is the focus of the document. Explain the proposal from the perspective of
-educating another user on the proposed features.
 
-This generally means:
-- Introducing new concepts and nomenclature
-- Using examples to introduce new features
-- Implementation and Migration path with associated concerns
-- Communication of features and changes to users
+The intent of the following listing is to demonstrate how a user could leverage
+the new low-level interface to implement a client-side basic estimator.
 
-Focus on giving an overview of impact of the proposed changes to the target
-audience.
+```python
+from qiskit_ibm_runtime import QiskitRuntimeService, Session
+from qiskit.transpiler import PassManager
+from qiskit.transpiler.passes import NoiseLearningLayering
+from qiskit.circuit import QuantumCircuit, Parameter, QuantumRegister, ClassicalRegister
 
-Factors to consider:
-- Performance
-- Dependencies
-- Maintenance
-- Compatibility
+# This proposal assumes the semantics implemented in samplomatic will become
+# part of qiskit semantics at some moment.
+from qiskit.samplex import build
+from qiskit.samplex.annotations import InjectNoise, Twirl
+
+# The proposal wants to acknowledge the transtionary reality in which the
+# primitives continue being the entry point for operating the quantum computer
+# and this is a low level interface for advanced usage.
+from qiskit.primitives.implementation import QuantumProgram, Executor
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+service = QiskitRuntimeService(name="staging-cloud")
+backend = service.backend("test_heron")
+
+# Build a circuit for which we need to learn the noise.
+circuit0 = QuantumCircuit(2)
+
+with circuit0.box([Twirl(), InjectNoise("my_noise")]):
+  circuit0.cx(0, 1)
+
+with circuit.box([Twirl(), BasisTransform(ref="my_basis")]):
+  circuit.measure_all()
+
+# Prepare the circuit for noise learning
+pass_ = NoiseLearningLayering()
+pm = PassManager(pass_)
+layers = pm.run(circuit0)
+template, samplex = build(layers)
+
+noise_learning_program = QuantumProgram(shots=1024)
+noise_learning_program.append(
+  template,
+  samplex=samplex,
+  parameter_values=np.linspace(0, 1, 20).reshape(4, 5, 1),
+  noise_maps=["my_noise"],
+  basis_transforms={"my_basis": "XX"},
+  cast_result_into_noise_map=True
+  cache_as="my_noise"
+)
+
+sampling_program = QuantumProgram(shots=1024)
+sampling_program.append(
+  circuit0,
+
+)
+
+with Session(backend=backend) as session:
+  executor = Executor(backend)
+  job = executor.run(noise_learning_program)
+
+  # After this invocation, the result gets cached as a noise model within the
+  # system and some metadata is returned as part of sampling the samplex.
+  result = job.result()
+  signs = result.samplex_output["signs"]
+
+  # This performs the low level sampling.
+  job = executor.run(sampling_program)
+  result = job.result()
+  counts = result.counts
+
+# And this section should estimate based on the results of the previous
+# two programs.
+expectation = mitigated_estimation(signs, counts)
+```
 
 ## Detailed Design
-Technical reference level design. Elaborate on details such as:
-- Implementation procedure
-  - If spans multiple projects cover these parts individually
-- Interaction with other features
-- Dissecting corner cases
-- Reference definition, eg., formal definitions.
+TBD
 
 ## Alternative Approaches
 An alternative to introducing the **samplex** DSL is to generate all circuit
