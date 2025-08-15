@@ -32,16 +32,11 @@ reliability of quantum computations, especially on noisy quantum hardware.
 Vendors like IBM have identified that users desire capabilities for precise
 noise learning, twirling, and expectation value calculations.
 
-
-- What will this enable?
 This proposal will enable Qiskit users to perform large-scale, backend-optimized
 error mitigation experiments without incurring the high network cost of
 transmitting thousands or millions of circuit variations. By shifting variation
 generation to the backend through a portable DSL, researchers can run advanced
-techniques such as randomized compiling, Pauli or Clifford twirling, and noise
-learning more efficiently. The approach preserves reproducibility via
-deterministic seeds and structured metadata, while also allowing backend-
-specific optimizations that remain compatible across vendors.
+techniques more efficiently.
 
 Today, Qiskit users can already run large-scale error mitigation experiments,
 but the process is **implicit** — it is difficult to explain and difficult to
@@ -50,9 +45,8 @@ generated or how mitigation is applied. This proposal introduces the **samplex**
 DSL, a portable description language that lets users explicitly define the
 variation strategies applied by the backend.
 
-With this, researchers can tailor error mitigation to their needs, choosing,
-for example, the specific forms of Pauli or Clifford twirling, or noise learning to
-apply. The approach preserves backend optimizations while giving users fine-grained
+With this, researchers can tailor error mitigation to their needs. The approach
+preserves backend optimizations while giving users fine-grained
 control, reproducibility through deterministic seeds, and access to structured
 metadata for postprocessing.
 
