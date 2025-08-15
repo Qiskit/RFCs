@@ -86,7 +86,7 @@ from qiskit.circuit import QuantumCircuit, Parameter, QuantumRegister, Classical
 
 # This proposal assumes the semantics implemented in samplomatic will become
 # part of qiskit semantics at some moment.
-from qiskit.samplex import build
+from qiskit import samplex
 from qiskit.samplex.annotations import InjectNoise, Twirl
 
 # The proposal wants to acknowledge the transtionary reality in which the
@@ -101,53 +101,44 @@ service = QiskitRuntimeService(name="staging-cloud")
 backend = service.backend("test_heron")
 
 # Build a circuit for which we need to learn the noise.
-circuit0 = QuantumCircuit(2)
+circuit = QuantumCircuit(2)
 
-with circuit0.box([Twirl(), InjectNoise("my_noise")]):
-  circuit0.cx(0, 1)
+with circuit.box([Twirl(), InjectNoise(ref="my_noise")]):
+  circuit.cx(0, 1)
 
 with circuit.box([Twirl(), BasisTransform(ref="my_basis")]):
   circuit.measure_all()
 
-# Prepare the circuit for noise learning
-pass_ = NoiseLearningLayering()
-pm = PassManager(pass_)
-layers = pm.run(circuit0)
-template, samplex = build(layers)
+# Extract layers of the circuit
+layers = find_unique_layers(circuit)
 
-noise_learning_program = QuantumProgram(shots=1024)
-noise_learning_program.append(
-  template,
-  samplex=samplex,
-  parameter_values=np.linspace(0, 1, 20).reshape(4, 5, 1),
-  noise_maps=["my_noise"],
-  basis_transforms={"my_basis": "XX"},
-  cast_result_into_noise_map=True
-  cache_as="my_noise"
-)
-
-sampling_program = QuantumProgram(shots=1024)
-sampling_program.append(
-  circuit0,
-
-)
+# Prepare circuit for executing
+template, samplex = samplex.build()
 
 with Session(backend=backend) as session:
+  # Learning noise
+  noise_learner = NoiseLearner(backend)
+  noise_learner_result = noise_learner.run(layers).result()
+  noise_map = noise_learner_result["noise_map"]
+
+  # Preparing a quantum program for noise-aware sampling
+  program = QuantumProgram(shots=1024)
+  program.declare_noise_map("my_noise", noise_map)
+  program.append(
+    template,
+    samplex=samplex,
+    basis_transforms={"my_basis": "XX"},
+  )
+
+  # Execute (sample) the circuit
   executor = Executor(backend)
-  job = executor.run(noise_learning_program)
+  job = executor.run(program)
 
-  # After this invocation, the result gets cached as a noise model within the
-  # system and some metadata is returned as part of sampling the samplex.
-  result = job.result()
-  signs = result.samplex_output["signs"]
-
-  # This performs the low level sampling.
-  job = executor.run(sampling_program)
-  result = job.result()
-  counts = result.counts
-
-# And this section should estimate based on the results of the previous
-# two programs.
+# And this section should estimate based on the results from sampling the
+# template and executing the samplex.
+results = job.results()
+signs = results["signs"]
+counts = results["meas"]
 expectation = mitigated_estimation(signs, counts)
 ```
 
