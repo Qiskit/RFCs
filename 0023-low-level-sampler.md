@@ -73,7 +73,7 @@ The intent of the following listing is to demonstrate how a user could leverage
 the new low-level interface to implement a client-side basic estimator.
 
 ```python
-from qiskit_ibm_runtime import QiskitRuntimeService, Session
+from qiskit_ibm_runtime import QiskitRuntimeService, Session, NoiseLearner
 from qiskit.transpiler import PassManager
 from qiskit.transpiler.passes import NoiseLearningLayering
 from qiskit.circuit import QuantumCircuit, Parameter, QuantumRegister, ClassicalRegister
