@@ -10,7 +10,7 @@
 
 ## Summary
 In Qiskit, the quantum computer interface is built around primitives, which are
-the fundamental operations executable on a quantum circuit. Currently, Qiskit
+the fundamental operations carried on by a quantum computer on a quantum circuit. Currently, Qiskit
 offers two such primitives: the Sampler and the Estimator. The Estimator
 leverages advanced error mitigation techniques to enhance the quality of
 results from noisy quantum computers. On a noiseless quantum computer, the
