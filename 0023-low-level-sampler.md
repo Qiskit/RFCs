@@ -107,7 +107,7 @@ with circuit.box([Twirl(), BasisTransform(ref="my_basis")]):
 layers = find_unique_layers(circuit)
 
 # Prepare circuit for executing
-template, samplex = samplex.build()
+template, samplex_ = samplex.build()
 
 with Session(backend=backend) as session:
   # Learning noise
