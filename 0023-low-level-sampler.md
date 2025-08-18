@@ -120,7 +120,7 @@ with Session(backend=backend) as session:
   program.declare_noise_map("my_noise", noise_map)
   program.append(
     template,
-    samplex=samplex,
+    samplex=samplex_,
     basis_transforms={"my_basis": "XX"},
   )
 
