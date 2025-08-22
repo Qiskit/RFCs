@@ -72,7 +72,7 @@ making it easier to experiment, reproduce results, and share techniques.
 ## Design Proposal
 
 The intent of the following listing is to demonstrate how a user could leverage
-the new low-level interface to implement a client-side basic estimator.
+the new interface to implement a client-side basic estimator.
 
 ```python
 from qiskit_ibm_runtime import QiskitRuntimeService, Session, NoiseLearner
@@ -87,7 +87,7 @@ from qiskit.samplex.annotations import InjectNoise, Twirl
 
 # The proposal wants to acknowledge the transtionary reality in which the
 # primitives continue being the entry point for operating the quantum computer
-# and this is a low level interface for advanced usage.
+# and this is an specific interface for advanced usage.
 from qiskit.primitives.implementation import QuantumProgram, Executor
 
 import numpy as np
@@ -170,12 +170,11 @@ TBD
 
 ## Future Extensions
 
-The introduction of a low‑level sampler is only the first step. The long‑term
-goal is to evolve Qiskit’s compute model toward accepting a single, unified
-operation—this primitive—potentially deprecating the current definition of
-primitives altogether. In this model, noise learning, error mitigation, and any
-other computation could be implemented directly on top of the unified primitive
-abstraction.
+The introduction of the Executor is just the first step inevolving Qiskit's
+compute model toward accepting a single, unified operation—this
+primitive—potentially deprecating the current definition of primitives altogether.
+In this model, noise learning, error mitigation, and any other computation could be
+implemented directly on top of the unified primitive abstraction.
 
 Future RFCs may explore implementing advanced workflows such as noise learning
 natively within this computation model, as well as replacing Qiskit’s existing
