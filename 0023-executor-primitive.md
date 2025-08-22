@@ -12,13 +12,15 @@
 In Qiskit, the quantum computer interface is built around primitives, which are
 the fundamental operations carried by a quantum computer on a quantum circuit.
 Currently, Qiskit offers two such primitives: the Sampler and the Estimator.
-The Estimator leverages advanced error mitigation techniques to enhance the quality
-of results from noisy quantum computers. On a noiseless quantum computer, the
-Estimator could instead be constructed atop the Sampler, simplifying its role.
+The Estimator primitive computes expectation values from circuits and observables, while the Sampler samples the output register from quantum circuit execution. Qiskit IBM Runtime provides optimized implementations of the Qiskit primitives for IBM Quantum hardware. In particular, the Qiskit Runtime Estimator leverages advanced error mitigation techniques to enhance the quality
+of results from noisy quantum computers. On a noiseless quantum computer, this
+Estimator could instead be constructed atop the Sampler, simplifying its implementation.
 However, given current noise levels, robust error mitigation is essential,
 requiring executing thousands or even millions of circuit variations to implement
-certain mitigation protocols. Transmitting these variations across cloud environments
-is inefficient, but this can be optimized using a "samplex", a domain-specific
+certain mitigation protocols. 
+
+Advanced users might benefit from fine-grained control over the error mitigation strategy implementation, but transmitting how precisely to perform these circuit variations across cloud environments 
+is inefficient. We found that this can be optimized using a "samplex", a domain-specific
 language (DSL) program describing the way of producing these variations. The
 samplex enables efficient server-side generation of variations, with results
 transmitted back as samples accompanied by metadata, facilitating client-side
