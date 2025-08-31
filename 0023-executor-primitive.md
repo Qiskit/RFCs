@@ -1,12 +1,14 @@
 # Executor primitive
 
-| **Status**        | **Proposed/Accepted/Deprecated** |
+| **Status**        | **Proposedd**                                |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0023                                         |
-| **Authors**       | Salva de la Puente (salva@ibm.com),  Antonio Corcoles, Ian Hincks    |
-| **Deprecates**    | TBD                 |
+| **Authors**       | Salva de la Puente (salva@ibm.com)           |
+|                   | Ian Hincks (ian.hincks@ibm.com)              |
+|                   | Antonio Corcoles (adcorcol@us.ibm.com)       |
+| **Deprecates**    | TBD                                          |
 | **Submitted**     | 2025-07-30                                   |
-| **Updated**       | YYYY-MM-DD                                   |
+| **Updated**       | 2025-08-30                                   |
 
 ## Summary
 In Qiskit, the quantum computer interface is built around primitives, which are
