@@ -91,10 +91,10 @@ from qiskit.circuit import QuantumCircuit, Parameter, QuantumRegister, Classical
 from qiskit import samplex
 from qiskit.samplex.annotations import InjectNoise, Twirl
 
-# The proposal wants to acknowledge the transtionary reality in which the
-# primitives continue being the entry point for operating the quantum computer
-# and this is an specific interface for advanced usage.
-from qiskit.primitives.implementation import QuantumProgram, Executor
+# The proposal is aligned with IBM current push in enabling quantum information
+# research through its offering and so, places the QuantumProgram and the
+# Executor within a `quantum_info` module inside `qiskit_ibm_runtime` package.
+from qiskit_ibm_runtime.quantum_info import QuantumProgram, Executor
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -144,7 +144,39 @@ counts = results["meas"]
 expectation = mitigated_estimation(signs, counts)
 ```
 
+Both `QuantumProgram` and `Executor` are implemented deriving from the base
+classes in Qiskit `QuantumProgramBase` and `ExecutorBase`, with the following
+definitions:
+
+```python
+# qiskit/primitives/containers/quantum_program.py
+
+from abc import abstractmethod, ABC
+
+class BaseQuantumProgram(ABC):
+  ...
+
+# qiskit/primitives/base/base_executor.py
+
+from abc import abstractmethod, ABC
+from ..containers import QuantumProgram, QuantumProgramResult
+
+class BaseExecutor(ABC):
+  ...
+```
+
 ## Detailed Design
+
+### Quantum program and program results
+TBD
+
+### Samplex and samplex annotations
+TBD
+
+### Noise learning
+TBD
+
+### System drift between learning and mitigation
 TBD
 
 ## Alternative Approaches
