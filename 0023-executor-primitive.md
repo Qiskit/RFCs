@@ -12,19 +12,23 @@
 In Qiskit, the quantum computer interface is built around primitives, which are
 the fundamental operations carried by a quantum computer on a quantum circuit.
 Currently, Qiskit offers two such primitives: the Sampler and the Estimator.
-The Estimator primitive computes expectation values from circuits and observables, while the Sampler samples the output register from quantum circuit execution. Qiskit IBM Runtime provides optimized implementations of the Qiskit primitives for IBM Quantum hardware. In particular, the Qiskit Runtime Estimator leverages advanced error mitigation techniques to enhance the quality
-of results from noisy quantum computers. On a noiseless quantum computer, this
-Estimator could instead be constructed atop the Sampler, simplifying its implementation.
-However, given current noise levels, robust error mitigation is essential,
-requiring executing thousands or even millions of circuit variations to implement
-certain mitigation protocols. 
+The Estimator primitive computes expectation values from circuits and observables,
+while the Sampler samples the output register from quantum circuit execution. Qiskit
+IBM Runtime provides optimized implementations of the Qiskit primitives for IBM
+Quantum hardware. In particular, the Qiskit Runtime Estimator leverages advanced error
+mitigation techniques to enhance the quality of results from noisy quantum computers.
+On a noiseless quantum computer, this Estimator could instead be constructed atop the
+Sampler, simplifying its implementation. However, given current noise levels, robust
+error mitigation is essential, requiring executing thousands or even millions of circuit
+variations to implement certain mitigation protocols. 
 
-Advanced users might benefit from fine-grained control over the error mitigation strategy implementation, but transmitting how precisely to perform these circuit variations across cloud environments 
-is inefficient. We found that this can be optimized using a "samplex", a domain-specific
-language (DSL) program describing the way of producing these variations. The
-samplex enables efficient server-side generation of variations, with results
-transmitted back as samples accompanied by metadata, facilitating client-side
-implementation of error-mitigated estimations.
+Advanced users might benefit from fine-grained control over the error mitigation strategy
+implementation, but transmitting how precisely to perform these circuit variations across
+cloud environments is inefficient. We found that this can be optimized using a "samplex",
+a data structure encoding all information about the randomization process and describing
+the way of producing these variations. The samplex enables efficient server-side generation
+of variations, with results transmitted back as samples accompanied by metadata, facilitating
+client-side implementation of error-mitigated estimations.
 
 ## Motivation
 The purpose of this development is addressing the growing demand within the
@@ -44,8 +48,8 @@ Today, Qiskit users can already run large-scale error mitigation experiments,
 but the process is **implicit**—it is difficult to explain and difficult to
 compose, and users have no direct control over how circuit variations are
 generated or how mitigation is applied. This proposal introduces the **samplex**
-DSL, a portable description language that lets users explicitly define the
-variation strategies applied by the backend.
+data structure, a portable object specifying explicitly encoding all information
+about the randomization process itself.
 
 With this, researchers can tailor error mitigation to their needs. The approach
 preserves backend optimizations while giving users fine-grained
@@ -59,8 +63,8 @@ strategies. By making the variation generation process explicit and
 user-definable, it empowers users to explore and tune novel error mitigation
 techniques.
 
-Backend and platform developers will also benefit, as the **samplex** DSL
-creates a standard interface for describing variation strategies that can be
+Backend and platform developers will also benefit, as the **samplex** data structure
+creates a standard interface for describing randomization strategies that can be
 implemented consistently across vendors. This improves portability, reduces
 vendor lock-in, and enables backends to apply optimizations without sacrificing
 user intent.  
@@ -142,7 +146,7 @@ expectation = mitigated_estimation(signs, counts)
 TBD
 
 ## Alternative Approaches
-An alternative to introducing the **samplex** DSL is to generate all circuit
+An alternative to introducing the **samplex** DAG is to generate all circuit
 variations entirely on the client side and transmit them to the backend for
 execution. This approach offers maximum flexibility and complete control over
 how variations are produced, since the backend would simply execute the
@@ -158,7 +162,7 @@ execution time, and places substantial demands on both client and backend
 infrastructure. It also complicates reproducibility across vendors, since each
 vendor may handle large‑batch execution differently.
 
-By contrast, the **samplex** DSL allows users to describe their variation
+By contrast, the **samplex** DAG allows users to describe their variation
 generation strategies in a portable, serialized form that can be transmitted
 efficiently. The backend can then expand these strategies into actual circuit
 variations locally, reducing network load while preserving user control over
@@ -166,7 +170,10 @@ error mitigation techniques.
 
 ## Questions
 Open questions for discussion and an opening for feedback.
-TBD
+
+- Should Qiskit `quantum_info` include error simulation?
+- Should Qiskit include a reference `Executor` implementation, executing Samplomatic
+  locally based on a noisy `StateVector`?
 
 ## Future Extensions
 
@@ -183,7 +190,7 @@ execution pipeline, make workflows more composable, and provide a consistent
 foundation for new quantum algorithms and techniques.
 
 Additional future work could explore defining domain‑specific languages beyond
-**samplex**, including DSLs dedicated to calculating expectation values or
-other specialized tasks. These DSLs could be layered on top of the unified
-primitive to further extend Qiskit’s flexibility and expressiveness while
+**sampling** annotations, including DSLs dedicated to calculating expectation
+values or other specialized tasks. These DSLs could be layered on top of the
+unified primitive to further extend Qiskit’s flexibility and expressiveness while
 retaining backend portability.
