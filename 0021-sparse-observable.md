@@ -1,8 +1,8 @@
 # Sparse observables with extended alphabets
 
-| **Status**        | **Proposed** |
+| **Status**        | **Accepted** |
 |:------------------|:---------------------------------------------|
-| **RFC #**         | ####                                         |
+| **RFC #**         | 0021                                         |
 | **Authors**       | Jake Lishman (jake.lishman@ibm.com), Ian Hincks (ian.hincks@ibm.com) |
 | **Submitted**     | 2024-06-19                                   |
 

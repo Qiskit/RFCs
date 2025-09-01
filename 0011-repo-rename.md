@@ -3,7 +3,8 @@
 | **Status**        | **Accepted** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0011                                         |
-| **Authors**       | [Luciano Bello](https://github.com/1ucian0), [Kevin Krsulich](https://github.com/kdk)  |
+| **Authors**       | [Luciano Bello](https://github.com/1ucian0)  |
+|                   | [Kevin Krsulich](https://github.com/kdk)     |
 | **Submitted**     | 2023-03-31                                   |
 | **Updated**       | 2023-05-10                                   |
 

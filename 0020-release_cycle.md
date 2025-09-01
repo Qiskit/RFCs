@@ -1,6 +1,6 @@
 # Qiskit release cycle and versioning
 
-| **Status**        | **Proposed/Accepted/Deprecated** |
+| **Status**        | **Accepted** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0020                                         |
 | **Authors**       | [Luciano Bello](https://github.com/1ucian0/) and the Qiskit development team |

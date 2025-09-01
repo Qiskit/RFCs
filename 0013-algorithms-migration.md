@@ -3,7 +3,8 @@
 | **Status**        | **Proposed**                                                                              |
 |:------------------|:------------------------------------------------------------------------------------------|
 | **RFC #**         | 0013                                                                                      |
-| **Authors**       | [Elena Peña Tapia](https://github.com/ElePT), [Steve Wood](https://github.com/woodsp-ibm) |
+| **Authors**       | [Elena Peña Tapia](https://github.com/ElePT) |
+|                   | [Steve Wood](https://github.com/woodsp-ibm) |
 | **Submitted**     | 2023-07-05                                                                                |
 | **Updated**       | 2023-08-31                                                                                |
 

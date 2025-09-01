@@ -4,7 +4,6 @@
 |:------------------|:-----------------------------------------|
 | **RFC #**         | 0014                                     |
 | **Authors**       | Naoki Kanazawa (nkanazawa1989@gmail.com) |
-| **Deprecates**    | N/A                                      |
 | **Submitted**     | 2023-08-23                               |
 | **Updated**       | 2023-09-12                               |
 

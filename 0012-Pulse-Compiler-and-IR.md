@@ -3,8 +3,8 @@
 | **Status**        | **[Not planned](https://github.com/Qiskit/RFCs/pull/73)** |
 |:------------------|:---------------------------------------------|
 | **RFC #**         | 0012                                         |
-| **Authors**       | Tsafrir Armon (tsafrir.armon@ibm.com),  Naoki Kanazawa (knzwnao@jp.ibm.com)    |
-| **Deprecates**    | -                 |
+| **Authors**       | Tsafrir Armon (tsafrir.armon@ibm.com)        |
+|                   | Naoki Kanazawa (knzwnao@jp.ibm.com)          |
 | **Submitted**     | 2023-07-31                                   |
 | **Updated**       | 2023-08-07                                   |
 
