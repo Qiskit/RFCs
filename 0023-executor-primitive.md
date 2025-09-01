@@ -1,0 +1,265 @@
+# Executor primitive
+
+| **Status**        | **Proposedd**                                |
+|:------------------|:---------------------------------------------|
+| **RFC #**         | 0023                                         |
+| **Authors**       | Salva de la Puente (salva@ibm.com)           |
+|                   | Ian Hincks (ian.hincks@ibm.com)              |
+|                   | Antonio Corcoles (adcorcol@us.ibm.com)       |
+| **Deprecates**    | TBD                                          |
+| **Submitted**     | 2025-07-30                                   |
+| **Updated**       | 2025-08-30                                   |
+
+## Summary
+In Qiskit, the quantum computer interface is built around primitives, which are
+the fundamental operations carried by a quantum computer on a quantum circuit.
+Currently, Qiskit offers two such primitives: the Sampler and the Estimator.
+The Estimator primitive computes expectation values from circuits and observables,
+while the Sampler samples the output register from quantum circuit execution. Qiskit
+IBM Runtime provides optimized implementations of the Qiskit primitives for IBM
+Quantum hardware. In particular, the Qiskit Runtime Estimator leverages advanced error
+mitigation techniques to enhance the quality of results from noisy quantum computers.
+On a noiseless quantum computer, this Estimator could instead be constructed atop the
+Sampler, simplifying its implementation. However, given current noise levels, robust
+error mitigation is essential, requiring executing thousands or even millions of circuit
+variations to implement certain mitigation protocols. 
+
+Advanced users might benefit from fine-grained control over the error mitigation strategy
+implementation, but transmitting how precisely to perform these circuit variations across
+cloud environments is inefficient. We found that this can be optimized using a "samplex",
+a data structure encoding all information about the randomization process and describing
+the way of producing these variations. The samplex enables efficient server-side generation
+of variations, with results transmitted back as samples accompanied by metadata, facilitating
+client-side implementation of error-mitigated estimations.
+
+## Motivation
+The purpose of this development is addressing the growing demand within the
+quantum information science community for advanced error mitigation techniques.
+Users and researchers seek finer control over these techniques to improve the
+reliability of quantum computations, especially on noisy quantum hardware.
+Vendors like IBM have identified that users desire capabilities for precise
+noise learning, twirling, and expectation value calculations.
+
+This proposal will enable Qiskit users to perform large-scale, backend-optimized
+error mitigation experiments without incurring the high network cost of
+transmitting thousands or millions of circuit variations. By shifting variation
+generation to the backend through a portable DSL, researchers can run advanced
+techniques more efficiently.
+
+Today, Qiskit users can already run large-scale error mitigation experiments,
+but the process is **implicit**—it is difficult to explain and difficult to
+compose, and users have no direct control over how circuit variations are
+generated or how mitigation is applied. This proposal introduces the **samplex**
+data structure, a portable object specifying explicitly encoding all information
+about the randomization process itself.
+
+With this, researchers can tailor error mitigation to their needs. The approach
+preserves backend optimizations while giving users fine-grained
+control, reproducibility through deterministic seeds, and access to structured
+metadata for postprocessing.
+
+## User Benefit
+This proposal will primarily benefit researchers and practitioners working with
+noisy quantum hardware who require precise control over error mitigation
+strategies. By making the variation generation process explicit and
+user-definable, it empowers users to explore and tune novel error mitigation
+techniques.
+
+Backend and platform developers will also benefit, as the **samplex** data structure
+creates a standard interface for describing randomization strategies that can be
+implemented consistently across vendors. This improves portability, reduces
+vendor lock-in, and enables backends to apply optimizations without sacrificing
+user intent.  
+
+Finally, the broader Qiskit community, including educators and tool developers,
+will gain a clearer and more composable model for error mitigation workflows,
+making it easier to experiment, reproduce results, and share techniques.
+
+## Design Proposal
+
+The intent of the following listing is to demonstrate how a user could leverage
+the new interface to implement a client-side basic estimator.
+
+```python
+from qiskit_ibm_runtime import QiskitRuntimeService, Session, NoiseLearner
+from qiskit.transpiler import PassManager
+from qiskit.transpiler.passes import NoiseLearningLayering
+from qiskit.circuit import QuantumCircuit, Parameter, QuantumRegister, ClassicalRegister
+
+# This proposal assumes the semantics implemented in samplomatic will become
+# part of qiskit semantics at some moment.
+from qiskit import samplex
+from qiskit.samplex.annotations import InjectNoise, Twirl
+
+# The proposal is aligned with IBM current push in enabling quantum information
+# research through its offering and so, places the ExecutorProgram and the
+# Executor within a `quantum_info` module inside `qiskit_ibm_runtime` package.
+from qiskit_ibm_runtime.quantum_info import ExecutorProgram, Executor
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+service = QiskitRuntimeService(name="staging-cloud")
+backend = service.backend("test_heron")
+
+# Build a circuit for which we need to learn the noise.
+circuit = QuantumCircuit(2)
+
+with circuit.box([Twirl(), InjectNoise(ref="my_noise")]):
+  circuit.cx(0, 1)
+
+with circuit.box([Twirl(), BasisTransform(ref="my_basis")]):
+  circuit.measure_all()
+
+# Extract layers of the circuit
+layers = find_unique_layers(circuit)
+
+# Prepare circuit for executing
+template, samplex_ = samplex.build()
+
+with Session(backend=backend) as session:
+  # Learning noise
+  noise_learner = NoiseLearner(backend)
+  noise_learner_result = noise_learner.run(layers).result()
+  noise_map = noise_learner_result["noise_map"]
+
+  # Preparing a quantum program for noise-aware sampling
+  program = ExecutorProgram(shots=1024)
+  program.define_symbol("my_noise", noise_map)
+  program.append(
+    template,
+    samplex=samplex_,
+    basis_transforms={"my_basis": "XX"},
+  )
+
+  # Execute (sample) the circuit
+  executor = Executor(backend)
+  job = executor.run(program)
+
+# And this section should estimate based on the results from sampling the
+# template and executing the samplex.
+results = job.results()
+signs = results["signs"]
+counts = results["meas"]
+expectation = mitigated_estimation(signs, counts)
+```
+
+Both `ExecutorProgram` and `Executor` are implemented deriving from the base
+classes in Qiskit `ExecutorProgramBase` and `ExecutorBase`, with the following
+definitions:
+
+```python
+# qiskit/primitives/containers/quantum_program.py
+
+from abc import abstractmethod, ABC
+
+class BaseExecutorProgram(ABC):
+  ...
+
+# qiskit/primitives/base/base_executor.py
+
+from abc import abstractmethod, ABC
+from ..containers import ExecutorProgram, ExecutorResult
+
+class BaseExecutor(ABC):
+  ...
+```
+
+## Detailed Design
+
+### Executor program and program results
+The `Executor` primitive exposes a noise-aware compute model for running
+circuits enabling noise mitigation. The circuit represents, however, just a
+portion of the quantum computer operation. In the same way a classical computer
+does not run ALU operations only, the quantum computer needs additional
+instructions, and directives to deal with _aspects_ such as observable
+measurements, randomization, batching, or shot scheduling, to mention some. The
+`ExecutorProgram` interface captures all semantics needed to operate the quantum
+computer. 
+
+Once program execution is done, there is need for collecting not only computation
+results, but metadata about computation, including non-sensitive intermediate and
+final machine state. The `ExecutorResult` interface captures this data. 
+
+### Samplex annotations and the samplex data structure
+We discussed the need for instructions besides circuit operations. Samplex annotations
+are domain specific instructions and conform a domain specific language, or _DSL_, that
+augments circuit semantics to instruct the computer how to executor a randomization
+protocol for enabling error mitigation techniques. Given randomization semantics are
+tightly coupled to circuit operations, box annotations emerge as the natural
+implementation in Qiskit. 
+
+The samplex data structure encodes the steps for implementing randomization protocols
+in a directed acyclic graph, or _DAG_. The result of executing the randomization protocol
+on a circuit is the generation of potentially millions of circuit variations. Instead
+of requesting the client to generate these variations and transmit them through the wire,
+the `ExecutorProgram` package an optional samplex data structure to run it client-side,
+saving unnecesary bandwith, and potentially performing fast template circuit hydration
+withing the quantum computer runtime.
+
+### Noise learning
+TBD
+
+### System drift between learning and mitigation
+Explicit separation of noise learning and execution introduces the possibility for the
+system to drift in between the construction of the noise map and its application during
+mitigation. Drifting means the noise characterization may be outdated by the time the user
+wants to use it for error mitigation. To warrant error mitigation happens right after
+learning, the user can use runtime sessions to acquire exclusive access on the system, as
+shown in the example above.
+
+## Alternative Approaches
+An alternative to introducing the **samplex** DAG is to generate all circuit
+variations entirely on the client side and transmit them to the backend for
+execution. This approach offers maximum flexibility and complete control over
+how variations are produced, since the backend would simply execute the
+provided circuits without influencing their structure. Users could implement
+any custom error mitigation workflow they wish, with no restrictions imposed by
+backend capabilities or vendor‑specific optimizations.
+
+However, this approach has significant drawbacks. Large‑scale error mitigation
+often requires thousands or even millions of circuit variations, making
+client‑side generation impractical for real‑world workloads. Transmitting such a
+large volume of circuits over the network introduces high latency, increases
+execution time, and places substantial demands on both client and backend
+infrastructure. It also complicates reproducibility across vendors, since each
+vendor may handle large‑batch execution differently.
+
+By contrast, the **samplex** DAG allows users to describe their variation
+generation strategies in a portable, serialized form that can be transmitted
+efficiently. The backend can then expand these strategies into actual circuit
+variations locally, reducing network load while preserving user control over
+error mitigation techniques.
+
+An intermediate solution would have been to save the user from generating the
+samplex in the client, sending the annotated circuit only. However, local
+inspectability and debuggability would require local generation of the samplex
+DAG anyhow. More importantly, the compute model becomes simpler and honors its main
+responsibillity: execution.
+
+## Questions
+Open questions for discussion and an opening for feedback.
+
+- Should Qiskit `quantum_info` include noisy statevector evolution?
+- Should Qiskit include a reference `Executor` implementation, executing Samplomatic
+  locally based on a noisy `StateVector`?
+
+## Future Extensions
+
+The introduction of the Executor is just the first step inevolving Qiskit's
+compute model toward accepting a single, unified operation—this
+primitive—potentially deprecating the current definition of primitives altogether.
+In this model, noise learning, error mitigation, and any other computation could be
+implemented directly on top of the unified primitive abstraction.
+
+Future RFCs may explore implementing advanced workflows such as noise learning
+natively within this computation model, as well as replacing Qiskit’s existing
+compute interface with the unified approach. This shift would simplify the
+execution pipeline, make workflows more composable, and provide a consistent
+foundation for new quantum algorithms and techniques.
+
+Additional future work could explore defining domain‑specific languages beyond
+**sampling** annotations, including DSLs dedicated to calculating expectation
+values or other specialized tasks. These DSLs could be layered on top of the
+unified primitive to further extend Qiskit’s flexibility and expressiveness while
+retaining backend portability.
