@@ -231,9 +231,11 @@ efficiently. The backend can then expand these strategies into actual circuit
 variations locally, reducing network load while preserving user control over
 error mitigation techniques.
 
-An intermediate solution would have been to save the user the generation of
-the samplex in the client, sending the annotated circuit only. TBD into why
-this option was discarded.
+An intermediate solution would have been to save the user from generating the
+samplex in the client, sending the annotated circuit only. However, local
+inspectability and debuggability would require local generation of the samplex
+DAG anyhow. More importantly, the compute model becomes simpler and honors its main
+responsibillity: execution.
 
 ## Questions
 Open questions for discussion and an opening for feedback.
