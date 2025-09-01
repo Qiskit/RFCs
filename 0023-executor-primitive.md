@@ -92,9 +92,9 @@ from qiskit import samplex
 from qiskit.samplex.annotations import InjectNoise, Twirl
 
 # The proposal is aligned with IBM current push in enabling quantum information
-# research through its offering and so, places the QuantumProgram and the
+# research through its offering and so, places the ExecutorProgram and the
 # Executor within a `quantum_info` module inside `qiskit_ibm_runtime` package.
-from qiskit_ibm_runtime.quantum_info import QuantumProgram, Executor
+from qiskit_ibm_runtime.quantum_info import ExecutorProgram, Executor
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -124,8 +124,8 @@ with Session(backend=backend) as session:
   noise_map = noise_learner_result["noise_map"]
 
   # Preparing a quantum program for noise-aware sampling
-  program = QuantumProgram(shots=1024)
-  program.declare_noise_map("my_noise", noise_map)
+  program = ExecutorProgram(shots=1024)
+  program.define_symbol("my_noise", noise_map)
   program.append(
     template,
     samplex=samplex_,
@@ -144,8 +144,8 @@ counts = results["meas"]
 expectation = mitigated_estimation(signs, counts)
 ```
 
-Both `QuantumProgram` and `Executor` are implemented deriving from the base
-classes in Qiskit `QuantumProgramBase` and `ExecutorBase`, with the following
+Both `ExecutorProgram` and `Executor` are implemented deriving from the base
+classes in Qiskit `ExecutorProgramBase` and `ExecutorBase`, with the following
 definitions:
 
 ```python
@@ -153,13 +153,13 @@ definitions:
 
 from abc import abstractmethod, ABC
 
-class BaseQuantumProgram(ABC):
+class BaseExecutorProgram(ABC):
   ...
 
 # qiskit/primitives/base/base_executor.py
 
 from abc import abstractmethod, ABC
-from ..containers import QuantumProgram, QuantumProgramResult
+from ..containers import ExecutorProgram, ExecutorResult
 
 class BaseExecutor(ABC):
   ...
@@ -167,17 +167,46 @@ class BaseExecutor(ABC):
 
 ## Detailed Design
 
-### Quantum program and program results
-TBD
+### Executor program and program results
+The `Executor` primitive exposes a noise-aware compute model for running
+circuits enabling noise mitigation. The circuit represents, however, just a
+portion of the quantum computer operation. In the same way a classical computer
+does not run ALU operations only, the quantum computer needs additional
+instructions, and directives to deal with _aspects_ such as observable
+measurements, randomization, batching, or shot scheduling, to mention some. The
+`ExecutorProgram` interface captures all semantics needed to operate the quantum
+computer. 
 
-### Samplex and samplex annotations
-TBD
+Once program execution is done, there is need for collecting not only computation
+results, but metadata about computation, including non-sensitive intermediate and
+final machine state. The `ExecutorResult` interface captures this data. 
+
+### Samplex annotations and the samplex data structure
+We discussed the need for instructions besides circuit operations. Samplex annotations
+are domain specific instructions and conform a domain specific language, or _DSL_, that
+augments circuit semantics to instruct the computer how to executor a randomization
+protocol for enabling error mitigation techniques. Given randomization semantics are
+tightly coupled to circuit operations, box annotations emerge as the natural
+implementation in Qiskit. 
+
+The samplex data structure encodes the steps for implementing randomization protocols
+in a directed acyclic graph, or _DAG_. The result of executing the randomization protocol
+on a circuit is the generation of potentially millions of circuit variations. Instead
+of requesting the client to generate these variations and transmit them through the wire,
+the `ExecutorProgram` package an optional samplex data structure to run it client-side,
+saving unnecesary bandwith, and potentially performing fast template circuit hydration
+withing the quantum computer runtime.
 
 ### Noise learning
 TBD
 
 ### System drift between learning and mitigation
-TBD
+Explicit separation of noise learning and execution introduces the possibility for the
+system to drift in between the construction of the noise map and its application during
+mitigation. Drifting means the noise characterization may be outdated by the time the user
+wants to use it for error mitigation. To warrant error mitigation happens right after
+learning, the user can use runtime sessions to acquire exclusive access on the system, as
+shown in the example above.
 
 ## Alternative Approaches
 An alternative to introducing the **samplex** DAG is to generate all circuit
@@ -202,10 +231,14 @@ efficiently. The backend can then expand these strategies into actual circuit
 variations locally, reducing network load while preserving user control over
 error mitigation techniques.
 
+An intermediate solution would have been to save the user the generation of
+the samplex in the client, sending the annotated circuit only. TBD into why
+this option was discarded.
+
 ## Questions
 Open questions for discussion and an opening for feedback.
 
-- Should Qiskit `quantum_info` include error simulation?
+- Should Qiskit `quantum_info` include noisy statevector evolution?
 - Should Qiskit include a reference `Executor` implementation, executing Samplomatic
   locally based on a noisy `StateVector`?
 
